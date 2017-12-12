@@ -5,8 +5,8 @@ import tflearn
 from model import Model
 
 if __name__ == '__main__':
-    image_paths, labels = dataset_utils.read_dataset_list('C:/Users/asus.11/Documents/bi_lstm_ocr/test_files/dummy_labels_file.txt')
-    data_dir = "C:/Users/asus.11/Documents/bi_lstm_ocr/test_files/dummy_data/"
+    image_paths, labels = dataset_utils.read_dataset_list('../test/dummy_labels_file.txt')
+    data_dir = "../test/dummy_data/"
     images = dataset_utils.read_images(data_dir=data_dir, image_paths=image_paths, image_extension='png')
     images = dataset_utils.resize(images, (1596, 48))
     labels = dataset_utils.encode(labels)

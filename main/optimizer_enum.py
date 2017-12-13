@@ -4,6 +4,7 @@ class Optimizers(Enum):
     ADAM = "adam"
     RMSPROP = "rmsprop"
     ADADELTA = "adadelta"
+    MOMENTUM = "momentum"
 
     @staticmethod
     def get_optimizer(optimizer_name):

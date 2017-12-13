@@ -28,7 +28,6 @@ def read_images(data_dir, image_paths, image_extension='png'):
             print('Number of images read: {}/{}'.format(i, len(image_paths)))
         images.append(cv2.imread(data_dir + image_name + '.' + image_extension, 0).astype(np.float32))
         i = i + 1
-    print('Done')
     return images
 
 def resize(images, shape):
@@ -66,3 +65,10 @@ def convert_to_sparse(labels, dtype=np.int32):
 
 def get_seq_lens(data):
     return np.asarray([len(s) for s in data], dtype=np.int32)
+
+
+def transpose(images):
+    transposed_images = []
+    for image in images:
+        transposed_images.append(image.swapaxes(0,1))
+    return transposed_images

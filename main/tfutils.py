@@ -1,6 +1,5 @@
 import tensorflow as tf
 import tflearn
-from tflearn import bidirectional_rnn, BasicLSTMCell
 
 from optimizer_enum import Optimizers
 
@@ -19,9 +18,11 @@ def input_data(shape, name: str = 'InputData', input_type=tf.float32):
 def reshape(tensor: tf.Tensor, new_shape: list):
     return tf.reshape(tensor, new_shape, name="reshape")
 
-def bidirectional_lstm(inputs, num_hidden: int, return_seq=False):
-    return bidirectional_rnn(inputs, BasicLSTMCell(num_hidden), BasicLSTMCell(num_hidden), return_seq=return_seq)
-
+def bidirectional_lstm(inputs, num_hidden: int):
+    lstm_fw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden * (2 ** i), forget_bias=1.0) for i in range(3)]
+    lstm_bw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden * (2 ** i), forget_bias=1.0) for i in range(3)]
+    return tf.contrib.rnn.stack_bidirectional_dynamic_rnn(lstm_fw_cells, lstm_bw_cells, inputs,
+                                                          dtype=tf.float32)[0]
 
 def decode(inputs, sequence_length, merge_repeated=True):
     decoded, _ = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)
@@ -30,15 +31,15 @@ def decode(inputs, sequence_length, merge_repeated=True):
 def label_error_rate(y_pred, y_true):
     return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true))
 
-def optimize(loss, optimizer, learning_rate):
+def optimize(optimizer, learning_rate):
     if optimizer == Optimizers.MOMENTUM:
-        return tf.train.MomentumOptimizer(learning_rate, momentum=0.9).minimize(loss)
+        return tf.train.MomentumOptimizer(learning_rate, momentum=0.9)
     if optimizer == Optimizers.ADAM:
-        return tf.train.AdamOptimizer(learning_rate).minimize(loss)
+        return tf.train.AdamOptimizer(learning_rate)
     if optimizer == Optimizers.ADADELTA:
-        return tf.train.AdadeltaOptimizer(learning_rate).minimize(loss)
+        return tf.train.AdadeltaOptimizer(learning_rate)
     if optimizer == Optimizers.RMSPROP:
-        return tf.train.RMSPropOptimizer(learning_rate).minimize(loss)
+        return tf.train.RMSPropOptimizer(learning_rate)
     raise NotImplementedError("{} is not implemented.".format(optimizer))
 
 def sparse_input_data(input_type=tf.int32):

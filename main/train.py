@@ -22,7 +22,7 @@ if __name__ == '__main__':
         bi_lstm_model = Model()
         loss, label_error_rate, cost = bi_lstm_model.loss()
         print('Done loss')
-        optimizer = bi_lstm_model.optimize(cost, Optimizers.MOMENTUM)
+        optimizer = bi_lstm_model.optimize(Optimizers.MOMENTUM)
         print('Done optimization')
         train_op = tflearn.TrainOp(loss=loss, optimizer=optimizer, metric=label_error_rate, batch_size=1)
         print('Done initializing train_op')

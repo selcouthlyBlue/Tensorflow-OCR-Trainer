@@ -1,5 +1,4 @@
 import unittest
-import os
 import dataset_utils
 
 
@@ -13,7 +12,7 @@ class DatasetUtilsTest(unittest.TestCase):
 
     def test_split_dataset(self):
         test_size = 0.5
-        x_train, y_train, x_test, y_test = dataset_utils.split(self.data['numbers'], test_size, labels=self.data['labels'])
+        x_train, x_test, y_train, y_test = dataset_utils.split(self.data['numbers'], test_size, labels=self.data['labels'])
         self.assertTrue(len(x_train) == len(y_train) == 1 and len(x_test) == len(y_test) == 1)
         
 

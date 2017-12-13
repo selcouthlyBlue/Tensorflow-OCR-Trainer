@@ -21,7 +21,6 @@ if __name__ == '__main__':
     with tf.Graph().as_default():
         bi_lstm_model = Model()
         loss, label_error_rate, cost = bi_lstm_model.loss()
-        print('Done inference')
         print('Done loss')
         optimizer = bi_lstm_model.optimize(cost, Optimizers.MOMENTUM)
         print('Done optimization')

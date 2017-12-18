@@ -1,5 +1,4 @@
 import dataset_utils
-import tensorflow as tf
 import tflearn
 
 from model import Model
@@ -18,16 +17,10 @@ if __name__ == '__main__':
     x_test_seq_lens = dataset_utils.get_seq_lens(x_test)
     sparse_y_train = dataset_utils.convert_to_sparse(y_train)
     sparse_y_test = dataset_utils.convert_to_sparse(y_test)
-    with tf.Graph().as_default():
-        bi_lstm_model = Model()
-        loss, label_error_rate, cost = bi_lstm_model.loss()
-        print('Done loss')
-        optimizer = bi_lstm_model.optimize(Optimizers.MOMENTUM)
-        print('Done optimization')
-        train_op = tflearn.TrainOp(loss=loss, optimizer=optimizer, metric=label_error_rate, batch_size=1)
-        print('Done initializing train_op')
-        trainer = tflearn.Trainer(train_ops=train_op, tensorboard_verbose=0)
-        print('Done initializing trainer')
-        trainer.fit({bi_lstm_model.inputs: x_train, bi_lstm_model.seq_lens: x_train_seq_lens, bi_lstm_model.labels: sparse_y_train},
-                    val_feed_dicts={bi_lstm_model.inputs: x_train, bi_lstm_model.seq_lens: x_test_seq_lens,  bi_lstm_model.labels: sparse_y_test})
-        print('Done training')
+    bi_lstm_model = Model()
+    _, label_error_rate, cost = bi_lstm_model.loss()
+    optimizer = bi_lstm_model.optimize(Optimizers.MOMENTUM)
+    train_op = tflearn.TrainOp(loss=cost, optimizer=optimizer, metric=label_error_rate, batch_size=1)
+    trainer = tflearn.Trainer(train_ops=train_op, tensorboard_verbose=0)
+    trainer.fit({bi_lstm_model.inputs: x_train, bi_lstm_model.seq_lens: x_train_seq_lens, bi_lstm_model.labels: sparse_y_train},
+                val_feed_dicts={bi_lstm_model.inputs: x_train, bi_lstm_model.seq_lens: x_test_seq_lens,  bi_lstm_model.labels: sparse_y_test})

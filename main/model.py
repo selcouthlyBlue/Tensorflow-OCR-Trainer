@@ -10,7 +10,7 @@ class Model(object):
         self.learning_rate = 0.01
 
     def _inference(self):
-        model = network_utils.bidirectional_lstm(self.inputs, 25)
+        model = network_utils.bidirectional_lstm(self.inputs, [25, 50, 100])
         logits = network_utils.get_time_major(model, self.num_classes, network_utils.get_shape(self.inputs)[0], 200)
         return logits
 

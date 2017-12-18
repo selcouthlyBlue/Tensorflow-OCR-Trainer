@@ -18,9 +18,9 @@ def input_data(shape, name: str = 'InputData', input_type=tf.float32):
 def reshape(tensor: tf.Tensor, new_shape: list):
     return tf.reshape(tensor, new_shape, name="reshape")
 
-def bidirectional_lstm(inputs, num_hidden: int):
-    lstm_fw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden * (2 ** i), forget_bias=1.0) for i in range(3)]
-    lstm_bw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden * (2 ** i), forget_bias=1.0) for i in range(3)]
+def bidirectional_lstm(inputs, num_hidden_list):
+    lstm_fw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
+    lstm_bw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
     return tf.contrib.rnn.stack_bidirectional_dynamic_rnn(lstm_fw_cells, lstm_bw_cells, inputs,
                                                           dtype=tf.float32)[0]
 
@@ -61,12 +61,10 @@ def get_time_major(model, num_classes, batch_size, num_hidden_units):
 def cost(loss):
     return tf.reduce_mean(loss)
 
-
 def get_type(type_str):
     if type_str == 'int32':
         return tf.int32
     return tf.float32
-
 
 def get_shape(tensor):
     return tf.shape(tensor)

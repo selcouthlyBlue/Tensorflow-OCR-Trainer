@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tflearn
 
 from optimizer_enum import Optimizers
 
@@ -13,7 +12,7 @@ def ctc_loss(predictions, labels, sequence_length,
                           time_major=inputs_are_time_major)
 
 def input_data(shape, name: str = 'InputData', input_type=tf.float32):
-    return tflearn.input_data(shape=shape, dtype=input_type, name=name)
+    return tf.placeholder(shape=shape, dtype=input_type, name=name)
 
 def reshape(tensor: tf.Tensor, new_shape: list):
     return tf.reshape(tensor, new_shape, name="reshape")
@@ -26,24 +25,29 @@ def bidirectional_lstm(inputs, num_hidden_list):
 
 def decode(inputs, sequence_length, merge_repeated=True):
     decoded, _ = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)
-    return decoded
+    return decoded[0]
 
 def label_error_rate(y_pred, y_true):
     return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true))
 
-def optimize(optimizer, learning_rate):
-    if optimizer == Optimizers.MOMENTUM:
-        return tf.train.MomentumOptimizer(learning_rate, momentum=0.9)
-    if optimizer == Optimizers.ADAM:
-        return tf.train.AdamOptimizer(learning_rate)
-    if optimizer == Optimizers.ADADELTA:
-        return tf.train.AdadeltaOptimizer(learning_rate)
-    if optimizer == Optimizers.RMSPROP:
-        return tf.train.RMSPropOptimizer(learning_rate)
-    raise NotImplementedError("{} is not implemented.".format(optimizer))
+def optimize(loss, optimizer_name, learning_rate):
+    global_step = tf.Variable(0, name='global_step', trainable=False)
+    optimizer = get_optimizer(learning_rate, optimizer_name)
+    return optimizer.minimize(loss, global_step=global_step)
+
+def get_optimizer(learning_rate, optimizer_name):
+    if optimizer_name == Optimizers.MOMENTUM:
+        optimizer = tf.train.MomentumOptimizer(learning_rate, momentum=0.9)
+    elif optimizer_name == Optimizers.ADAM:
+        optimizer = tf.train.AdamOptimizer(learning_rate)
+    elif optimizer_name == Optimizers.ADADELTA:
+        optimizer = tf.train.AdadeltaOptimizer(learning_rate)
+    else:
+        optimizer = tf.train.RMSPropOptimizer(learning_rate)
+    return optimizer
 
 def sparse_input_data(input_type=tf.int32):
-    return tf.sparse_placeholder(input_type)
+    return tf.sparse_placeholder(dtype=input_type)
 
 def get_time_major(model, num_classes, batch_size, num_hidden_units):
     outputs = reshape(model, [-1, num_hidden_units])
@@ -58,9 +62,6 @@ def get_time_major(model, num_classes, batch_size, num_hidden_units):
     logits = tf.transpose(logits, (1, 0, 2))
     return logits
 
-def cost(loss):
-    return tf.reduce_mean(loss)
-
 def get_type(type_str):
     if type_str == 'int32':
         return tf.int32
@@ -68,3 +69,9 @@ def get_type(type_str):
 
 def get_shape(tensor):
     return tf.shape(tensor)
+
+def initialize_variable(initial_value, name, is_trainable):
+    return tf.Variable(initial_value, name=name, trainable=is_trainable)
+
+def cost(loss):
+    return tf.reduce_mean(loss)

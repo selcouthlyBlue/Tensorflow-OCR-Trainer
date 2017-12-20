@@ -1,6 +1,7 @@
 import tensorflow as tf
 
 from optimizer_enum import Optimizers
+from tensorflow.contrib.grid_rnn.python.ops import grid_rnn_cell
 
 def ctc_loss(predictions, labels, sequence_length,
              preprocess_collapse_repeated_labels=True,
@@ -22,6 +23,14 @@ def bidirectional_lstm(inputs, num_hidden_list):
     lstm_bw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
     return tf.contrib.rnn.stack_bidirectional_dynamic_rnn(lstm_fw_cells, lstm_bw_cells, inputs,
                                                           dtype=tf.float32)[0]
+
+def grid_lstm(inputs, num_hidden_units):
+    inputs = reshape(inputs, [-1, inputs.shape[1]])
+    inputs = tf.split(0, inputs.shape[2], inputs)
+    lstm_cell = grid_rnn_cell.GridRNNCell(num_units=num_hidden_units, num_dims=2)
+    lstm_cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * num_hidden_units, state_is_tuple=True)
+    return tf.nn.static_rnn(lstm_cell, inputs)[0]
+
 
 def decode(inputs, sequence_length, merge_repeated=True):
     decoded, _ = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)

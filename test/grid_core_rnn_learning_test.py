@@ -1,0 +1,47 @@
+import tensorflow as tf
+from tensorflow.contrib.grid_rnn.python.ops import grid_rnn_cell
+
+
+def reshape_to_rnn_dims(tensor, shape):
+    reshaped_tensor = tf.reshape(tensor, shape)
+    split_tensor = tf.split(reshaped_tensor, shape[1], 1)
+    return split_tensor
+
+
+class GridLSTMCellTest(tf.test.TestCase):
+    def setUp(self):
+        self.num_features = 1
+        self.time_steps = 1
+        self.batch_size = 1
+        tf.reset_default_graph()
+        self.input_layer = tf.placeholder(tf.float32, [self.batch_size, self.time_steps, self.num_features])
+        self.cell = grid_rnn_cell.Grid1LSTMCell(num_units=8)
+
+    def test_simple_grid_rnn(self):
+        self.input_layer = reshape_to_rnn_dims(self.input_layer, [-1, self.num_features * self.time_steps])
+        tf.nn.static_rnn(self.cell, self.input_layer, dtype=tf.float32)
+
+    def test_dynamic_grid_rnn(self):
+        tf.nn.dynamic_rnn(self.cell, self.input_layer, dtype=tf.float32)
+
+
+class BidirectionalGridRNNCellTest(tf.test.TestCase):
+    def setUp(self):
+        self.num_features = 1
+        self.time_steps = 1
+        self.batch_size = 1
+        tf.reset_default_graph()
+        self.input_layer = tf.placeholder(tf.float32, [self.batch_size, self.time_steps, self.num_features])
+        self.cell_fw = grid_rnn_cell.Grid1LSTMCell(num_units=8)
+        self.cell_bw = grid_rnn_cell.Grid1LSTMCell(num_units=8)
+
+    def test_simple_bidirectional_grid_rnn(self):
+        self.input_layer = reshape_to_rnn_dims(self.input_layer, [-1, self.num_features * self.time_steps])
+        tf.nn.static_bidirectional_rnn(self.cell_fw, self.cell_fw, self.input_layer, dtype=tf.float32)
+
+    def test_bidirectional_dynamic_grid_rnn(self):
+        tf.nn.bidirectional_dynamic_rnn(self.cell_fw, self.cell_bw, self.input_layer, dtype=tf.float32)
+
+
+if __name__ == '__main__':
+    tf.test.main()

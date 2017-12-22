@@ -12,7 +12,6 @@ class GridRNNTest(tf.test.TestCase):
         self.batch_size = 1
         tf.reset_default_graph()
         self.input_layer = tf.placeholder(tf.float32, [self.batch_size, self.time_steps, self.num_features])
-        self.sequence_length = tf.placeholder(tf.int32, [None])
         self.cell = rnn.BasicLSTMCell(num_units=8)
 
     def test_simple_grid_rnn(self):

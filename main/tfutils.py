@@ -1,6 +1,8 @@
 import tensorflow as tf
 
 from optimizer_enum import Optimizers
+from tensorflow.contrib import rnn
+from tensorflow.contrib import grid_rnn
 
 def ctc_loss(predictions, labels, sequence_length,
              preprocess_collapse_repeated_labels=True,
@@ -11,17 +13,21 @@ def ctc_loss(predictions, labels, sequence_length,
                           ctc_merge_repeated=ctc_merge_repeated,
                           time_major=inputs_are_time_major)
 
-def input_data(shape, name: str = 'InputData', input_type=tf.float32):
-    return tf.placeholder(shape=shape, dtype=input_type, name=name)
+def input_data(shape, name: str = 'InputData', input_type='float32'):
+    return tf.placeholder(shape=shape, dtype=_get_type(input_type), name=name)
 
 def reshape(tensor: tf.Tensor, new_shape: list):
     return tf.reshape(tensor, new_shape, name="reshape")
 
-def bidirectional_lstm(inputs, num_hidden_list):
-    lstm_fw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
-    lstm_bw_cells = [tf.contrib.rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
+def stack_bidirectional_lstm(inputs, num_hidden_list):
+    lstm_fw_cells = [rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
+    lstm_bw_cells = [rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
     return tf.contrib.rnn.stack_bidirectional_dynamic_rnn(lstm_fw_cells, lstm_bw_cells, inputs,
                                                           dtype=tf.float32)[0]
+def bidirectional_grid_lstm(inputs, num_hidden):
+    cell_fw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
+    cell_bw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
+    return tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs, dtype=tf.float32)[0]
 
 def decode(inputs, sequence_length, merge_repeated=True):
     decoded, _ = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)
@@ -62,7 +68,7 @@ def get_time_major(model, num_classes, batch_size, num_hidden_units):
     logits = tf.transpose(logits, (1, 0, 2))
     return logits
 
-def get_type(type_str):
+def _get_type(type_str):
     if type_str == 'int32':
         return tf.int32
     return tf.float32

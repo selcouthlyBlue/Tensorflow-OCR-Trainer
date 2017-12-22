@@ -12,7 +12,7 @@ from optimizer_enum import Optimizers
 def main(_):
     image_paths, labels = dataset_utils.read_dataset_list('../test/dummy_labels_file.txt')
     data_dir = "../test/dummy_data/"
-    log_dir = "log/train/"
+    log_dir = "log/"
     num_epochs = 1
     batch_size = 1
     images = dataset_utils.read_images(data_dir=data_dir, image_paths=image_paths, image_extension='png')

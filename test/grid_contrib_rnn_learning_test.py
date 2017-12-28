@@ -12,7 +12,7 @@ class GridRNNTest(tf.test.TestCase):
         self.batch_size = 1
         tf.reset_default_graph()
         self.input_layer = tf.placeholder(tf.float32, [self.batch_size, self.time_steps, self.num_features])
-        self.cell = rnn.BasicLSTMCell(num_units=1)
+        self.cell = grid_rnn.Grid1LSTMCell(num_units=1)
 
     def test_simple_grid_rnn(self):
         self.input_layer = tf.unstack(self.input_layer, self.time_steps, 1)

@@ -42,15 +42,13 @@ def main(_):
         decoded, _ = tf.nn.ctc_beam_search_decoder(net, seq_lens, merge_repeated=False)
         cost = tf.reduce_mean(tf.nn.ctc_loss(inputs=net, labels=Y, sequence_length=seq_lens))
         optimizer = tf.train.MomentumOptimizer(learning_rate=0.001, momentum=0.5)
-        label_error_rate = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), Y))
 
-        train_op = tflearn.TrainOp(loss=cost, optimizer=optimizer, metric=label_error_rate, batch_size=1)
+        train_op = tflearn.TrainOp(loss=cost, optimizer=optimizer, batch_size=1)
         trainer = tflearn.Trainer(train_ops=train_op, tensorboard_verbose=0)
 
-        trainer.fit({X: x_train, Y: y_train, seq_lens: dataset_utils.get_seq_lens(x_train)},
+        trainer.fit(feed_dicts={X: x_train, Y: y_train, seq_lens: dataset_utils.get_seq_lens(x_train)},
                     val_feed_dicts={X: x_test, Y: y_test, seq_lens: dataset_utils.get_seq_lens(x_test)},
-                    n_epoch=1,
-                    show_metric=True)
+                    n_epoch=1)
 
 
 if __name__ == '__main__':

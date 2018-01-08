@@ -6,5 +6,4 @@ To be able to run training, simply cd into main and run one of the following tra
 
 The other two scripts for training that use tflearn are not yet working.
 
-Running train_using_tflearn_trainer.py throws a RecursionError.
-Running train_using_tflearn_dnn.py throws a TypeError requiring a SparseTensor for ctc_loss.
+train_using_tflearn_trainer.py and train_using_tflearn_dnn.py are still throwing errors. I'm working on them now.

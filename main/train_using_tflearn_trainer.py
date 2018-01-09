@@ -19,7 +19,12 @@ def main(_):
 
     with tf.Graph().as_default():
         X = tf.placeholder(tf.float32, [None, None, 48])
-        Y = tf.sparse_placeholder(tf.int32)
+        label_indices = tf.placeholder(tf.int64)
+        label_shape = tf.placeholder(tf.int64)
+        label_values = tf.placeholder(tf.int32)
+        Y = tf.SparseTensor(indices=label_indices,
+                            dense_shape=label_shape,
+                            values=label_values)
         seq_lens = tf.placeholder(tf.int32, [None])
 
         def dnn(x):
@@ -39,15 +44,14 @@ def main(_):
             return logits
 
         net = dnn(X)
-        decoded, _ = tf.nn.ctc_beam_search_decoder(net, seq_lens, merge_repeated=False)
         cost = tf.reduce_mean(tf.nn.ctc_loss(inputs=net, labels=Y, sequence_length=seq_lens))
         optimizer = tf.train.MomentumOptimizer(learning_rate=0.001, momentum=0.5)
 
-        train_op = tflearn.TrainOp(loss=cost, optimizer=optimizer, batch_size=1)
-        trainer = tflearn.Trainer(train_ops=train_op, tensorboard_verbose=0)
+        train_op = tflearn.TrainOp(loss=cost, optimizer=optimizer)
+        trainer = tflearn.Trainer(train_ops=train_op)
 
-        trainer.fit(feed_dicts={X: x_train, Y: y_train, seq_lens: dataset_utils.get_seq_lens(x_train)},
-                    val_feed_dicts={X: x_test, Y: y_test, seq_lens: dataset_utils.get_seq_lens(x_test)},
+        trainer.fit(feed_dicts={X: x_train, label_indices: y_train[0], label_values: y_train[1], label_shape: y_train[2], seq_lens: dataset_utils.get_seq_lens(x_train)},
+                    val_feed_dicts={X: x_test, label_indices: y_test[0], label_values: y_test[1], label_shape: y_test[2], seq_lens: dataset_utils.get_seq_lens(x_test)},
                     n_epoch=1)
 
 

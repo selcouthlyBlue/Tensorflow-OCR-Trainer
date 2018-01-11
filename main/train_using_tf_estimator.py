@@ -6,6 +6,9 @@ from tensorflow.contrib import grid_rnn, learn, layers, framework
 
 def grid_rnn_fn(features, labels, mode):
     input_layer = tf.reshape(features["x"], [-1, 48, 1596])
+    indices = tf.where(tf.not_equal(labels, tf.constant(0, dtype=tf.int32)))
+    values = tf.gather(labels, indices)
+    labels = tf.SparseTensor(indices, values, dense_shape=labels.shape)
     cell_fw = grid_rnn.Grid2LSTMCell(num_units=128)
     cell_bw = grid_rnn.Grid2LSTMCell(num_units=128)
     bidirectional_grid_rnn = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, input_layer, dtype=tf.float32)
@@ -52,14 +55,9 @@ def main(_):
     images = dataset_utils.transpose(images)
     labels = dataset_utils.encode(labels)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=0.5, labels=labels)
-    sparse_y_train = dataset_utils.convert_to_sparse(y_train)
-    sparse_y_train = tf.SparseTensor(indices=sparse_y_train[0],
-                                     values=sparse_y_train[1],
-                                     dense_shape=sparse_y_train[2])
-
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={"x": np.array(x_train)},
-        y=sparse_y_train,
+        y=np.array(y_train),
         num_epochs=1,
         shuffle=True,
         batch_size=1

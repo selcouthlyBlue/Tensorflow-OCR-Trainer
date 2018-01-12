@@ -7,8 +7,8 @@ from tensorflow.contrib import grid_rnn, learn, layers, framework
 def grid_rnn_fn(features, labels, mode):
     input_layer = tf.reshape(features["x"], [-1, 48, 1596])
     indices = tf.where(tf.not_equal(labels, tf.constant(0, dtype=tf.int32)))
-    values = tf.gather(labels, indices)
-    labels = tf.SparseTensor(indices, values, dense_shape=labels.shape)
+    values = tf.gather_nd(labels, indices)
+    sparse_labels = tf.SparseTensor(indices, values, dense_shape=tf.shape(labels, out_type=tf.int64))
     cell_fw = grid_rnn.Grid2LSTMCell(num_units=128)
     cell_bw = grid_rnn.Grid2LSTMCell(num_units=128)
     bidirectional_grid_rnn = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, input_layer, dtype=tf.float32)
@@ -27,7 +27,7 @@ def grid_rnn_fn(features, labels, mode):
     train_op = None
 
     if mode != learn.ModeKeys.INFER:
-        loss = tf.nn.ctc_loss(inputs=logits, labels=labels, sequence_length=320)
+        loss = tf.nn.ctc_loss(inputs=logits, labels=sparse_labels, sequence_length=320)
 
     if mode == learn.ModeKeys.TRAIN:
         train_op = layers.optimize_loss(loss=loss, global_step=framework.get_global_step(),

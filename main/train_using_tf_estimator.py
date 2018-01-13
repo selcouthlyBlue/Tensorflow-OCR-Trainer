@@ -2,10 +2,12 @@ import dataset_utils
 import tensorflow as tf
 import numpy as np
 
-from tensorflow.contrib import grid_rnn, learn, layers, framework
+from tensorflow.contrib import grid_rnn, learn
+from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
 def grid_rnn_fn(features, labels, mode):
-    input_layer = tf.reshape(features["x"], [-1, 48, 1596])
+    input_layer = tf.reshape(features["x"], [-1, 1596, 48])
+    seq_lens = tf.reshape(features["seq_lens"], [-1])
     indices = tf.where(tf.not_equal(labels, tf.constant(0, dtype=tf.int32)))
     values = tf.gather_nd(labels, indices)
     sparse_labels = tf.SparseTensor(indices, values, dense_shape=tf.shape(labels, out_type=tf.int64))
@@ -27,24 +29,27 @@ def grid_rnn_fn(features, labels, mode):
     train_op = None
 
     if mode != learn.ModeKeys.INFER:
-        loss = tf.nn.ctc_loss(inputs=logits, labels=sparse_labels, sequence_length=320)
+        loss = tf.nn.ctc_loss(inputs=logits, labels=sparse_labels, sequence_length=seq_lens)
 
     if mode == learn.ModeKeys.TRAIN:
-        train_op = layers.optimize_loss(loss=loss, global_step=framework.get_global_step(),
-                                        learning_rate=0.001,
-                                        optimizer="Adam")
+        train_op = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss=loss,
+                                                                        global_step=tf.train.get_global_step())
 
-    decoded, log_probabilities = tf.nn.ctc_beam_search_decoder(inputs=logits, sequence_length=320)
+    decoded, log_probabilities = tf.nn.ctc_beam_search_decoder(inputs=logits, sequence_length=seq_lens)
+    dense_decoded = tf.sparse_to_dense(tf.to_int32(decoded[0].indices),
+                                       tf.to_int32(decoded[0].values),
+                                       tf.to_int32(decoded[0].dense_shape),
+                                       name="output")
 
     predictions = {
-        "decoded": decoded,
+        "decoded": dense_decoded,
         "probabilities": log_probabilities
     }
 
-    return learn.estimators.ModelFnOps(mode=mode,
-                                       predictions=predictions,
-                                       loss=loss,
-                                       train_op=train_op)
+    return model_fn_lib.ModelFnOps(mode=mode,
+                                   predictions=predictions,
+                                   loss=loss,
+                                   train_op=train_op)
 
 def main(_):
     image_paths, labels = dataset_utils.read_dataset_list('../test/dummy_labels_file.txt')
@@ -55,8 +60,10 @@ def main(_):
     images = dataset_utils.transpose(images)
     labels = dataset_utils.encode(labels)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=0.5, labels=labels)
+    x_train_seq_lens = dataset_utils.get_seq_lens(x_train)
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(x_train)},
+        x={"x": np.array(x_train),
+           "seq_lens": np.array(x_train_seq_lens)},
         y=np.array(y_train),
         num_epochs=1,
         shuffle=True,

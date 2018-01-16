@@ -21,7 +21,7 @@ class GridRNNModelFn(ModelFn):
     def model_fn(features, labels, mode, params):
         input_layer = network_utils.reshape(features["x"], [-1, params["num_time_steps"], params["num_features"]])
         seq_lens = network_utils.reshape(features["seq_lens"], [-1])
-        sparse_labels = network_utils.dense_to_sparse(labels, eos_token=0)
+        sparse_labels = network_utils.dense_to_sparse(labels, eos_token=80)
         net = network_utils.bidirectional_grid_lstm(inputs=input_layer, num_hidden=params["num_hidden_units"])
         net = network_utils.get_time_major(inputs=net,
                                            num_classes=params["num_classes"],

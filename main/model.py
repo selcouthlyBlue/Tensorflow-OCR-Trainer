@@ -17,11 +17,11 @@ class Model(object):
         return logits
 
     def loss(self, logits):
-        loss = network_utils.ctc_loss(predictions=logits, labels=self.labels, sequence_length=self.seq_lens)
+        loss = network_utils.ctc_loss(inputs=logits, labels=self.labels, sequence_length=self.seq_lens)
         return loss
 
     def cost(self, logits):
-        loss = network_utils.ctc_loss(predictions=logits, labels=self.labels, sequence_length=self.seq_lens)
+        loss = network_utils.ctc_loss(inputs=logits, labels=self.labels, sequence_length=self.seq_lens)
         return network_utils.cost(loss)
 
     def training(self, loss, optimizer_name):

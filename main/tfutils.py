@@ -29,13 +29,16 @@ def bidirectional_grid_lstm(inputs, num_hidden):
     cell_bw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
     return tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs, dtype=tf.float32)[0]
 
-def decode(inputs, sequence_length, merge_repeated=True):
+def ctc_beam_search_decoder(inputs, sequence_length, merge_repeated=True):
     decoded, log_probabilities = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)
-    dense_decoded = tf.sparse_to_dense(tf.to_int32(decoded[0].indices),
-                                       tf.to_int32(decoded[0].values),
-                                       tf.to_int32(decoded[0].dense_shape),
-                                       name="output")
-    return dense_decoded, log_probabilities
+    return decoded[0], log_probabilities
+
+
+def sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
+    return tf.sparse_to_dense(tf.to_int32(sparse_tensor.indices),
+                                       tf.to_int32(sparse_tensor.values),
+                                       tf.to_int32(sparse_tensor.dense_shape),
+                                       name=name)
 
 def label_error_rate(y_pred, y_true):
     return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true))

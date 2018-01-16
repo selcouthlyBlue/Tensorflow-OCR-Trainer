@@ -38,14 +38,20 @@ class GridRNNModelFn(ModelFn):
                                                     optimizer_name=params["optimizer"])
             train_op = optimizer.minimize(loss=loss, global_step=get_global_step())
 
-        decoded, log_probabilities = network_utils.decode(inputs=net, sequence_length=seq_lens)
+        decoded, log_probabilities = network_utils.ctc_beam_search_decoder(inputs=net, sequence_length=seq_lens)
+        dense_decoded = network_utils.sparse_to_dense(decoded, name="output")
 
         predictions = {
-            "decoded": decoded,
+            "decoded": dense_decoded,
             "probabilities": log_probabilities
+        }
+
+        eval_metric_ops = {
+            "label_error_rate": network_utils.label_error_rate(y_pred=decoded, y_true=sparse_labels)
         }
 
         return model_fn_lib.ModelFnOps(mode=mode,
                                        predictions=predictions,
                                        loss=loss,
-                                       train_op=train_op)
+                                       train_op=train_op,
+                                       eval_metric_ops=eval_metric_ops)

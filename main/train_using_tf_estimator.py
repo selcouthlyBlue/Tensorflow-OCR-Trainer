@@ -17,6 +17,7 @@ def main(_):
     images = dataset_utils.resize(images, (1596, 48))
     images = dataset_utils.transpose(images)
     labels = dataset_utils.encode(labels)
+    labels = dataset_utils.pad(labels, blank_token_index=80)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=0.5, labels=labels)
     x_train_seq_lens = dataset_utils.get_seq_lens(x_train)
     x_test_seq_lens = dataset_utils.get_seq_lens(x_test)
@@ -39,7 +40,7 @@ def main(_):
 
     validation_monitor = learn.monitors.ValidationMonitor(
         input_fn=validation_input_fn,
-        every_n_steps=1
+        every_n_steps=5
     )
 
     model = GridRNNModelFn(num_time_steps=1596, num_features=48, num_hidden_units=128, num_classes=80,

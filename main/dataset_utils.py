@@ -59,3 +59,12 @@ def transpose(images):
     for image in images:
         transposed_images.append(image.swapaxes(0,1))
     return transposed_images
+
+
+def pad(labels, blank_token_index, max_label_length=120):
+    padded_labels = []
+    for label in labels:
+        while len(label) < max_label_length:
+            label = np.append(label, [blank_token_index])
+        padded_labels.append(label)
+    return padded_labels

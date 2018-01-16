@@ -4,11 +4,11 @@ from optimizer_enum import Optimizers
 from tensorflow.contrib import rnn
 from tensorflow.contrib import grid_rnn
 
-def ctc_loss(predictions, labels, sequence_length,
+def ctc_loss(inputs, labels, sequence_length,
              preprocess_collapse_repeated_labels=True,
              ctc_merge_repeated=True,
              inputs_are_time_major=True):
-    return tf.nn.ctc_loss(inputs=predictions, labels=labels, sequence_length=sequence_length,
+    return tf.nn.ctc_loss(inputs=inputs, labels=labels, sequence_length=sequence_length,
                           preprocess_collapse_repeated=preprocess_collapse_repeated_labels,
                           ctc_merge_repeated=ctc_merge_repeated,
                           time_major=inputs_are_time_major)
@@ -30,8 +30,12 @@ def bidirectional_grid_lstm(inputs, num_hidden):
     return tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs, dtype=tf.float32)[0]
 
 def decode(inputs, sequence_length, merge_repeated=True):
-    decoded, _ = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)
-    return decoded[0]
+    decoded, log_probabilities = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)
+    dense_decoded = tf.sparse_to_dense(tf.to_int32(decoded[0].indices),
+                                       tf.to_int32(decoded[0].values),
+                                       tf.to_int32(decoded[0].dense_shape),
+                                       name="output")
+    return dense_decoded, log_probabilities
 
 def label_error_rate(y_pred, y_true):
     return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true))
@@ -55,8 +59,8 @@ def get_optimizer(learning_rate, optimizer_name):
 def sparse_input_data(input_type=tf.int32):
     return tf.sparse_placeholder(dtype=input_type)
 
-def get_time_major(model, num_classes, batch_size, num_hidden_units):
-    outputs = reshape(model, [-1, num_hidden_units])
+def get_time_major(inputs, num_classes, batch_size, num_hidden_units):
+    outputs = reshape(inputs, [-1, num_hidden_units])
 
     W = tf.Variable(tf.truncated_normal([num_hidden_units,
                                          num_classes],
@@ -81,3 +85,9 @@ def initialize_variable(initial_value, name, is_trainable):
 
 def cost(loss):
     return tf.reduce_mean(loss)
+
+def dense_to_sparse(tensor, eos_token=0):
+    indices = tf.where(tf.not_equal(tensor, tf.constant(eos_token, dtype=tensor.dtype)))
+    values = tf.gather_nd(tensor, indices)
+    shape = tf.shape(tensor, out_type=tf.int64)
+    return tf.SparseTensor(indices, values, shape)

@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 def split(features, test_size, labels=None):
     return train_test_split(features, labels, test_size=test_size, random_state=128)
 
+
 def read_dataset_list(dataset_list_file, delimiter=' '):
     features = []
     labels = []
@@ -39,6 +40,7 @@ def resize(images, shape):
 def charset():
     return ''.join([line.rstrip('\n') for line in open('chars.txt')])
 
+
 def encode(labels):
     encoder_decoder = EncoderDecoder()
     encoder_decoder.initialize_encode_and_decode_maps_from(charset())
@@ -46,21 +48,6 @@ def encode(labels):
     for label in labels:
         encoded_labels.append(encoder_decoder.encode(label))
     return encoded_labels
-
-
-def convert_to_sparse(labels, dtype=np.int32):
-    indices = []
-    values = []
-
-    for n, seq in enumerate(labels):
-        indices.extend(zip([n] * len(seq), range(len(seq))))
-        values.extend(seq)
-
-    indices = np.asarray(indices, dtype=dtype)
-    values = np.asarray(values, dtype=dtype)
-    shape = np.asarray([len(labels), np.asarray(indices).max(0)[1] + 1], dtype=dtype)
-
-    return indices, values, shape
 
 
 def get_seq_lens(data):

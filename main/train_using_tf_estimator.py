@@ -19,6 +19,7 @@ def main(_):
     labels = dataset_utils.encode(labels)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=0.5, labels=labels)
     x_train_seq_lens = dataset_utils.get_seq_lens(x_train)
+    x_test_seq_lens = dataset_utils.get_seq_lens(x_test)
 
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={"x": np.array(x_train),
@@ -29,11 +30,23 @@ def main(_):
         batch_size=1
     )
 
+    validation_input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={"x": np.array(x_test),
+           "seq_lens": np.array(x_test_seq_lens)},
+        y=np.array(y_test),
+        shuffle=True
+    )
+
+    validation_monitor = learn.monitors.ValidationMonitor(
+        input_fn=validation_input_fn,
+        every_n_steps=1
+    )
+
     model = GridRNNModelFn(num_time_steps=1596, num_features=48, num_hidden_units=128, num_classes=80,
                            learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
 
-    classifier = learn.Estimator(model_fn=GridRNNModelFn.model_fn, params=model.params, model_dir="/tmp/grid_rnn_ocr_model")
-    classifier.fit(input_fn=train_input_fn)
+    classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir="/tmp/grid_rnn_ocr_model")
+    classifier.fit(input_fn=train_input_fn, monitors=[validation_monitor])
 
 
 if __name__ == '__main__':

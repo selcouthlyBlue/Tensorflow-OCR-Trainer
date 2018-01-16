@@ -5,6 +5,8 @@ import numpy as np
 from tensorflow.contrib import grid_rnn, learn
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
+tf.logging.set_verbosity(tf.logging.INFO)
+
 def grid_rnn_fn(features, labels, mode):
     input_layer = tf.reshape(features["x"], [-1, 1596, 48])
     seq_lens = tf.reshape(features["seq_lens"], [-1])

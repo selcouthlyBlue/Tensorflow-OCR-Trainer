@@ -3,6 +3,8 @@ import tensorflow as tf
 from optimizer_enum import Optimizers
 from tensorflow.contrib import rnn
 from tensorflow.contrib import grid_rnn
+from tensorflow.contrib.ndlstm.python import lstm2d
+from tensorflow.contrib import slim
 
 def ctc_loss(inputs, labels, sequence_length,
              preprocess_collapse_repeated_labels=True,
@@ -28,6 +30,15 @@ def bidirectional_grid_lstm(inputs, num_hidden):
     cell_fw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
     cell_bw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
     return tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs, dtype=tf.float32)[0]
+
+def mdlstm(inputs, num_filters_out, kernel_size=None, nhidden=None, scope=None):
+    return lstm2d.separable_lstm(inputs, num_filters_out, kernel_size=kernel_size, nhidden=nhidden, scope=scope)
+
+def conv2d(inputs, num_filters_out, kernel, scope=None):
+    return slim.conv2d(inputs, num_filters_out, kernel, scope=scope)
+
+def max_pool2d(inputs, kernel, scope=None):
+    return slim.max_pool2d(inputs, kernel, scope=scope)
 
 def ctc_beam_search_decoder(inputs, sequence_length, merge_repeated=True):
     decoded, log_probabilities = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)
@@ -94,3 +105,6 @@ def dense_to_sparse(tensor, eos_token=0):
     values = tf.gather_nd(tensor, indices)
     shape = tf.shape(tensor, out_type=tf.int64)
     return tf.SparseTensor(indices, values, shape)
+
+def dropout(inputs, rate, scope=None):
+    return slim.dropout(inputs, rate, scope=scope)

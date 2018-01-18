@@ -7,14 +7,17 @@ from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_f
 
 
 class CNNMDLSTMCTCModelFn(ModelFn):
-    def __init__(self, image_width, image_height, num_channels, starting_filter_size, learning_rate, optimizer):
+    def __init__(self, image_width, image_height, num_channels, starting_filter_size, learning_rate, optimizer,
+                 batch_size, num_classes):
         self.params = {
             "image_width": image_width,
             "image_height": image_height,
             "num_channels": num_channels,
             "starting_filter_size": starting_filter_size,
             "learning_rate": learning_rate,
-            "optimizer": optimizer
+            "optimizer": optimizer,
+            "batch_size": batch_size,
+            "num_classes": num_classes
         }
 
     @staticmethod
@@ -25,8 +28,9 @@ class CNNMDLSTMCTCModelFn(ModelFn):
         starting_filter_size = params["starting_filter_size"]
         learning_rate = params["learning_rate"]
         optimizer = params["optimizer"]
+        batch_size = params["batch_size"]
 
-        input_layer = network_utils.reshape(features["x"], [-1, image_width, image_height, num_channels])
+        input_layer = network_utils.reshape(features["x"], [batch_size, image_width, image_height, num_channels])
         seq_lens = network_utils.reshape(features["seq_lens"], [-1])
         sparse_labels = network_utils.dense_to_sparse(labels, eos_token=80)
 
@@ -65,7 +69,7 @@ class CNNMDLSTMCTCModelFn(ModelFn):
         train_op = None
 
         if mode != ModeKeys.INFER:
-            loss = network_utils.ctc_loss(inputs=net, labels=sparse_labels, sequence_length=seq_lens)
+            loss = network_utils.ctc_loss(inputs=net, labels=sparse_labels, sequence_length=[100])
 
         if mode == ModeKeys.TRAIN:
             optimizer = network_utils.get_optimizer(learning_rate=learning_rate,

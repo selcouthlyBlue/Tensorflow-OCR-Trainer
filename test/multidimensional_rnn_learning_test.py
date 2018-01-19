@@ -29,7 +29,9 @@ class MultidimensionalRNNTest(tf.test.TestCase):
 
         loss = tf.nn.ctc_loss(inputs=net, labels=self.labels, sequence_length=[2])
 
-        print(net)
+    def test_stack_ndlstms(self):
+        net = network_utils.mdlstm(self.input_layer, 16)
+        net = network_utils.mdlstm(net, 16)
 
 
 if __name__ == '__main__':

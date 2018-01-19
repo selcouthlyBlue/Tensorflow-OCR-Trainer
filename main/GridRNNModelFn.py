@@ -27,7 +27,6 @@ class GridRNNModelFn(ModelFn):
                                            num_classes=params["num_classes"],
                                            batch_size=network_utils.get_shape(input_layer)[0],
                                            num_hidden_units=params["num_hidden_units"] * 2)
-        net = network_utils.transpose(net, (1, 0, 2))
 
         loss = None
         train_op = None

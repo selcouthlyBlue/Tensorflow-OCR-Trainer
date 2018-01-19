@@ -5,7 +5,7 @@ import tfutils
 
 from tensorflow.contrib import learn
 
-from GridRNNModelFn import GridRNNModelFn
+from GridRNNCTCModel import GridRNNModelFn
 from optimizer_enum import Optimizers
 
 tf.logging.set_verbosity(tf.logging.INFO)

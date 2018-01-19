@@ -5,6 +5,7 @@ from tensorflow.contrib import rnn
 from tensorflow.contrib import grid_rnn
 from tensorflow.contrib.ndlstm.python import lstm2d
 from tensorflow.contrib import slim
+from tensorflow.contrib import learn
 
 def ctc_loss(inputs, labels, sequence_length,
              preprocess_collapse_repeated_labels=True,
@@ -113,3 +114,7 @@ def images_to_sequence(inputs):
 
 def transpose(inputs, shape):
     return tf.transpose(inputs, shape)
+
+def train(model, model_dir, input_fn, monitors=None):
+    classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir=model_dir)
+    classifier.fit(input_fn=input_fn, monitors=monitors)

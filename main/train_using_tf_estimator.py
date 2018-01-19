@@ -6,6 +6,7 @@ from tensorflow.contrib import learn
 
 from GridRNNModelFn import GridRNNModelFn
 from optimizer_enum import Optimizers
+from tfutils import train
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -35,6 +36,7 @@ def main(_):
         x={"x": np.array(x_test),
            "seq_lens": np.array(x_test_seq_lens)},
         y=np.array(y_test),
+        num_epochs=1,
         shuffle=True
     )
 
@@ -46,8 +48,7 @@ def main(_):
     model = GridRNNModelFn(num_time_steps=1596, num_features=48, num_hidden_units=128, num_classes=80,
                            learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
 
-    classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir="/tmp/grid_rnn_ocr_model")
-    classifier.fit(input_fn=train_input_fn, monitors=[validation_monitor])
+    train(model, "/tmp/grid_rnn_ocr_model", train_input_fn, monitors=[validation_monitor])
 
 
 if __name__ == '__main__':

@@ -18,7 +18,7 @@ def prepare_dataset(labels_file, data_dir, image_extension, desired_image_size, 
     images = dataset_utils.resize(images, desired_image_size)
     images = dataset_utils.transpose(images)
     labels = dataset_utils.encode(labels)
-    labels = dataset_utils.pad(labels, blank_token_index=80)
+    labels = dataset_utils.pad(labels)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=test_set_fraction, labels=labels)
     return x_test, x_train, y_test, y_train
 

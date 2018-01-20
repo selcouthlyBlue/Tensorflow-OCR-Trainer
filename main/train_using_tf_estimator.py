@@ -43,7 +43,7 @@ def main(_):
         every_n_steps=5
     )
 
-    model = GridRNNModelFn(num_time_steps=desired_image_width, num_features=desired_image_height, num_hidden_units=128, num_classes=80,
+    model = GridRNNModelFn(num_time_steps=desired_image_width, num_features=desired_image_height, num_hidden_units=128, num_classes=81,
                            learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
 
     tfutils.train(model, "/tmp/grid_rnn_ocr_model", train_input_fn, monitors=[validation_monitor])

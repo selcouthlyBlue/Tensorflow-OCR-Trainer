@@ -6,6 +6,7 @@ import tfutils
 from tensorflow.contrib import learn
 
 from GridRNNCTCModel import GridRNNModelFn
+from CNNMDLSTMCTCModel import CNNMDLSTMCTCModelFn
 from optimizer_enum import Optimizers
 
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -26,13 +27,25 @@ def prepare_dataset(labels_file, data_dir, image_extension, desired_image_size, 
 def main(_):
     desired_image_width = 1596
     desired_image_height = 48
+    starting_filter_size = 16
+    labels_file = '../test/dummy_labels_file.txt'
+    data_dir = "../test/dummy_data/"
+    test_set_size = 0.5
+    learning_rate = 0.001
+    number_of_epochs_to_pass_before_validation = 5
+    optimizer = Optimizers.MOMENTUM
+    checkpoint_dir = 'grid_rnn_ocr_model'
+    architecture = 'CNNMDLSTM'
+    batch_size = 1
+    num_channels = 1
+    num_hidden_units=128
 
     x_test, x_train, y_test, y_train = prepare_dataset(
-        labels_file='../test/dummy_labels_file.txt',
-        data_dir="../test/dummy_data/",
+        labels_file=labels_file,
+        data_dir=data_dir,
         image_extension='png',
         desired_image_size=(desired_image_width, desired_image_height),
-        test_set_fraction=0.5
+        test_set_fraction=test_set_size
     )
 
     train_input_fn = create_input_fn(x_train, y_train)
@@ -40,13 +53,28 @@ def main(_):
 
     validation_monitor = learn.monitors.ValidationMonitor(
         input_fn=validation_input_fn,
-        every_n_steps=5
+        every_n_steps=number_of_epochs_to_pass_before_validation
     )
 
-    model = GridRNNModelFn(num_time_steps=desired_image_width, num_features=desired_image_height, num_hidden_units=128, num_classes=81,
-                           learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
+    if architecture == 'CNNMDLSTM':
+        model = CNNMDLSTMCTCModelFn(
+            input_shape=[batch_size, desired_image_width, desired_image_height, num_channels],
+            starting_filter_size=starting_filter_size,
+            learning_rate=learning_rate,
+            optimizer=optimizer,
+            num_classes=81
+        )
+    else:
+        model = GridRNNModelFn(
+            input_shape=[batch_size, desired_image_width, desired_image_height],
+            num_hidden_units=num_hidden_units,
+            learning_rate=learning_rate,
+            optimizer=optimizer,
+            num_classes=81
+        )
 
-    tfutils.train(model, "/tmp/grid_rnn_ocr_model", train_input_fn, monitors=[validation_monitor])
+    tfutils.train(model, "checkpoint/" + checkpoint_dir, train_input_fn, monitors=[validation_monitor])
+    tfutils.freeze_graph("checkpoint/" + checkpoint_dir, ["output"])
 
 
 def create_input_fn(x, y, batch_size=1, num_epochs=1, shuffle=True):

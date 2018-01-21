@@ -19,24 +19,9 @@ def main(_):
     labels = dataset_utils.encode(labels)
     labels = dataset_utils.pad(labels, blank_token_index=80)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=0.5, labels=labels)
-    x_train_seq_lens = dataset_utils.get_seq_lens(x_train)
-    x_test_seq_lens = dataset_utils.get_seq_lens(x_test)
 
-    train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(x_train),
-           "seq_lens": np.array(x_train_seq_lens)},
-        y=np.array(y_train),
-        num_epochs=1,
-        shuffle=True,
-        batch_size=1
-    )
-
-    validation_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(x_test),
-           "seq_lens": np.array(x_test_seq_lens)},
-        y=np.array(y_test),
-        shuffle=True
-    )
+    train_input_fn = create_input_fn(x_train, y_train)
+    validation_input_fn = create_input_fn(x_test, y_test)
 
     validation_monitor = learn.monitors.ValidationMonitor(
         input_fn=validation_input_fn,
@@ -48,6 +33,18 @@ def main(_):
 
     classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir="/tmp/grid_rnn_ocr_model")
     classifier.fit(input_fn=train_input_fn, monitors=[validation_monitor])
+
+
+def create_input_fn(x, y):
+    train_input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={"x": np.array(x),
+           "seq_lens": dataset_utils.get_seq_lens(x)},
+        y=np.array(y),
+        num_epochs=1,
+        shuffle=True,
+        batch_size=1
+    )
+    return train_input_fn
 
 
 if __name__ == '__main__':

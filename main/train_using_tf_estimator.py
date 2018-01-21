@@ -51,9 +51,9 @@ def create_input_fn(x, y, num_epochs=1, shuffle=True, batch_size=1):
         x={"x": np.array(x),
            "seq_lens": dataset_utils.get_seq_lens(x)},
         y=np.array(y),
-        num_epochs=1,
-        shuffle=True,
-        batch_size=1
+        num_epochs=num_epochs,
+        shuffle=shuffle,
+        batch_size=batch_size
     )
     return train_input_fn
 

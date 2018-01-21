@@ -60,7 +60,7 @@ class CNNMDLSTMCTCModelFn(ModelFn):
         train_op = None
 
         if mode != ModeKeys.INFER:
-            loss = network_utils.ctc_loss(inputs=net, labels=sparse_labels, sequence_length=[100])
+            loss = network_utils.ctc_loss(inputs=net, labels=sparse_labels, sequence_length=seq_lens)
 
         if mode == ModeKeys.TRAIN:
             optimizer = network_utils.get_optimizer(learning_rate=learning_rate,

@@ -7,10 +7,9 @@ from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_f
 
 
 class GridRNNModelFn(ModelFn):
-    def __init__(self, num_time_steps, num_features, num_hidden_units, num_classes, learning_rate, optimizer):
+    def __init__(self, input_shape, num_hidden_units, num_classes, learning_rate, optimizer):
         self.params = {
-            "num_time_steps": num_time_steps,
-            "num_features": num_features,
+            "input_shape": input_shape,
             "num_hidden_units": num_hidden_units,
             "num_classes": num_classes,
             "learning_rate": learning_rate,
@@ -19,7 +18,7 @@ class GridRNNModelFn(ModelFn):
 
     @staticmethod
     def model_fn(features, labels, mode, params):
-        input_layer = network_utils.reshape(features["x"], [-1, params["num_time_steps"], params["num_features"]])
+        input_layer = network_utils.reshape(features["x"], params["input_shape"])
         seq_lens = network_utils.reshape(features["seq_lens"], [-1])
         sparse_labels = network_utils.dense_to_sparse(labels, eos_token=80)
         net = network_utils.bidirectional_grid_lstm(inputs=input_layer, num_hidden=params["num_hidden_units"])

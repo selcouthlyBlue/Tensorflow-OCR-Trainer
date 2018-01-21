@@ -7,30 +7,22 @@ from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_f
 
 
 class CNNMDLSTMCTCModelFn(ModelFn):
-    def __init__(self, image_width, image_height, num_channels, starting_filter_size, learning_rate, optimizer,
-                 batch_size, num_classes):
+    def __init__(self, input_shape, starting_filter_size, learning_rate, optimizer, num_classes):
         self.params = {
-            "image_width": image_width,
-            "image_height": image_height,
-            "num_channels": num_channels,
+            "input_shape": input_shape,
             "starting_filter_size": starting_filter_size,
             "learning_rate": learning_rate,
             "optimizer": optimizer,
-            "batch_size": batch_size,
             "num_classes": num_classes
         }
 
     @staticmethod
     def model_fn(features, labels, mode, params):
-        image_width = params["image_width"]
-        image_height = params["image_height"]
-        num_channels = params["num_channels"]
         starting_filter_size = params["starting_filter_size"]
         learning_rate = params["learning_rate"]
         optimizer = params["optimizer"]
-        batch_size = params["batch_size"]
 
-        input_layer = network_utils.reshape(features["x"], [batch_size, image_width, image_height, num_channels])
+        input_layer = network_utils.reshape(features["x"], params["input_shape"])
         seq_lens = network_utils.reshape(features["seq_lens"], [-1])
         sparse_labels = network_utils.dense_to_sparse(labels, eos_token=80)
 

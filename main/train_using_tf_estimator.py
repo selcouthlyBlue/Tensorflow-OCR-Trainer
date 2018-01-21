@@ -33,11 +33,11 @@ def main(_):
     architecture = "cnnmdlstm"
 
     if architecture == "cnnmdlstm":
-        model = CNNMDLSTMCTCModelFn(image_width=1596, image_height=48, num_channels=1, starting_filter_size=16,
-                                    learning_rate=0.001, optimizer=Optimizers.MOMENTUM, num_classes=80, batch_size=1)
+        model = CNNMDLSTMCTCModelFn(input_shape=[1, 1596, 48, 1], starting_filter_size=16,
+                                    learning_rate=0.001, optimizer=Optimizers.MOMENTUM, num_classes=80)
         checkpoint_dir += "cnnmdlstm"
     else:
-        model = GridRNNModelFn(num_time_steps=1596, num_features=48, num_hidden_units=128, num_classes=80,
+        model = GridRNNModelFn(input_shape=[-1, 1596, 48], num_hidden_units=128, num_classes=80,
                                learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
         checkpoint_dir += "gridlstm"
 

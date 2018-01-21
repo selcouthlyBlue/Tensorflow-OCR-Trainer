@@ -5,6 +5,7 @@ import numpy as np
 from tensorflow.contrib import learn
 
 from GridRNNModelFn import GridRNNModelFn
+from CNNMDLSTMCTCModelFn import CNNMDLSTMCTCModelFn
 from optimizer_enum import Optimizers
 
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -28,10 +29,19 @@ def main(_):
         every_n_steps=5
     )
 
-    model = GridRNNModelFn(num_time_steps=1596, num_features=48, num_hidden_units=128, num_classes=80,
-                           learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
+    checkpoint_dir = "checkpoint/"
+    architecture = "cnnmdlstm"
 
-    classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir="/tmp/grid_rnn_ocr_model")
+    if architecture == "cnnmdlstm":
+        model = CNNMDLSTMCTCModelFn(image_width=1596, image_height=48, num_channels=1, starting_filter_size=16,
+                                    learning_rate=0.001, optimizer=Optimizers.MOMENTUM, num_classes=80, batch_size=1)
+        checkpoint_dir += "cnnmdlstm"
+    else:
+        model = GridRNNModelFn(num_time_steps=1596, num_features=48, num_hidden_units=128, num_classes=80,
+                               learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
+        checkpoint_dir += "gridlstm"
+
+    classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir=checkpoint_dir)
     classifier.fit(input_fn=train_input_fn, monitors=[validation_monitor])
 
 

@@ -46,7 +46,7 @@ def main(_):
     classifier.fit(input_fn=train_input_fn, monitors=[validation_monitor])
 
 
-def create_input_fn(x, y):
+def create_input_fn(x, y, num_epochs=1, shuffle=True, batch_size=1):
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={"x": np.array(x),
            "seq_lens": dataset_utils.get_seq_lens(x)},

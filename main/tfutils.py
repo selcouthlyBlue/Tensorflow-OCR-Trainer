@@ -83,6 +83,7 @@ def get_time_major(inputs, num_classes, batch_size, num_hidden_units):
 
     logits = tf.matmul(outputs, W) + b
     logits = tf.reshape(logits, [batch_size, -1, num_classes])
+    logits = tf.transpose(logits, (1, 0, 2))
     return logits
 
 def _get_type(type_str):
@@ -110,6 +111,3 @@ def dropout(inputs, rate, scope=None):
 
 def images_to_sequence(inputs):
     return lstm2d.images_to_sequence(inputs)
-
-def transpose(inputs, shape):
-    return tf.transpose(inputs, shape)

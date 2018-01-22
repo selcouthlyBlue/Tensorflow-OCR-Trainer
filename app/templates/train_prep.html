@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Train{% endblock %}
+{% block body %}
+<div class="row">
+  <form class="col s12" action="/train" method="post">
+    {% include "data_preparation.html" %}
+    {% include "architecture_selection.html" %}
+    {% include "hyperparameter_adjustments.html" %}
+    <button class="btn waves-effect waves-light" type="submit">Begin Training
+    </button>
+  </form>
+</div>
+{% endblock %}

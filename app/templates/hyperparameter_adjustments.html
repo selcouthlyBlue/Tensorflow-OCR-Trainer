@@ -1,0 +1,23 @@
+<h4>Hyperparameter Adjustments</h4>
+<div class="row">
+  <div class="input-field col s3">
+    <input type="number" name="num_epochs" value="1" min="1" step="1" id="num_epochs" class="validate" required/>
+    <label for="num_epochs">Number of epochs</label>
+  </div>
+  <div class="input-field col s3">
+    <select name="solver_type" required>
+      <option value="adagrad">Adagrad</option>
+      <option value="adam" selected>Adam</option>
+      <option value="rmsprop">RMSProp</option>
+    </select>
+    <label>Solver type</label>
+  </div>
+  <div class="input-field col s3">
+    <input type="number" name="learning_rate" min="0.001" value="0.001" step="any" id="learning_rate" class="validate" required/>
+    <label for="learning_rate">Learning rate</label>
+  </div>
+  <div class="input-field col s3">
+    <input type="number" name="batch_size" min="1" step="1" value="1" id="batch_size" class="validate" required/>
+    <label for="batch_size">Batch size</label>
+  </div>
+</div>

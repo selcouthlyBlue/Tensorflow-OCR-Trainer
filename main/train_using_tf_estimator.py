@@ -4,8 +4,8 @@ import numpy as np
 
 from tensorflow.contrib import learn
 
-from GridRNNModelFn import GridRNNModelFn
-from CNNMDLSTMCTCModelFn import CNNMDLSTMCTCModelFn
+from GridRNNCTCModel import GridRNNModelFn
+from CNNMDLSTMCTCModel import CNNMDLSTMCTCModelFn
 from optimizer_enum import Optimizers
 
 tf.logging.set_verbosity(tf.logging.INFO)

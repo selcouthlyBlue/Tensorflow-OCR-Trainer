@@ -1,5 +1,5 @@
 import tfutils as network_utils
-from ModelFn import ModelFn
+from Model import ModelFn
 
 from tensorflow.contrib.learn import ModeKeys
 from tensorflow.python.training.training_util import get_global_step

@@ -15,9 +15,6 @@ def ctc_loss(inputs, labels, sequence_length,
                           ctc_merge_repeated=ctc_merge_repeated,
                           time_major=inputs_are_time_major)
 
-def input_data(shape, name: str = 'InputData', input_type='float32'):
-    return tf.placeholder(shape=shape, dtype=_get_type(input_type), name=name)
-
 def reshape(tensor: tf.Tensor, new_shape: list):
     return tf.reshape(tensor, new_shape, name="reshape")
 
@@ -86,16 +83,8 @@ def get_time_major(inputs, num_classes, batch_size, num_hidden_units):
     logits = tf.transpose(logits, (1, 0, 2))
     return logits
 
-def _get_type(type_str):
-    if type_str == 'int32':
-        return tf.int32
-    return tf.float32
-
 def get_shape(tensor):
     return tf.shape(tensor)
-
-def initialize_variable(initial_value, name, is_trainable):
-    return tf.Variable(initial_value, name=name, trainable=is_trainable)
 
 def cost(loss):
     return tf.reduce_mean(loss)

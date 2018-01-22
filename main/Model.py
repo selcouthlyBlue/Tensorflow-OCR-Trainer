@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class ModelFn(ABC):
+class Model(ABC):
     @staticmethod
     @abstractmethod
     def model_fn(features, labels, mode, params):

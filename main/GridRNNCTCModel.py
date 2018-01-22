@@ -1,12 +1,12 @@
 import tfutils as network_utils
-from Model import ModelFn
+from Model import Model
 
 from tensorflow.contrib.learn import ModeKeys
 from tensorflow.python.training.training_util import get_global_step
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
 
-class GridRNNCTCModel(ModelFn):
+class GridRNNCTCModel(Model):
     def __init__(self, input_shape, num_hidden_units, num_classes, learning_rate, optimizer):
         self.params = {
             "input_shape": input_shape,

@@ -65,7 +65,6 @@ def pad(labels, blank_token_index, max_label_length=120):
     padded_labels = []
     for label in labels:
         label = np.append(label, [blank_token_index])
-        print(label)
         while len(label) < max_label_length:
             label = np.append(label, [blank_token_index])
         padded_labels.append(label)

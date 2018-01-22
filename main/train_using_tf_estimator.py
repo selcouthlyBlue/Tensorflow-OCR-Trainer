@@ -4,6 +4,7 @@ import numpy as np
 
 from tensorflow.contrib import learn
 
+from architecture_enum import Architectures
 from GridRNNCTCModel import GridRNNCTCModel
 from CNNMDLSTMCTCModel import CNNMDLSTMCTCModel
 
@@ -18,15 +19,8 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
 
     checkpoint_dir = "checkpoint/"
 
-    if architecture == "cnnmdlstm":
-        model = CNNMDLSTMCTCModel(input_shape=[batch_size, desired_image_size[0], desired_image_size[1], 1], starting_filter_size=num_hidden_units,
-                                  learning_rate=learning_rate, optimizer=optimizer, num_classes=80)
-        checkpoint_dir += "cnnmdlstm"
-    else:
-        images = dataset_utils.transpose(images)
-        model = GridRNNCTCModel(input_shape=[batch_size, desired_image_size[0], desired_image_size[1]], num_hidden_units=num_hidden_units, num_classes=80,
-                                learning_rate=learning_rate, optimizer=optimizer)
-        checkpoint_dir += "gridlstm"
+    checkpoint_dir, images, model = initialize_model(architecture, batch_size, checkpoint_dir, desired_image_size,
+                                                     images, learning_rate, num_hidden_units, optimizer)
 
     labels = dataset_utils.encode(labels)
     labels = dataset_utils.pad(labels, blank_token_index=80)
@@ -42,6 +36,22 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
 
     classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir=checkpoint_dir)
     classifier.fit(input_fn=train_input_fn, monitors=[validation_monitor])
+
+
+def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_size, images, learning_rate,
+                     num_hidden_units, optimizer):
+    if architecture == Architectures.CNNMDLSTM:
+        model = CNNMDLSTMCTCModel(input_shape=[batch_size, desired_image_size[0], desired_image_size[1], 1],
+                                  starting_filter_size=num_hidden_units,
+                                  learning_rate=learning_rate, optimizer=optimizer, num_classes=80)
+        checkpoint_dir += Architectures.CNNMDLSTM.value
+    else:
+        images = dataset_utils.transpose(images)
+        model = GridRNNCTCModel(input_shape=[batch_size, desired_image_size[0], desired_image_size[1]],
+                                num_hidden_units=num_hidden_units, num_classes=80,
+                                learning_rate=learning_rate, optimizer=optimizer)
+        checkpoint_dir += Architectures.GRIDLSTM.value
+    return checkpoint_dir, images, model
 
 
 def create_input_fn(x, y, num_epochs=1, shuffle=True, batch_size=1):

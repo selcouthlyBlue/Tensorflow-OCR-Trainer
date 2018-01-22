@@ -6,7 +6,7 @@ from tensorflow.python.training.training_util import get_global_step
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
 
-class CNNMDLSTMCTCModelFn(ModelFn):
+class CNNMDLSTMCTCModel(ModelFn):
     def __init__(self, input_shape, starting_filter_size, learning_rate, optimizer, num_classes):
         self.params = {
             "input_shape": input_shape,

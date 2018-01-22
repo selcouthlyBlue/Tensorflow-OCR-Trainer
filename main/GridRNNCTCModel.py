@@ -6,7 +6,7 @@ from tensorflow.python.training.training_util import get_global_step
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
 
-class GridRNNModelFn(ModelFn):
+class GridRNNCTCModel(ModelFn):
     def __init__(self, input_shape, num_hidden_units, num_classes, learning_rate, optimizer):
         self.params = {
             "input_shape": input_shape,

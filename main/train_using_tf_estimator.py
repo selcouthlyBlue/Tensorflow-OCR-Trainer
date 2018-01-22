@@ -4,8 +4,8 @@ import numpy as np
 
 from tensorflow.contrib import learn
 
-from GridRNNCTCModel import GridRNNModelFn
-from CNNMDLSTMCTCModel import CNNMDLSTMCTCModelFn
+from GridRNNCTCModel import GridRNNCTCModel
+from CNNMDLSTMCTCModel import CNNMDLSTMCTCModel
 from optimizer_enum import Optimizers
 
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -21,13 +21,13 @@ def main(_):
     architecture = "cnnmdlstm"
 
     if architecture == "cnnmdlstm":
-        model = CNNMDLSTMCTCModelFn(input_shape=[1, 1596, 48, 1], starting_filter_size=16,
-                                    learning_rate=0.001, optimizer=Optimizers.MOMENTUM, num_classes=80)
+        model = CNNMDLSTMCTCModel(input_shape=[1, 1596, 48, 1], starting_filter_size=16,
+                                  learning_rate=0.001, optimizer=Optimizers.MOMENTUM, num_classes=80)
         checkpoint_dir += "cnnmdlstm"
     else:
         images = dataset_utils.transpose(images)
-        model = GridRNNModelFn(input_shape=[-1, 1596, 48], num_hidden_units=128, num_classes=80,
-                               learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
+        model = GridRNNCTCModel(input_shape=[-1, 1596, 48], num_hidden_units=128, num_classes=80,
+                                learning_rate=0.001, optimizer=Optimizers.MOMENTUM)
         checkpoint_dir += "gridlstm"
 
     labels = dataset_utils.encode(labels)

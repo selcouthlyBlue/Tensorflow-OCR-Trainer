@@ -10,7 +10,6 @@ def main():
           num_hidden_units=16,
           optimizer=Optimizers.MOMENTUM,
           learning_rate=0.001,
-          batch_size=1,
           test_fraction=0.5,
           validation_steps=5)
 

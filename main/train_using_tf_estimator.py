@@ -11,7 +11,7 @@ from CNNMDLSTMCTCModel import CNNMDLSTMCTCModel
 tf.logging.set_verbosity(tf.logging.INFO)
 
 def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_units, optimizer, learning_rate,
-          batch_size, test_fraction, validation_steps):
+          test_fraction, validation_steps=5, num_epochs=1, batch_size=1):
     image_paths, labels = dataset_utils.read_dataset_list(labels_file)
     images = dataset_utils.read_images(data_dir=data_dir, image_paths=image_paths, image_extension='png')
     images = dataset_utils.resize(images, desired_image_size)
@@ -26,7 +26,7 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
     labels = dataset_utils.pad(labels, blank_token_index=80)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=test_fraction, labels=labels)
 
-    train_input_fn = create_input_fn(x_train, y_train)
+    train_input_fn = create_input_fn(x_train, y_train, num_epochs=num_epochs, batch_size=batch_size)
     validation_input_fn = create_input_fn(x_test, y_test)
 
     validation_monitor = learn.monitors.ValidationMonitor(

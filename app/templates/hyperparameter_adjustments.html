@@ -6,9 +6,9 @@
   </div>
   <div class="input-field col s3">
     <select name="solver_type" required>
-      <option value="adagrad">Adagrad</option>
-      <option value="adam" selected>Adam</option>
-      <option value="rmsprop">RMSProp</option>
+        {% for optimizer in optimizers %}
+            <option value={{ optimizer.value }}>{{ optimizer.value|capitalize }}</option>
+        {% endfor %}
     </select>
     <label>Solver type</label>
   </div>

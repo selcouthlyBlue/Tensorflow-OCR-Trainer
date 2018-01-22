@@ -1,5 +1,8 @@
 from flask import render_template, request
+
 from app import app
+from architecture_enum import Architectures
+from optimizer_enum import Optimizers
 
 @app.route('/')
 def index():
@@ -11,7 +14,10 @@ def about():
 
 @app.route('/prepare_for_training')
 def prepare_for_training():
-    return render_template("train_prep.html")
+    return render_template("train_prep.html",
+                           architectures=Architectures,
+                           optimizers=Optimizers
+                           )
 
 def get(param, param_type):
     return request.form.get(param, type=param_type)

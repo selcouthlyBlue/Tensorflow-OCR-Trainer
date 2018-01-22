@@ -2,17 +2,14 @@
 <div class="row">
   <div class="input-field col s4">
     <select name="architecture" required>
-      <option value="lstm">LSTM</option>
-      <option value="bi_lstm">Bidirectional LSTM</option>
+      {% for architecture in architectures %}
+          <option value={{ architecture.value }}>{{ architecture.value }}</option>
+      {% endfor %}
     </select>
     <label>Architecture</label>
   </div>
   <div class="input-field col s4">
-    <input type="number" name="num_hidden_units" value="128" min="1" step="1" id="num_hidden_units" class="validate" required/>
+    <input type="number" name="num_hidden_units" min="1" step="1" id="num_hidden_units" class="validate" required/>
     <label for="num_hidden_units">Number of hidden units per layer</label>
-  </div>
-  <div class="input-field col s4">
-    <input type="number" name="num_layers" value="3" min="1" step="1" id="num_layers" class="validate" required/>
-    <label for="num_layers">Number of layers</label>
   </div>
 </div>

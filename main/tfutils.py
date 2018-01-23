@@ -1,10 +1,10 @@
 import tensorflow as tf
 
 from optimizer_enum import Optimizers
-from tensorflow.contrib import rnn
 from tensorflow.contrib import grid_rnn
 from tensorflow.contrib.ndlstm.python import lstm2d
 from tensorflow.contrib import slim
+
 
 def ctc_loss(labels, inputs, sequence_length,
              preprocess_collapse_repeated_labels=True,
@@ -15,27 +15,28 @@ def ctc_loss(labels, inputs, sequence_length,
                           ctc_merge_repeated=ctc_merge_repeated,
                           time_major=inputs_are_time_major)
 
+
 def reshape(tensor: tf.Tensor, new_shape: list):
     return tf.reshape(tensor, new_shape, name="reshape")
 
-def stack_bidirectional_lstm(inputs, num_hidden_list):
-    lstm_fw_cells = [rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
-    lstm_bw_cells = [rnn.BasicLSTMCell(num_hidden, forget_bias=1.0) for num_hidden in num_hidden_list]
-    return tf.contrib.rnn.stack_bidirectional_dynamic_rnn(lstm_fw_cells, lstm_bw_cells, inputs,
-                                                          dtype=tf.float32)[0]
+
 def bidirectional_grid_lstm(inputs, num_hidden):
     cell_fw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
     cell_bw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
     return tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs, dtype=tf.float32)[0]
 
+
 def mdlstm(inputs, num_filters_out, kernel_size=None, nhidden=None, scope=None):
     return lstm2d.separable_lstm(inputs, num_filters_out, kernel_size=kernel_size, nhidden=nhidden, scope=scope)
+
 
 def conv2d(inputs, num_filters_out, kernel, scope=None):
     return slim.conv2d(inputs, num_filters_out, kernel, scope=scope)
 
+
 def max_pool2d(inputs, kernel, scope=None):
     return slim.max_pool2d(inputs, kernel, scope=scope)
+
 
 def ctc_beam_search_decoder(inputs, sequence_length, merge_repeated=True):
     decoded, log_probabilities = tf.nn.ctc_beam_search_decoder(inputs, sequence_length, merge_repeated)
@@ -67,8 +68,6 @@ def get_optimizer(learning_rate, optimizer_name):
         optimizer = tf.train.RMSPropOptimizer(learning_rate)
     return optimizer
 
-def sparse_input_data(input_type=tf.int32):
-    return tf.sparse_placeholder(dtype=input_type)
 
 def get_time_major(inputs, num_classes, batch_size, num_hidden_units):
     outputs = reshape(inputs, [-1, num_hidden_units])
@@ -83,11 +82,14 @@ def get_time_major(inputs, num_classes, batch_size, num_hidden_units):
     logits = tf.transpose(logits, (1, 0, 2))
     return logits
 
+
 def get_shape(tensor):
     return tf.shape(tensor)
 
+
 def cost(loss):
     return tf.reduce_mean(loss)
+
 
 def dense_to_sparse(tensor, eos_token=0):
     indices = tf.where(tf.not_equal(tensor, tf.constant(eos_token, dtype=tensor.dtype)))
@@ -95,8 +97,10 @@ def dense_to_sparse(tensor, eos_token=0):
     shape = tf.shape(tensor, out_type=tf.int64)
     return tf.SparseTensor(indices, values, shape)
 
+
 def dropout(inputs, rate, scope=None):
     return slim.dropout(inputs, rate, scope=scope)
+
 
 def images_to_sequence(inputs):
     return lstm2d.images_to_sequence(inputs)

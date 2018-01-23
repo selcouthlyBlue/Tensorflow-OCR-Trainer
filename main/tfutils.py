@@ -6,11 +6,11 @@ from tensorflow.contrib import grid_rnn
 from tensorflow.contrib.ndlstm.python import lstm2d
 from tensorflow.contrib import slim
 
-def ctc_loss(inputs, labels, sequence_length,
+def ctc_loss(labels, inputs, sequence_length,
              preprocess_collapse_repeated_labels=True,
              ctc_merge_repeated=True,
              inputs_are_time_major=True):
-    return tf.nn.ctc_loss(inputs=inputs, labels=labels, sequence_length=sequence_length,
+    return tf.nn.ctc_loss(labels, inputs, sequence_length,
                           preprocess_collapse_repeated=preprocess_collapse_repeated_labels,
                           ctc_merge_repeated=ctc_merge_repeated,
                           time_major=inputs_are_time_major)

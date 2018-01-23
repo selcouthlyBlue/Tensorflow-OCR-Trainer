@@ -31,7 +31,7 @@ class GridRNNCTCModel(Model):
         train_op = None
 
         if mode != ModeKeys.INFER:
-            loss = network_utils.ctc_loss(inputs=net, labels=sparse_labels, sequence_length=seq_lens)
+            loss = network_utils.ctc_loss(labels=sparse_labels, inputs=net, sequence_length=seq_lens)
 
         if mode == ModeKeys.TRAIN:
             optimizer = network_utils.get_optimizer(learning_rate=params["learning_rate"],

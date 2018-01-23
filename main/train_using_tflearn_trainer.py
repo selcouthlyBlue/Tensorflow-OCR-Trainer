@@ -38,7 +38,7 @@ def main(_):
             return layer
 
         net = dnn(X)
-        cost = network_utils.cost(network_utils.ctc_loss(inputs=net, labels=sparse_Y, sequence_length=seq_lens))
+        cost = network_utils.cost(network_utils.ctc_loss(labels=sparse_Y, inputs=net, sequence_length=seq_lens))
         optimizer = network_utils.get_optimizer(learning_rate=learning_rate, optimizer_name=optimizer_name)
 
         train_op = tflearn.TrainOp(loss=cost, optimizer=optimizer)

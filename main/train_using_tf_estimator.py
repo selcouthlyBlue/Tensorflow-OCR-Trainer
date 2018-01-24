@@ -29,13 +29,9 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
     train_input_fn = create_input_fn(x_train, y_train, num_epochs=num_epochs, batch_size=batch_size)
     validation_input_fn = create_input_fn(x_test, y_test)
 
-    validation_monitor = learn.monitors.ValidationMonitor(
-        input_fn=validation_input_fn,
-        every_n_steps=validation_steps
-    )
-
     classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir=checkpoint_dir)
-    classifier.fit(input_fn=train_input_fn, monitors=[validation_monitor])
+    classifier.fit(input_fn=train_input_fn)
+    classifier.evaluate(input_fn=validation_input_fn)
 
 
 def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_size, images, learning_rate,

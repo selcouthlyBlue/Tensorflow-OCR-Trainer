@@ -50,7 +50,7 @@ def sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
                                        name=name)
 
 def label_error_rate(y_pred, y_true):
-    return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true))
+    return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true), name="label_error_rate")
 
 def optimize(loss, optimizer_name, learning_rate):
     global_step = tf.Variable(0, name='global_step', trainable=False)

@@ -1,7 +1,8 @@
+import tensorflow as tf
 import tfutils as network_utils
 from Model import Model
 
-from tensorflow.contrib.learn import ModeKeys
+from tensorflow.contrib.learn import ModeKeys, train
 from tensorflow.python.training.training_util import get_global_step
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
@@ -72,15 +73,15 @@ class CNNMDLSTMCTCModel(Model):
 
         predictions = {
             "decoded": dense_decoded,
-            "probabilities": log_probabilities
-        }
-
-        eval_metric_ops = {
+            "probabilities": log_probabilities,
             "label_error_rate": network_utils.label_error_rate(y_pred=decoded, y_true=sparse_labels)
         }
+
+        tensors_to_log = {"label_error_rate": "label_error_rate"}
+        logging_hook = tf.train.LoggingTensorHook(tensors_to_log, every_n_iter=5)
 
         return model_fn_lib.ModelFnOps(mode=mode,
                                        predictions=predictions,
                                        loss=loss,
                                        train_op=train_op,
-                                       eval_metric_ops=eval_metric_ops)
+                                       training_hooks=[logging_hook])

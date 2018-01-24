@@ -1,24 +1,19 @@
 import tensorflow as tf
 from tensorflow.contrib import grid_rnn
+from tfutils import dense_to_sparse
 
 
 class DenseToSparseTest(tf.test.TestCase):
     def test_convert_dense_tensor_to_sparse_tensor(self):
         dense = tf.placeholder(tf.int32)
-        indices = tf.where(tf.not_equal(dense, tf.constant(0, dtype=tf.int32)))
-        values = tf.gather_nd(dense, indices)
-        shape = tf.shape(dense, out_type=tf.int64)
-        sparse = tf.SparseTensor(indices, values, shape)
+        sparse = dense_to_sparse(dense)
         sparse_converted_to_dense = tf.sparse_tensor_to_dense(sparse)
         self.assertTrue(dense.shape == sparse_converted_to_dense.shape)
 
     def test_feed_sparse_from_dense_to_ctc_loss(self):
         input_layer = tf.placeholder(tf.float32, [None, 1596, 48])
         dense = tf.placeholder(tf.int32, [None])
-        indices = tf.where(tf.not_equal(dense, tf.constant(0, dense.dtype)))
-        values = tf.gather_nd(dense, indices)
-        shape = tf.shape(dense, out_type=tf.int64)
-        sparse = tf.SparseTensor(indices, values, shape)
+        sparse = dense_to_sparse(dense)
 
         cell_fw = grid_rnn.Grid2LSTMCell(num_units=128)
         cell_bw = grid_rnn.Grid2LSTMCell(num_units=128)

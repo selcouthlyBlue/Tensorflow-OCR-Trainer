@@ -43,15 +43,11 @@ class GridRNNCTCModel(Model):
 
         predictions = {
             "decoded": dense_decoded,
-            "probabilities": log_probabilities
-        }
-
-        eval_metric_ops = {
+            "probabilities": log_probabilities,
             "label_error_rate": network_utils.label_error_rate(y_pred=decoded, y_true=sparse_labels)
         }
 
         return model_fn_lib.ModelFnOps(mode=mode,
                                        predictions=predictions,
                                        loss=loss,
-                                       train_op=train_op,
-                                       eval_metric_ops=eval_metric_ops)
+                                       train_op=train_op)

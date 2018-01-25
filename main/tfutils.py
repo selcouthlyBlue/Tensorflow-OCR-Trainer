@@ -45,17 +45,22 @@ def ctc_beam_search_decoder(inputs, sequence_length, merge_repeated=True):
 
 def sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
     return tf.sparse_to_dense(tf.to_int32(sparse_tensor.indices),
-                                       tf.to_int32(sparse_tensor.values),
-                                       tf.to_int32(sparse_tensor.dense_shape),
-                                       name=name)
+                              tf.to_int32(sparse_tensor.values),
+                              tf.to_int32(sparse_tensor.dense_shape),
+                              name=name)
+
 
 def label_error_rate(y_pred, y_true):
-    return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true), name="label_error_rate")
+    return tf.subtract(tf.constant(1, dtype=tf.float32),
+                       tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true)),
+                       name="label_error_rate")
+
 
 def optimize(loss, optimizer_name, learning_rate):
     global_step = tf.Variable(0, name='global_step', trainable=False)
     optimizer = get_optimizer(learning_rate, optimizer_name)
     return optimizer.minimize(loss, global_step=global_step)
+
 
 def get_optimizer(learning_rate, optimizer_name):
     if optimizer_name == Optimizers.MOMENTUM:

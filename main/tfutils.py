@@ -111,11 +111,13 @@ def images_to_sequence(inputs):
     return lstm2d.images_to_sequence(inputs)
 
 
-def run_experiment(model, train_input_fn, checkpoint_dir, num_epochs=None, validation_input_fn=None, validation_steps=100):
+def run_experiment(model, train_input_fn, checkpoint_dir, num_epochs=None, validation_input_fn=None,
+                   tensors_to_log=None, validation_steps=100):
+    logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=validation_steps)
     estimator = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir=checkpoint_dir)
     experiment = learn.Experiment(estimator=estimator,
                                   train_input_fn=train_input_fn,
                                   eval_input_fn=validation_input_fn,
                                   train_steps=num_epochs,
-                                  eval_steps=validation_steps)
+                                  eval_hooks=[logging_hook])
     experiment.continuous_train_and_eval()

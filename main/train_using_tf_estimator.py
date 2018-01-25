@@ -33,6 +33,7 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
                    checkpoint_dir=checkpoint_dir,
                    num_epochs=num_epochs,
                    validation_input_fn=validation_input_fn,
+                   tensors_to_log={"accuracy": "accuracy"},
                    validation_steps=validation_steps)
 
 

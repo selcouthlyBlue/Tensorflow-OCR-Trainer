@@ -11,8 +11,8 @@ tf.logging.set_verbosity(tf.logging.INFO)
 
 
 def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_units, optimizer, learning_rate,
-          test_fraction, validation_steps=5, num_epochs=1, batch_size=1):
-    image_paths, labels = dataset_utils.read_dataset_list(labels_file)
+          test_fraction, validation_steps=5, num_epochs=1, batch_size=1, labels_delimiter=' '):
+    image_paths, labels = dataset_utils.read_dataset_list(labels_file, delimiter=labels_delimiter)
     images = dataset_utils.read_images(data_dir=data_dir, image_paths=image_paths, image_extension='png')
     images = dataset_utils.resize(images, desired_image_size)
     print('Done reading images')
@@ -30,6 +30,7 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
         x_feed_dict={"x": np.array(x_train),
                      "seq_lens": dataset_utils.get_seq_lens(x_train)},
         y=np.array(y_train),
+        num_epochs=num_epochs,
         batch_size=batch_size
     )
 
@@ -43,9 +44,7 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
     run_experiment(model=model,
                    train_input_fn=train_input_fn,
                    checkpoint_dir=checkpoint_dir,
-                   num_epochs=num_epochs,
                    validation_input_fn=validation_input_fn,
-                   tensors_to_log={"accuracy": "accuracy"},
                    validation_steps=validation_steps)
 
 

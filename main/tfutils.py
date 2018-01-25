@@ -121,3 +121,10 @@ def run_experiment(model, train_input_fn, checkpoint_dir, num_epochs=None, valid
                                   train_steps=num_epochs,
                                   eval_hooks=[logging_hook])
     experiment.continuous_train_and_eval()
+
+
+def input_fn(x_feed_dict, y, shuffle=True, batch_size=1):
+    return tf.estimator.inputs.numpy_input_fn(x=x_feed_dict,
+                                              y=y,
+                                              shuffle=shuffle,
+                                              batch_size=batch_size)

@@ -5,9 +5,10 @@ import numpy as np
 from architecture_enum import Architectures
 from GridRNNCTCModel import GridRNNCTCModel
 from CNNMDLSTMCTCModel import CNNMDLSTMCTCModel
-from tfutils import run_experiment
+from tfutils import run_experiment, input_fn
 
 tf.logging.set_verbosity(tf.logging.INFO)
+
 
 def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_units, optimizer, learning_rate,
           test_fraction, validation_steps=5, num_epochs=1, batch_size=1):
@@ -25,8 +26,19 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
     labels = dataset_utils.pad(labels, blank_token_index=80)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=test_fraction, labels=labels)
 
-    train_input_fn = create_input_fn(x_train, y_train, num_epochs=num_epochs, batch_size=batch_size)
-    validation_input_fn = create_input_fn(x_test, y_test)
+    train_input_fn = input_fn(
+        x_feed_dict={"x": np.array(x_train),
+                     "seq_lens": dataset_utils.get_seq_lens(x_train)},
+        y=np.array(y_train),
+        batch_size=batch_size
+    )
+
+    validation_input_fn = input_fn(
+        x_feed_dict={"x": np.array(x_test),
+                     "seq_lens": dataset_utils.get_seq_lens(x_test)},
+        y=np.array(y_test),
+        shuffle=False
+    )
 
     run_experiment(model=model,
                    train_input_fn=train_input_fn,
@@ -51,18 +63,6 @@ def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_siz
                                 learning_rate=learning_rate, optimizer=optimizer)
         checkpoint_dir += Architectures.GRIDLSTM.value
     return checkpoint_dir, images, model
-
-
-def create_input_fn(x, y, num_epochs=1, shuffle=True, batch_size=1):
-    train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(x),
-           "seq_lens": dataset_utils.get_seq_lens(x)},
-        y=np.array(y),
-        num_epochs=num_epochs,
-        shuffle=shuffle,
-        batch_size=batch_size
-    )
-    return train_input_fn
 
 
 if __name__ == '__main__':

@@ -44,7 +44,6 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
     run_experiment(model=model,
                    train_input_fn=train_input_fn,
                    checkpoint_dir=checkpoint_dir,
-                   num_epochs=num_epochs,
                    validation_input_fn=validation_input_fn,
                    validation_steps=validation_steps)
 

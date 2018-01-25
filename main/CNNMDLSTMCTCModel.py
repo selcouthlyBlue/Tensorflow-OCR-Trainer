@@ -1,8 +1,7 @@
-import tensorflow as tf
 import tfutils as network_utils
 from Model import Model
 
-from tensorflow.contrib.learn import ModeKeys, train
+from tensorflow.contrib.learn import ModeKeys
 from tensorflow.python.training.training_util import get_global_step
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
@@ -20,8 +19,6 @@ class CNNMDLSTMCTCModel(Model):
     @staticmethod
     def model_fn(features, labels, mode, params):
         starting_filter_size = params["starting_filter_size"]
-        learning_rate = params["learning_rate"]
-        optimizer = params["optimizer"]
 
         input_layer = network_utils.reshape(features["x"], params["input_shape"])
         seq_lens = network_utils.reshape(features["seq_lens"], [-1])
@@ -64,8 +61,8 @@ class CNNMDLSTMCTCModel(Model):
             loss = network_utils.ctc_loss(labels=sparse_labels, inputs=net, sequence_length=seq_lens)
 
         if mode == ModeKeys.TRAIN:
-            optimizer = network_utils.get_optimizer(learning_rate=learning_rate,
-                                                    optimizer_name=optimizer)
+            optimizer = network_utils.get_optimizer(learning_rate=params["learning_rate"],
+                                                    optimizer_name=params["optimizer"])
             train_op = optimizer.minimize(loss=loss, global_step=get_global_step())
 
         decoded, log_probabilities = network_utils.ctc_beam_search_decoder(inputs=net, sequence_length=seq_lens)
@@ -74,14 +71,10 @@ class CNNMDLSTMCTCModel(Model):
         predictions = {
             "decoded": dense_decoded,
             "probabilities": log_probabilities,
-            "label_error_rate": network_utils.label_error_rate(y_pred=decoded, y_true=sparse_labels)
+            "accuracy": network_utils.accuracy(y_pred=decoded, y_true=sparse_labels)
         }
-
-        tensors_to_log = {"label_error_rate": "label_error_rate"}
-        logging_hook = tf.train.LoggingTensorHook(tensors_to_log, every_n_iter=5)
 
         return model_fn_lib.ModelFnOps(mode=mode,
                                        predictions=predictions,
                                        loss=loss,
-                                       train_op=train_op,
-                                       training_hooks=[logging_hook])
+                                       train_op=train_op)

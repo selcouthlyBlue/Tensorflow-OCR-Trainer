@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from optimizer_enum import Optimizers
-from tensorflow.contrib import grid_rnn
+from tensorflow.contrib import grid_rnn, learn
 from tensorflow.contrib.ndlstm.python import lstm2d
 from tensorflow.contrib import slim
 
@@ -45,17 +45,22 @@ def ctc_beam_search_decoder(inputs, sequence_length, merge_repeated=True):
 
 def sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
     return tf.sparse_to_dense(tf.to_int32(sparse_tensor.indices),
-                                       tf.to_int32(sparse_tensor.values),
-                                       tf.to_int32(sparse_tensor.dense_shape),
-                                       name=name)
+                              tf.to_int32(sparse_tensor.values),
+                              tf.to_int32(sparse_tensor.dense_shape),
+                              name=name)
 
-def label_error_rate(y_pred, y_true):
-    return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true), name="label_error_rate")
+
+def accuracy(y_pred, y_true):
+    return tf.subtract(tf.constant(1, dtype=tf.float32),
+                       tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true)),
+                       name="accuracy")
+
 
 def optimize(loss, optimizer_name, learning_rate):
     global_step = tf.Variable(0, name='global_step', trainable=False)
     optimizer = get_optimizer(learning_rate, optimizer_name)
     return optimizer.minimize(loss, global_step=global_step)
+
 
 def get_optimizer(learning_rate, optimizer_name):
     if optimizer_name == Optimizers.MOMENTUM:
@@ -104,3 +109,22 @@ def dropout(inputs, rate, scope=None):
 
 def images_to_sequence(inputs):
     return lstm2d.images_to_sequence(inputs)
+
+
+def run_experiment(model, train_input_fn, checkpoint_dir, num_epochs=None, validation_input_fn=None,
+                   tensors_to_log=None, validation_steps=100):
+    logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=validation_steps)
+    estimator = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir=checkpoint_dir)
+    experiment = learn.Experiment(estimator=estimator,
+                                  train_input_fn=train_input_fn,
+                                  eval_input_fn=validation_input_fn,
+                                  train_steps=num_epochs,
+                                  eval_hooks=[logging_hook])
+    experiment.continuous_train_and_eval()
+
+
+def input_fn(x_feed_dict, y, shuffle=True, batch_size=1):
+    return tf.estimator.inputs.numpy_input_fn(x=x_feed_dict,
+                                              y=y,
+                                              shuffle=shuffle,
+                                              batch_size=batch_size)

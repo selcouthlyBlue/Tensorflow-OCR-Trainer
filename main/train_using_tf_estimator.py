@@ -2,11 +2,10 @@ import dataset_utils
 import tensorflow as tf
 import numpy as np
 
-from tensorflow.contrib import learn
-
 from architecture_enum import Architectures
 from GridRNNCTCModel import GridRNNCTCModel
 from CNNMDLSTMCTCModel import CNNMDLSTMCTCModel
+from tfutils import run_experiment
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -29,9 +28,12 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
     train_input_fn = create_input_fn(x_train, y_train, num_epochs=num_epochs, batch_size=batch_size)
     validation_input_fn = create_input_fn(x_test, y_test)
 
-    classifier = learn.Estimator(model_fn=model.model_fn, params=model.params, model_dir=checkpoint_dir)
-    classifier.fit(input_fn=train_input_fn)
-    classifier.evaluate(input_fn=validation_input_fn)
+    run_experiment(model=model,
+                   train_input_fn=train_input_fn,
+                   checkpoint_dir=checkpoint_dir,
+                   num_epochs=num_epochs,
+                   validation_input_fn=validation_input_fn,
+                   validation_steps=validation_steps)
 
 
 def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_size, images, learning_rate,

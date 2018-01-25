@@ -8,4 +8,7 @@ So far the trainable architectures implemented here are:
 
 To be able to run training, simply `cd main` and run one of the following training scripts:
 
--`python train_using_tf_estimator.py`
+-`python train.py`
+
+You can also modify the parameters inside `train.py` to perform your experiments
+using different hyperparemters to improve performance.

@@ -13,7 +13,7 @@ def main():
           learning_rate=0.001,
           test_fraction=0.5,
           num_epochs=1000,
-          validation_steps=5,
+          validation_steps=50,
           batch_size=1)
 
 

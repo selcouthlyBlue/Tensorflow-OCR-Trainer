@@ -71,7 +71,7 @@ class CNNMDLSTMCTCModel(Model):
         predictions = {
             "decoded": dense_decoded,
             "probabilities": log_probabilities,
-            "label_error_rate": network_utils.label_error_rate(y_pred=decoded, y_true=sparse_labels)
+            "accuracy": network_utils.accuracy(y_pred=decoded, y_true=sparse_labels)
         }
 
         return model_fn_lib.ModelFnOps(mode=mode,

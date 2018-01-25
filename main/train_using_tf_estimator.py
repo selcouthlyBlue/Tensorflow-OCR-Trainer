@@ -11,8 +11,8 @@ tf.logging.set_verbosity(tf.logging.INFO)
 
 
 def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_units, optimizer, learning_rate,
-          test_fraction, validation_steps=5, num_epochs=1, batch_size=1):
-    image_paths, labels = dataset_utils.read_dataset_list(labels_file)
+          test_fraction, validation_steps=5, num_epochs=1, batch_size=1, labels_delimiter=' '):
+    image_paths, labels = dataset_utils.read_dataset_list(labels_file, delimiter=labels_delimiter)
     images = dataset_utils.read_images(data_dir=data_dir, image_paths=image_paths, image_extension='png')
     images = dataset_utils.resize(images, desired_image_size)
     print('Done reading images')

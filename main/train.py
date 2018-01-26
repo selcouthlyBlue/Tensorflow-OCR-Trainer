@@ -14,7 +14,7 @@ def main():
           test_fraction=0.3,
           num_epochs=160,
           validation_steps=10,
-          batch_size=32)
+          batch_size=1)
 
 
 if __name__ == '__main__':

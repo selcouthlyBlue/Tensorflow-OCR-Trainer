@@ -10,10 +10,10 @@ def ctc_loss(labels, inputs, sequence_length,
              preprocess_collapse_repeated_labels=True,
              ctc_merge_repeated=True,
              inputs_are_time_major=True):
-    return tf.nn.ctc_loss(labels, inputs, sequence_length,
+    return tf.reduce_mean(tf.nn.ctc_loss(labels, inputs, sequence_length,
                           preprocess_collapse_repeated=preprocess_collapse_repeated_labels,
                           ctc_merge_repeated=ctc_merge_repeated,
-                          time_major=inputs_are_time_major)
+                          time_major=inputs_are_time_major))
 
 
 def reshape(tensor: tf.Tensor, new_shape: list):
@@ -90,10 +90,6 @@ def get_time_major(inputs, num_classes, batch_size, num_hidden_units):
 
 def get_shape(tensor):
     return tf.shape(tensor)
-
-
-def cost(loss):
-    return tf.reduce_mean(loss)
 
 
 def dense_to_sparse(tensor, eos_token=0):

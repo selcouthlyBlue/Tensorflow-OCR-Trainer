@@ -12,8 +12,8 @@ def main():
           optimizer=Optimizers.MOMENTUM,
           learning_rate=0.001,
           test_fraction=0.5,
-          num_epochs=1000,
-          validation_steps=50,
+          num_epochs=160,
+          validation_steps=10,
           batch_size=1)
 
 

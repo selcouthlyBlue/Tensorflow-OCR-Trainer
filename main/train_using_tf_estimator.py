@@ -29,15 +29,15 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
     train_input_fn = input_fn(
         x_feed_dict={"x": np.array(x_train),
                      "seq_lens": dataset_utils.get_seq_lens(x_train)},
-        y=np.array(y_train),
-        num_epochs=num_epochs,
+        y=np.array(y_train, dtype=np.int32),
+        num_epochs=num_epochs * (len(x_train)//batch_size),
         batch_size=batch_size
     )
 
     validation_input_fn = input_fn(
         x_feed_dict={"x": np.array(x_test),
                      "seq_lens": dataset_utils.get_seq_lens(x_test)},
-        y=np.array(y_test),
+        y=np.array(y_test, dtype=np.int32),
         shuffle=False
     )
 
@@ -45,7 +45,7 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
                    train_input_fn=train_input_fn,
                    checkpoint_dir=checkpoint_dir,
                    validation_input_fn=validation_input_fn,
-                   validation_steps=validation_steps)
+                   validation_steps=validation_steps * (len(x_train)//batch_size))
 
 
 def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_size, images, learning_rate,

@@ -1,3 +1,4 @@
+import tensorflow as tf
 import tfutils as network_utils
 from Model import Model
 
@@ -32,6 +33,7 @@ class GridRNNCTCModel(Model):
 
         if mode != ModeKeys.INFER:
             loss = network_utils.ctc_loss(labels=sparse_labels, inputs=net, sequence_length=seq_lens)
+            tf.summary.scalar("loss", loss)
 
         if mode == ModeKeys.TRAIN:
             optimizer = network_utils.get_optimizer(learning_rate=params["learning_rate"],
@@ -40,11 +42,13 @@ class GridRNNCTCModel(Model):
 
         decoded, log_probabilities = network_utils.ctc_beam_search_decoder(inputs=net, sequence_length=seq_lens)
         dense_decoded = network_utils.sparse_to_dense(decoded, name="output")
+        accuracy = network_utils.accuracy(y_pred=decoded, y_true=sparse_labels)
+        tf.summary.scalar("accuracy", accuracy)
 
         predictions = {
             "decoded": dense_decoded,
             "probabilities": log_probabilities,
-            "accuracy": network_utils.accuracy(y_pred=decoded, y_true=sparse_labels)
+            "accuracy": accuracy
         }
 
         return model_fn_lib.ModelFnOps(mode=mode,

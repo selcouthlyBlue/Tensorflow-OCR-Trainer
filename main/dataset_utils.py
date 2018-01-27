@@ -34,8 +34,22 @@ def read_images(data_dir, image_paths, image_extension='png'):
 def resize(images, shape):
     resized_images = []
     for image in images:
-        resized_images.append(cv2.resize(image, shape))
+        resized_image = _resize(image, shape)
+        resized_images.append(resized_image)
     return resized_images
+
+
+def _resize(image, shape=None):
+    desired_width, desired_height = shape[0], shape[1]
+    dim = (desired_width, desired_height)
+    if (desired_width is None and desired_height is None) or shape is None:
+        return image
+    if desired_width is None:
+        dim = (desired_height, image.shape[1])
+    elif desired_height is None:
+        dim = (image.shape[0], desired_width)
+    return cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+
 
 def charset():
     return ''.join([line.rstrip('\n') for line in open('chars.txt')])

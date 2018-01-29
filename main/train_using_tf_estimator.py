@@ -58,7 +58,7 @@ def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_siz
         checkpoint_dir += Architectures.CNNMDLSTM.value
     else:
         images = dataset_utils.transpose(images)
-        model = GridRNNCTCModel(input_shape=[batch_size, desired_image_size[0], desired_image_size[1]],
+        model = GridRNNCTCModel(input_shape=[-1, desired_image_size[0], desired_image_size[1]],
                                 num_hidden_units=num_hidden_units, num_classes=80,
                                 learning_rate=learning_rate, optimizer=optimizer)
         checkpoint_dir += Architectures.GRIDLSTM.value

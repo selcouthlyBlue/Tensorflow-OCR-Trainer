@@ -1,6 +1,5 @@
 import tensorflow as tf
 import tfutils as network_utils
-import numpy as np
 
 
 class MultidimensionalRNNTest(tf.test.TestCase):
@@ -19,16 +18,6 @@ class MultidimensionalRNNTest(tf.test.TestCase):
     def test_image_to_sequence(self):
         net = network_utils.mdlstm(self.input_layer, 16)
         net = network_utils.images_to_sequence(net)
-
-    def test_convert_to_ctc_dims(self):
-        net = network_utils.mdlstm(self.input_layer, 16)
-        net = network_utils.images_to_sequence(net)
-
-        seq_lens = np.full(self.batch_size, 32, dtype=int)
-
-        net = network_utils.get_time_major(net, batch_size=self.batch_size, num_hidden_units=16, num_classes=self.num_classes)
-
-        loss = network_utils.ctc_loss(labels=self.labels, inputs=net, sequence_length=seq_lens)
 
     def test_stack_ndlstms(self):
         net = network_utils.mdlstm(self.input_layer, 16)

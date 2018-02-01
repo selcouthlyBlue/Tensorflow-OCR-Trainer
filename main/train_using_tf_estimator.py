@@ -26,7 +26,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
                                                      desired_image_width, images, learning_rate, num_hidden_units, optimizer)
 
     labels = dataset_utils.encode(labels)
-    labels = dataset_utils.pad(labels, blank_token_index=80)
+    labels = dataset_utils.pad(labels, blank_token_index=80, max_label_length=50)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=test_fraction, labels=labels)
 
     print("Number of training samples:", len(x_train))
@@ -36,7 +36,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
         x_feed_dict={"x": np.array(x_train),
                      "seq_lens": dataset_utils.get_seq_lens(x_train)},
         y=np.array(y_train, dtype=np.int32),
-        num_epochs=num_epochs * (len(x_train)//batch_size),
+        num_epochs=num_epochs,
         batch_size=batch_size
     )
 

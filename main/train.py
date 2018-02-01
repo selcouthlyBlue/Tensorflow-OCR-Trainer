@@ -3,10 +3,11 @@ from optimizer_enum import Optimizers
 from train_using_tf_estimator import train
 
 def main():
-    train(labels_file='../test/dummy_labels_file.txt',
-          data_dir='../test/dummy_data/',
+    train(labels_file='/home/kapitan/Desktop/Jerome/lines.txt',
+          data_dir='/home/kapitan/Desktop/Jerome/IAM_lines/',
           labels_delimiter=' ',
-          desired_image_size=(1596, 48),
+          desired_image_height=48,
+          desired_image_width=1596,
           architecture=Architectures.CNNMDLSTM,
           num_hidden_units=16,
           optimizer=Optimizers.MOMENTUM,
@@ -14,7 +15,7 @@ def main():
           test_fraction=0.3,
           num_epochs=160,
           validation_steps=10,
-          batch_size=1)
+          batch_size=32)
 
 
 if __name__ == '__main__':

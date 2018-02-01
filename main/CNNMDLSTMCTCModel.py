@@ -55,10 +55,10 @@ class CNNMDLSTMCTCModel(Model):
         net = network_utils.mdlstm(net, starting_filter_size * 10)
         net = network_utils.dropout(net, 0.25)
         net = network_utils.images_to_sequence(net)
-        net = network_utils.get_time_major(inputs=net,
-                                           num_classes=params["num_classes"],
-                                           batch_size=network_utils.get_shape(input_layer)[0],
-                                           num_hidden_units=starting_filter_size * 10)
+        net = network_utils.get_logits(inputs=net,
+                                       num_classes=params["num_classes"],
+                                       num_steps=net.shape[1],
+                                       num_hidden_units=net.shape[-1])
 
         loss = None
         train_op = None

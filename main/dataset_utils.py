@@ -22,27 +22,45 @@ def read_dataset_list(dataset_list_file, delimiter=' '):
 
 
 def read_images(data_dir, image_paths, image_extension='png'):
+    print('Reading images...')
     images = []
-    i = 0
     for image_name in image_paths:
-        if i % 100 == 0:
-            print('Number of images read: {}/{}'.format(i, len(image_paths)))
-        images.append(cv2.imread(data_dir + image_name + '.' + image_extension, 0).astype(np.float32))
-        i = i + 1
+        images.append(cv2.imread(data_dir + image_name + '.' + image_extension))
+    print('Done reading images. Number of images read:', len(image_paths))
     return images
 
-def resize(images, shape):
+
+def binarize(images):
+    print('Binarizing images...')
+    binarized_images = []
+    for image in images:
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        _, binarized_image = cv2.threshold(gray_image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        binarized_images.append(binarized_image)
+    print('Done binarizing images.')
+    return binarized_images
+
+
+def images_as_float32(images):
+    float32_images = []
+    for image in images:
+        float32_images.append(image.astype(np.float32))
+    return float32_images
+
+
+def resize(images, desired_height=None, desired_width=None):
+    print("Resizing images...")
     resized_images = []
     for image in images:
-        resized_image = _resize(image, shape)
+        resized_image = _resize(image, desired_height, desired_width)
         resized_images.append(resized_image)
+    print("Done resizing images.")
     return resized_images
 
 
-def _resize(image, shape=None):
-    desired_width, desired_height = shape[0], shape[1]
+def _resize(image, desired_height=None, desired_width=None):
     dim = (desired_width, desired_height)
-    if (desired_width is None and desired_height is None) or shape is None:
+    if (desired_width is None and desired_height is None) or dim is (None, None):
         return image
     if desired_width is None:
         dim = (desired_height, image.shape[1])

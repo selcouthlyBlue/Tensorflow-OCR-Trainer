@@ -34,7 +34,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
 
     train_input_fn = input_fn(
         x_feed_dict={"x": np.array(x_train),
-                     "seq_lens": dataset_utils.get_seq_lens(x_train)},
+                     "seq_lens": dataset_utils.set_seq_lens(desired_image_width, len(x_train))},
         y=np.array(y_train, dtype=np.int32),
         num_epochs=num_epochs,
         batch_size=batch_size
@@ -42,7 +42,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
 
     validation_input_fn = input_fn(
         x_feed_dict={"x": np.array(x_test),
-                     "seq_lens": dataset_utils.get_seq_lens(x_test)},
+                     "seq_lens": dataset_utils.set_seq_lens(desired_image_width, len(x_test))},
         y=np.array(y_test, dtype=np.int32),
         batch_size=batch_size,
         shuffle=False

@@ -74,17 +74,15 @@ def get_optimizer(learning_rate, optimizer_name):
     return optimizer
 
 
-def get_time_major(inputs, num_classes, batch_size, num_hidden_units):
+def get_logits(inputs, num_classes, num_steps, num_hidden_units):
     outputs = reshape(inputs, [-1, num_hidden_units])
 
-    W = tf.Variable(tf.truncated_normal([num_hidden_units,
-                                         num_classes],
+    W = tf.Variable(tf.truncated_normal(shape=tf.TensorShape([num_hidden_units, num_classes]),
                                         stddev=0.1, dtype=tf.float32), name='W')
     b = tf.Variable(tf.constant(0., dtype=tf.float32, shape=[num_classes], name='b'))
 
     logits = tf.matmul(outputs, W) + b
-    logits = tf.reshape(logits, [batch_size, -1, num_classes])
-    logits = tf.transpose(logits, (1, 0, 2))
+    logits = reshape(logits, [num_steps, -1, num_classes])
     return logits
 
 
@@ -104,7 +102,9 @@ def dropout(inputs, rate, scope=None):
 
 
 def images_to_sequence(inputs):
-    return lstm2d.images_to_sequence(inputs)
+    transposed_inputs = tf.transpose(inputs, (0, 2, 1, 3))
+    batch_size, height, width, num_channels = inputs.get_shape().as_list()
+    return reshape(transposed_inputs, [batch_size, width, height * num_channels])
 
 
 def div(inputs, divisor, is_floor=True):

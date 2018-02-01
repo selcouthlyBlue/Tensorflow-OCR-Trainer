@@ -82,8 +82,8 @@ def encode(labels):
     return encoded_labels
 
 
-def get_seq_lens(data):
-    return np.asarray([len(s) for s in data], dtype=np.int32)
+def set_seq_lens(length, number_of_samples):
+    return np.full(number_of_samples, length)
 
 
 def transpose(images):

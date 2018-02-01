@@ -107,6 +107,12 @@ def images_to_sequence(inputs):
     return lstm2d.images_to_sequence(inputs)
 
 
+def div(inputs, divisor, is_floor=True):
+    if is_floor:
+        return tf.floor_div(inputs, tf.constant(divisor, dtype=inputs.dtype))
+    return tf.to_int32(tf.ceil(tf.truediv(inputs, tf.constant(divisor, dtype=inputs.dtype))))
+
+
 def run_experiment(model, train_input_fn, checkpoint_dir, validation_input_fn=None,
                    validation_steps=100):
     estimator = learn.Estimator(model_fn=model.model_fn,

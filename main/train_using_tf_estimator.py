@@ -10,21 +10,27 @@ from tfutils import run_experiment, input_fn
 tf.logging.set_verbosity(tf.logging.INFO)
 
 
-def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_units, optimizer, learning_rate,
+def train(labels_file, data_dir, desired_image_height, desired_image_width, architecture, num_hidden_units, optimizer, learning_rate,
           test_fraction, validation_steps=5, num_epochs=1, batch_size=1, labels_delimiter=' '):
     image_paths, labels = dataset_utils.read_dataset_list(labels_file, delimiter=labels_delimiter)
     images = dataset_utils.read_images(data_dir=data_dir, image_paths=image_paths, image_extension='png')
-    images = dataset_utils.resize(images, desired_image_size)
-    print('Done reading images')
+    images = dataset_utils.binarize(images)
+    images = dataset_utils.resize(images,
+                                  desired_height=desired_image_height,
+                                  desired_width=desired_image_width)
+    images = dataset_utils.images_as_float32(images)
 
     checkpoint_dir = "checkpoint/"
 
-    checkpoint_dir, images, model = initialize_model(architecture, batch_size, checkpoint_dir, desired_image_size,
-                                                     images, learning_rate, num_hidden_units, optimizer)
+    checkpoint_dir, images, model = initialize_model(architecture, batch_size, checkpoint_dir, desired_image_height,
+                                                     desired_image_width, images, learning_rate, num_hidden_units, optimizer)
 
     labels = dataset_utils.encode(labels)
     labels = dataset_utils.pad(labels, blank_token_index=80)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=test_fraction, labels=labels)
+
+    print("Number of training samples:", len(x_train))
+    print("Number of validation samples:", len(x_test))
 
     train_input_fn = input_fn(
         x_feed_dict={"x": np.array(x_train),
@@ -49,16 +55,16 @@ def train(labels_file, data_dir, desired_image_size, architecture, num_hidden_un
                    validation_steps=validation_steps * (len(x_train)//batch_size))
 
 
-def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_size, images, learning_rate,
-                     num_hidden_units, optimizer):
+def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_height,
+                     desired_image_width, images, learning_rate, num_hidden_units, optimizer):
     if architecture == Architectures.CNNMDLSTM:
-        model = CNNMDLSTMCTCModel(input_shape=[batch_size, desired_image_size[0], desired_image_size[1], 1],
+        model = CNNMDLSTMCTCModel(input_shape=[batch_size, desired_image_height, desired_image_width, 1],
                                   starting_filter_size=num_hidden_units,
                                   learning_rate=learning_rate, optimizer=optimizer, num_classes=80)
         checkpoint_dir += Architectures.CNNMDLSTM.value
     else:
         images = dataset_utils.transpose(images)
-        model = GridRNNCTCModel(input_shape=[batch_size, desired_image_size[0], desired_image_size[1]],
+        model = GridRNNCTCModel(input_shape=[-1, desired_image_width, desired_image_height],
                                 num_hidden_units=num_hidden_units, num_classes=80,
                                 learning_rate=learning_rate, optimizer=optimizer)
         checkpoint_dir += Architectures.GRIDLSTM.value

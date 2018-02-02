@@ -30,8 +30,8 @@ def mdlstm(inputs, num_filters_out, kernel_size=None, nhidden=None, scope=None):
     return lstm2d.separable_lstm(inputs, num_filters_out, kernel_size=kernel_size, nhidden=nhidden, scope=scope)
 
 
-def conv2d(inputs, num_filters_out, kernel, scope=None):
-    return slim.conv2d(inputs, num_filters_out, kernel, scope=scope)
+def conv2d(inputs, num_filters_out, kernel, activation_fn=tf.nn.tanh, scope=None):
+    return slim.conv2d(inputs, num_filters_out, kernel, scope=scope, activation_fn=activation_fn)
 
 
 def max_pool2d(inputs, kernel, scope=None):

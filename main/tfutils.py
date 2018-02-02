@@ -77,9 +77,11 @@ def get_optimizer(learning_rate, optimizer_name):
 def get_logits(inputs, num_classes, num_steps, num_hidden_units):
     outputs = reshape(inputs, [-1, num_hidden_units])
 
-    W = tf.Variable(tf.truncated_normal(shape=tf.TensorShape([num_hidden_units, num_classes]),
-                                        stddev=0.1, dtype=tf.float32), name='W')
-    b = tf.Variable(tf.constant(0., dtype=tf.float32, shape=[num_classes], name='b'))
+    W = tf.get_variable(name='W', shape=tf.TensorShape([num_hidden_units, num_classes]),
+                        dtype=tf.float32,
+                        initializer=slim.xavier_initializer())
+    b = tf.get_variable(name='b', shape=[num_classes], initializer=tf.zeros_initializer(),
+                        dtype=tf.float32)
 
     logits = tf.matmul(outputs, W) + b
     logits = reshape(logits, [num_steps, -1, num_classes])

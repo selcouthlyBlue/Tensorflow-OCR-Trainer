@@ -58,7 +58,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
 def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_height,
                      desired_image_width, images, learning_rate, num_hidden_units, optimizer):
     if architecture == Architectures.CNNMDLSTM:
-        model = CNNMDLSTMCTCModel(input_shape=[batch_size, desired_image_height, desired_image_width, 1],
+        model = CNNMDLSTMCTCModel(input_shape=[-1, desired_image_height, desired_image_width, 1],
                                   starting_filter_size=num_hidden_units,
                                   learning_rate=learning_rate, optimizer=optimizer, num_classes=80)
         checkpoint_dir += Architectures.CNNMDLSTM.value

@@ -106,6 +106,8 @@ def dropout(inputs, rate, scope=None):
 def images_to_sequence(inputs):
     transposed_inputs = tf.transpose(inputs, (0, 2, 1, 3))
     batch_size, height, width, num_channels = inputs.get_shape().as_list()
+    if batch_size is None:
+        batch_size = -1
     return reshape(transposed_inputs, [batch_size, width, height * num_channels])
 
 

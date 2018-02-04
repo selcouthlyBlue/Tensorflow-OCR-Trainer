@@ -22,7 +22,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
 
     checkpoint_dir = "checkpoint/"
 
-    checkpoint_dir, images, model = initialize_model(architecture, batch_size, checkpoint_dir, desired_image_height,
+    checkpoint_dir, images, model = initialize_model(architecture, checkpoint_dir, desired_image_height,
                                                      desired_image_width, images, learning_rate, num_hidden_units, optimizer)
 
     labels = dataset_utils.encode(labels)
@@ -55,7 +55,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
                    validation_steps=validation_steps * (len(x_train)//batch_size))
 
 
-def initialize_model(architecture, batch_size, checkpoint_dir, desired_image_height,
+def initialize_model(architecture, checkpoint_dir, desired_image_height,
                      desired_image_width, images, learning_rate, num_hidden_units, optimizer):
     if architecture == Architectures.CNNMDLSTM:
         model = CNNMDLSTMCTCModel(input_shape=[-1, desired_image_height, desired_image_width, 1],

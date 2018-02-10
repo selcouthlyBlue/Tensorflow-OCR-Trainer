@@ -7,7 +7,7 @@ def main():
           data_dir='/home/kapitan/Desktop/Jerome/words/',
           labels_delimiter=' ',
           desired_image_height=128,
-          desired_image_width=512,
+          desired_image_width=1024,
           architecture=Architectures.CNNMDLSTM,
           num_hidden_units=16,
           optimizer=Optimizers.MOMENTUM,

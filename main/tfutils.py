@@ -29,12 +29,10 @@ def bidirectional_grid_lstm(inputs, num_hidden):
 def _get_cell(num_filters_out, cell_type='LSTM'):
     if cell_type == 'LSTM':
         return rnn.BasicLSTMCell(num_filters_out)
-    if cell_type == 'Grid1LSTM':
-        return grid_rnn.Grid1LSTMCell(num_filters_out)
-    if cell_type == 'Grid2LSTM':
-        return grid_rnn.Grid2LSTMCell(num_filters_out, tied=True)
-    if cell_type == 'Grid3LSTM':
-        return grid_rnn.Grid3LSTMCell(num_filters_out, tied=True)
+    if cell_type == 'GRU':
+        return rnn.GRUCell(num_filters_out)
+    if cell_type == 'GLSTM':
+        return rnn.GLSTMCell(num_filters_out)
     raise NotImplementedError(cell_type, "is not supported.")
 
 
@@ -51,18 +49,6 @@ def mdlstm(inputs, num_filters_out, cell_type='LSTM', scope=None):
             output_transposed = _bidirectional_rnn_scan(cell_fw2, cell_bw2, transposed)
         output = tf.transpose(output_transposed, [0, 2, 1, 3])
         return output
-
-
-def _scan(cell, inputs, reverse=False):
-    with tf.variable_scope("SeqLSTM", [inputs, cell]):
-        if reverse:
-            inputs = tf.reverse_v2(inputs, [0])
-        outputs, _ = tf.nn.dynamic_rnn(cell, inputs, dtype=inputs.dtype)
-        if not isinstance(outputs, tf.Tensor):
-            outputs = outputs[0]
-        if reverse:
-            outputs = tf.reverse_v2(outputs, [0])
-        return outputs
 
 
 def images_to_sequence(inputs):
@@ -88,11 +74,8 @@ def _bidirectional_rnn_scan(cell_fw, cell_bw, inputs):
     with tf.variable_scope("BidirectionalRNN", [inputs, cell_fw, cell_bw]):
         height = inputs.get_shape().as_list()[1]
         inputs = images_to_sequence(inputs)
-        with tf.variable_scope("lr"):
-            hidden_sequence_lr = _scan(cell_fw, inputs)
-        with tf.variable_scope("rl"):
-            hidden_sequence_rl = _scan(cell_bw, inputs, reverse=True)
-        output_sequence = tf.concat([hidden_sequence_lr, hidden_sequence_rl], 2)
+        outputs, output_states = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs, dtype=inputs.dtype)
+        output_sequence = tf.concat(outputs, 2)
         output = sequence_to_images(output_sequence, height)
         return output
 

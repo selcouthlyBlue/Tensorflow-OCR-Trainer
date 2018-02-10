@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 from optimizer_enum import Optimizers
-from tensorflow.contrib import grid_rnn, learn
-from tensorflow.contrib.ndlstm.python import lstm2d
+from tensorflow.contrib import grid_rnn, learn, rnn
+from six.moves import xrange
 from tensorflow.contrib import slim
 
 
@@ -26,8 +26,75 @@ def bidirectional_grid_lstm(inputs, num_hidden):
     return tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs, dtype=tf.float32)[0]
 
 
-def mdlstm(inputs, num_filters_out, kernel_size=None, nhidden=None, scope=None):
-    return lstm2d.separable_lstm(inputs, num_filters_out, kernel_size=kernel_size, nhidden=nhidden, scope=scope)
+def _get_cell(num_filters_out, cell_type='LSTM'):
+    if cell_type == 'LSTM':
+        return rnn.BasicLSTMCell(num_filters_out)
+    if cell_type == 'Grid1LSTM':
+        return grid_rnn.Grid1LSTMCell(num_filters_out)
+    if cell_type == 'Grid2LSTM':
+        return grid_rnn.Grid2LSTMCell(num_filters_out, tied=True)
+    if cell_type == 'Grid3LSTM':
+        return grid_rnn.Grid3LSTMCell(num_filters_out, tied=True)
+    raise NotImplementedError(cell_type, "is not supported.")
+
+
+def mdlstm(inputs, num_filters_out, cell_type='LSTM', scope=None):
+    with tf.variable_scope(scope, "multidimensional_rnn", [inputs]):
+        cells = [_get_cell(num_filters_out // 2, cell_type) for _ in xrange(4)]
+        cell_fw1 = cells[0]
+        cell_bw1 = cells[1]
+        cell_fw2 = cells[2]
+        cell_bw2 = cells[3]
+        hidden_sequence_horizontal = _bidirectional_rnn_scan(cell_fw1, cell_bw1, inputs)
+        with tf.variable_scope("vertical"):
+            transposed = tf.transpose(hidden_sequence_horizontal, [0, 2, 1, 3])
+            output_transposed = _bidirectional_rnn_scan(cell_fw2, cell_bw2, transposed)
+        output = tf.transpose(output_transposed, [0, 2, 1, 3])
+        return output
+
+
+def _scan(cell, inputs, reverse=False):
+    with tf.variable_scope("SeqLSTM", [inputs, cell]):
+        if reverse:
+            inputs = tf.reverse_v2(inputs, [0])
+        outputs, _ = tf.nn.dynamic_rnn(cell, inputs, dtype=inputs.dtype)
+        if not isinstance(outputs, tf.Tensor):
+            outputs = outputs[0]
+        if reverse:
+            outputs = tf.reverse_v2(outputs, [0])
+        return outputs
+
+
+def images_to_sequence(inputs):
+    _, _, width, num_channels = inputs.get_shape().as_list()
+    s = tf.shape(inputs)
+    batch_size, height = s[0], s[1]
+    transposed = tf.transpose(inputs, [2, 0, 1, 3])
+    return reshape(transposed, [width, batch_size * height, num_channels])
+
+
+def sequence_to_images(tensor, height):
+    width, num_batches, depth = tensor.get_shape().as_list()
+    if num_batches is None:
+        num_batches = -1
+    else:
+        num_batches = num_batches // height
+    reshaped = tf.reshape(tensor,
+                                 [width, num_batches, height, depth])
+    return tf.transpose(reshaped, [1, 2, 0, 3])
+
+
+def _bidirectional_rnn_scan(cell_fw, cell_bw, inputs):
+    with tf.variable_scope("BidirectionalRNN", [inputs, cell_fw, cell_bw]):
+        height = inputs.get_shape().as_list()[1]
+        inputs = images_to_sequence(inputs)
+        with tf.variable_scope("lr"):
+            hidden_sequence_lr = _scan(cell_fw, inputs)
+        with tf.variable_scope("rl"):
+            hidden_sequence_rl = _scan(cell_bw, inputs, reverse=True)
+        output_sequence = tf.concat([hidden_sequence_lr, hidden_sequence_rl], 2)
+        output = sequence_to_images(output_sequence, height)
+        return output
 
 
 def conv2d(inputs, num_filters_out, kernel, activation_fn=tf.nn.tanh, scope=None):
@@ -76,14 +143,7 @@ def get_optimizer(learning_rate, optimizer_name):
 
 def get_logits(inputs, num_classes, num_steps, num_hidden_units):
     outputs = reshape(inputs, [-1, num_hidden_units])
-
-    W = tf.get_variable(name='W', shape=tf.TensorShape([num_hidden_units, num_classes]),
-                        dtype=tf.float32,
-                        initializer=slim.xavier_initializer())
-    b = tf.get_variable(name='b', shape=[num_classes], initializer=tf.zeros_initializer(),
-                        dtype=tf.float32)
-
-    logits = tf.matmul(outputs, W) + b
+    logits = slim.fully_connected(outputs, num_classes)
     logits = reshape(logits, [num_steps, -1, num_classes])
     return logits
 
@@ -103,17 +163,9 @@ def dropout(inputs, rate, scope=None):
     return slim.dropout(inputs, rate, scope=scope)
 
 
-def images_to_sequence(inputs):
-    transposed_inputs = tf.transpose(inputs, (0, 2, 1, 3))
-    batch_size, height, width, num_channels = inputs.get_shape().as_list()
-    if batch_size is None:
-        batch_size = -1
-    return reshape(transposed_inputs, [batch_size, width, height * num_channels])
-
-
 def div(inputs, divisor, is_floor=True):
     if is_floor:
-        return tf.floor_div(inputs, tf.constant(divisor, dtype=inputs.dtype))
+        return tf.to_int32(tf.floor_div(inputs, tf.constant(divisor, dtype=inputs.dtype)))
     return tf.to_int32(tf.ceil(tf.truediv(inputs, tf.constant(divisor, dtype=inputs.dtype))))
 
 
@@ -133,3 +185,10 @@ def input_fn(x_feed_dict, y, num_epochs=1, shuffle=True, batch_size=1):
                                               shuffle=shuffle,
                                               num_epochs=num_epochs,
                                               batch_size=batch_size)
+
+
+def collapse_to_rnn_dims(inputs):
+    batch_size, height, width, num_channels = inputs.get_shape().as_list()
+    if batch_size is None:
+        batch_size = -1
+    return tf.reshape(inputs, [batch_size, height * width, num_channels])

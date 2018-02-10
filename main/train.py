@@ -7,7 +7,7 @@ def main():
           data_dir='/home/kapitan/Desktop/Jerome/IAM_lines/',
           labels_delimiter=' ',
           desired_image_height=64,
-          desired_image_width=2048,
+          desired_image_width=3200,
           architecture=Architectures.CNNMDLSTM,
           num_hidden_units=16,
           optimizer=Optimizers.MOMENTUM,

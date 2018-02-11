@@ -74,7 +74,7 @@ class CNNMDLSTMCTCModel(Model):
 
         decoded, log_probabilities = network_utils.ctc_beam_search_decoder(inputs=net, sequence_length=seq_lens)
         dense_decoded = network_utils.sparse_to_dense(decoded, name="output")
-        accuracy = network_utils.accuracy(y_pred=decoded, y_true=sparse_labels)
+        accuracy = network_utils.label_error_rate(y_pred=decoded, y_true=sparse_labels)
         tf.summary.scalar("accuracy", accuracy)
 
         predictions = {

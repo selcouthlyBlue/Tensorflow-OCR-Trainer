@@ -100,10 +100,8 @@ def sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
                               name=name)
 
 
-def accuracy(y_pred, y_true):
-    return tf.subtract(tf.constant(1, dtype=tf.float32),
-                       tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true)),
-                       name="accuracy")
+def label_error_rate(y_pred, y_true):
+    return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true), name="label_error_rate")
 
 
 def optimize(loss, optimizer_name, learning_rate):
@@ -154,12 +152,13 @@ def div(inputs, divisor, is_floor=True):
 
 def run_experiment(model, train_input_fn, checkpoint_dir, validation_input_fn=None,
                    validation_steps=100):
+    validation_monitor = learn.monitors.ValidationMonitor(input_fn=validation_input_fn,
+                                                          every_n_steps=validation_steps)
     estimator = learn.Estimator(model_fn=model.model_fn,
                                 params=model.params,
                                 model_dir=checkpoint_dir,
                                 config=learn.RunConfig(save_checkpoints_steps=validation_steps))
-    estimator.fit(input_fn=train_input_fn)
-    estimator.evaluate(input_fn=validation_input_fn)
+    estimator.fit(input_fn=train_input_fn, monitors=[validation_monitor])
 
 
 def input_fn(x_feed_dict, y, num_epochs=1, shuffle=True, batch_size=1):

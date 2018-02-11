@@ -104,12 +104,6 @@ def label_error_rate(y_pred, y_true):
     return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true), name="label_error_rate")
 
 
-def optimize(loss, optimizer_name, learning_rate):
-    global_step = tf.Variable(0, name='global_step', trainable=False)
-    optimizer = get_optimizer(learning_rate, optimizer_name)
-    return optimizer.minimize(loss, global_step=global_step)
-
-
 def get_optimizer(learning_rate, optimizer_name):
     if optimizer_name == Optimizers.MOMENTUM:
         optimizer = tf.train.MomentumOptimizer(learning_rate, momentum=0.9)

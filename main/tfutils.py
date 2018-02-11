@@ -100,16 +100,8 @@ def sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
                               name=name)
 
 
-def accuracy(y_pred, y_true):
-    return tf.subtract(tf.constant(1, dtype=tf.float32),
-                       tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true)),
-                       name="accuracy")
-
-
-def optimize(loss, optimizer_name, learning_rate):
-    global_step = tf.Variable(0, name='global_step', trainable=False)
-    optimizer = get_optimizer(learning_rate, optimizer_name)
-    return optimizer.minimize(loss, global_step=global_step)
+def label_error_rate(y_pred, y_true):
+    return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true), name="label_error_rate")
 
 
 def get_optimizer(learning_rate, optimizer_name):
@@ -131,10 +123,6 @@ def get_logits(inputs, num_classes, num_steps, num_hidden_units):
     return logits
 
 
-def get_shape(tensor):
-    return tf.shape(tensor)
-
-
 def dense_to_sparse(tensor, eos_token=0):
     indices = tf.where(tf.not_equal(tensor, tf.constant(eos_token, dtype=tensor.dtype)))
     values = tf.gather_nd(tensor, indices)
@@ -154,12 +142,13 @@ def div(inputs, divisor, is_floor=True):
 
 def run_experiment(model, train_input_fn, checkpoint_dir, validation_input_fn=None,
                    validation_steps=100):
+    validation_monitor = learn.monitors.ValidationMonitor(input_fn=validation_input_fn,
+                                                          every_n_steps=validation_steps)
     estimator = learn.Estimator(model_fn=model.model_fn,
                                 params=model.params,
                                 model_dir=checkpoint_dir,
                                 config=learn.RunConfig(save_checkpoints_steps=validation_steps))
-    estimator.fit(input_fn=train_input_fn)
-    estimator.evaluate(input_fn=validation_input_fn)
+    estimator.fit(input_fn=train_input_fn, monitors=[validation_monitor])
 
 
 def input_fn(x_feed_dict, y, num_epochs=1, shuffle=True, batch_size=1):

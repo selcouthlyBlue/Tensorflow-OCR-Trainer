@@ -83,12 +83,9 @@ def _bidirectional_rnn_scan(cell_fw, cell_bw, inputs):
         return output
 
 
-def conv2d(inputs, num_filters_out, kernel, mode, activation_fn=tf.nn.relu, use_batch_norm=False, scope=None):
+def conv2d(inputs, num_filters_out, kernel, activation_fn=tf.nn.relu, scope=None):
     return slim.conv2d(inputs, num_filters_out, kernel,
-                       scope=scope, activation_fn=activation_fn,
-                       normalizer_fn=slim.batch_norm if use_batch_norm else None,
-                       normalizer_params={'is_training': is_training(mode)}
-                       if use_batch_norm else None)
+                       scope=scope, activation_fn=activation_fn)
 
 
 def max_pool2d(inputs, kernel, scope=None):
@@ -126,9 +123,6 @@ def get_optimizer(learning_rate, optimizer_name):
 def get_logits(inputs, num_classes, num_steps, num_hidden_units, mode, use_batch_norm=False):
     outputs = reshape(inputs, [-1, num_hidden_units])
     logits = slim.fully_connected(outputs, num_classes,
-                                  normalizer_fn=slim.batch_norm if use_batch_norm else None,
-                                  normalizer_params={'is_training': is_training(mode)}
-                                  if use_batch_norm else None,
                                   weights_initializer=slim.xavier_initializer())
     logits = reshape(logits, [num_steps, -1, num_classes])
     return logits
@@ -198,3 +192,9 @@ def is_inference(mode):
 
 def is_training(mode):
     return mode == ModeKeys.TRAIN
+
+
+def batch_norm(inputs, mode):
+    return slim.batch_norm(inputs, is_training=is_training(mode))
+
+

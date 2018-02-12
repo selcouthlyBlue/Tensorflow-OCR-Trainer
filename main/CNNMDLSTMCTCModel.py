@@ -21,30 +21,30 @@ class CNNMDLSTMCTCModel(Model):
         seq_lens = network_utils.reshape(features["seq_lens"], [-1])
         sparse_labels = network_utils.dense_to_sparse(labels, eos_token=80)
 
-        net = network_utils.conv2d(input_layer, starting_filter_size, 3, mode, use_batch_norm=True)
+        net = network_utils.conv2d(input_layer, starting_filter_size, 3)
         net = network_utils.max_pool2d(net, 2)
         seq_lens = network_utils.div(seq_lens, 2)
         net = network_utils.mdlstm(net, starting_filter_size * 2, cell_type="GLSTM")
         net = network_utils.dropout(net, 0.25)
-        net = network_utils.conv2d(net, starting_filter_size * 3, 3, mode, use_batch_norm=True)
+        net = network_utils.conv2d(net, starting_filter_size * 3, 3)
         net = network_utils.max_pool2d(net, 2)
         net = network_utils.dropout(net, 0.25)
         seq_lens = network_utils.div(seq_lens, 2)
         net = network_utils.mdlstm(net, starting_filter_size * 4, cell_type="GLSTM")
         net = network_utils.dropout(net, 0.25)
-        net = network_utils.conv2d(net, starting_filter_size * 5, 3, mode, use_batch_norm=True)
+        net = network_utils.conv2d(net, starting_filter_size * 5, 3)
         net = network_utils.max_pool2d(net, 2)
         net = network_utils.dropout(net, 0.25)
         seq_lens = network_utils.div(seq_lens, 2)
         net = network_utils.mdlstm(net, starting_filter_size * 6, cell_type="GLSTM")
         net = network_utils.dropout(net, 0.25)
-        net = network_utils.conv2d(net, starting_filter_size * 7, 3, mode, use_batch_norm=True)
+        net = network_utils.conv2d(net, starting_filter_size * 7, 3)
         net = network_utils.max_pool2d(net, 1)
         net = network_utils.dropout(net, 0.25)
         seq_lens = network_utils.div(seq_lens, 2, is_floor=False)
         net = network_utils.mdlstm(net, starting_filter_size * 8, cell_type="GLSTM")
         net = network_utils.dropout(net, 0.25)
-        net = network_utils.conv2d(net, starting_filter_size * 9, 3, mode, use_batch_norm=True)
+        net = network_utils.conv2d(net, starting_filter_size * 9, 3)
         net = network_utils.max_pool2d(net, 1)
         net = network_utils.dropout(net, 0.25)
         seq_lens = network_utils.div(seq_lens, 2, is_floor=False)
@@ -54,9 +54,7 @@ class CNNMDLSTMCTCModel(Model):
         net = network_utils.get_logits(inputs=net,
                                        num_classes=params["num_classes"],
                                        num_steps=net.shape[1],
-                                       num_hidden_units=net.shape[-1],
-                                       mode=mode,
-                                       use_batch_norm=True)
+                                       num_hidden_units=net.shape[-1])
 
         loss = None
         train_op = None

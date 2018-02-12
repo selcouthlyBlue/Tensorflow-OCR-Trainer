@@ -1,10 +1,6 @@
-import tensorflow as tf
 import tfutils as network_utils
-from Model import Model
 
-from tensorflow.contrib.learn import ModeKeys
-from tensorflow.python.training.training_util import get_global_step
-from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
+from Model import Model
 
 
 class GridRNNCTCModel(Model):
@@ -31,27 +27,25 @@ class GridRNNCTCModel(Model):
         loss = None
         train_op = None
 
-        if mode != ModeKeys.INFER:
+        if not network_utils.is_inference(mode):
             loss = network_utils.ctc_loss(labels=sparse_labels, inputs=net, sequence_length=seq_lens)
-            tf.summary.scalar("loss", loss)
+            network_utils.add_to_summary("loss", loss)
 
-        if mode == ModeKeys.TRAIN:
-            optimizer = network_utils.get_optimizer(learning_rate=params["learning_rate"],
-                                                    optimizer_name=params["optimizer"])
-            train_op = optimizer.minimize(loss=loss, global_step=get_global_step())
+        if network_utils.is_training(mode):
+            train_op = network_utils.create_train_op(loss, params["learning_rate"], params["optimizer"])
 
         decoded, log_probabilities = network_utils.ctc_beam_search_decoder(inputs=net, sequence_length=seq_lens)
         dense_decoded = network_utils.sparse_to_dense(decoded, name="output")
-        accuracy = network_utils.label_error_rate(y_pred=decoded, y_true=sparse_labels)
-        tf.summary.scalar("accuracy", accuracy)
+        label_error_rate = network_utils.label_error_rate(y_pred=decoded, y_true=sparse_labels)
+        network_utils.add_to_summary("label_error_rate", label_error_rate)
 
         predictions = {
             "decoded": dense_decoded,
             "probabilities": log_probabilities,
-            "accuracy": accuracy
+            "label_error_rate": label_error_rate
         }
 
-        return model_fn_lib.ModelFnOps(mode=mode,
-                                       predictions=predictions,
-                                       loss=loss,
-                                       train_op=train_op)
+        return network_utils.create_model_fn(mode=mode,
+                                             predictions=predictions,
+                                             loss=loss,
+                                             train_op=train_op)

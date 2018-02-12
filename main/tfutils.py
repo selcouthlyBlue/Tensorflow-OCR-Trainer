@@ -31,11 +31,11 @@ def bidirectional_grid_lstm(inputs, num_hidden):
 
 def _get_cell(num_filters_out, cell_type='LSTM'):
     if cell_type == 'LSTM':
-        return rnn.BasicLSTMCell(num_filters_out)
+        return rnn.LSTMCell(num_filters_out, initializer=slim.xavier_initializer())
     if cell_type == 'GRU':
-        return rnn.GRUCell(num_filters_out)
+        return rnn.GRUCell(num_filters_out, kernel_initializer=slim.xavier_initializer())
     if cell_type == 'GLSTM':
-        return rnn.GLSTMCell(num_filters_out)
+        return rnn.GLSTMCell(num_filters_out, initializer=slim.xavier_initializer())
     raise NotImplementedError(cell_type, "is not supported.")
 
 
@@ -128,7 +128,8 @@ def get_logits(inputs, num_classes, num_steps, num_hidden_units, mode, use_batch
     logits = slim.fully_connected(outputs, num_classes,
                                   normalizer_fn=slim.batch_norm if use_batch_norm else None,
                                   normalizer_params={'is_training': is_training(mode)}
-                                  if use_batch_norm else None)
+                                  if use_batch_norm else None,
+                                  weights_initializer=slim.xavier_initializer())
     logits = reshape(logits, [num_steps, -1, num_classes])
     return logits
 

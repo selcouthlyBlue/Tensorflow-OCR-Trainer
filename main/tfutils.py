@@ -1,7 +1,10 @@
 import tensorflow as tf
 
 from optimizer_enum import Optimizers
+
 from tensorflow.contrib import grid_rnn, learn, rnn
+from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
+from tensorflow.contrib.learn import ModeKeys
 from six.moves import xrange
 from tensorflow.contrib import slim
 
@@ -28,11 +31,11 @@ def bidirectional_grid_lstm(inputs, num_hidden):
 
 def _get_cell(num_filters_out, cell_type='LSTM'):
     if cell_type == 'LSTM':
-        return rnn.BasicLSTMCell(num_filters_out)
+        return rnn.LSTMCell(num_filters_out, initializer=slim.xavier_initializer())
     if cell_type == 'GRU':
-        return rnn.GRUCell(num_filters_out)
+        return rnn.GRUCell(num_filters_out, kernel_initializer=slim.xavier_initializer())
     if cell_type == 'GLSTM':
-        return rnn.GLSTMCell(num_filters_out)
+        return rnn.GLSTMCell(num_filters_out, initializer=slim.xavier_initializer())
     raise NotImplementedError(cell_type, "is not supported.")
 
 
@@ -80,8 +83,9 @@ def _bidirectional_rnn_scan(cell_fw, cell_bw, inputs):
         return output
 
 
-def conv2d(inputs, num_filters_out, kernel, activation_fn=tf.nn.tanh, scope=None):
-    return slim.conv2d(inputs, num_filters_out, kernel, scope=scope, activation_fn=activation_fn)
+def conv2d(inputs, num_filters_out, kernel, activation_fn=tf.nn.relu, scope=None):
+    return slim.conv2d(inputs, num_filters_out, kernel,
+                       scope=scope, activation_fn=activation_fn)
 
 
 def max_pool2d(inputs, kernel, scope=None):
@@ -100,16 +104,8 @@ def sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
                               name=name)
 
 
-def accuracy(y_pred, y_true):
-    return tf.subtract(tf.constant(1, dtype=tf.float32),
-                       tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true)),
-                       name="accuracy")
-
-
-def optimize(loss, optimizer_name, learning_rate):
-    global_step = tf.Variable(0, name='global_step', trainable=False)
-    optimizer = get_optimizer(learning_rate, optimizer_name)
-    return optimizer.minimize(loss, global_step=global_step)
+def label_error_rate(y_pred, y_true):
+    return tf.reduce_mean(tf.edit_distance(tf.cast(y_pred, tf.int32), y_true), name="label_error_rate")
 
 
 def get_optimizer(learning_rate, optimizer_name):
@@ -124,15 +120,12 @@ def get_optimizer(learning_rate, optimizer_name):
     return optimizer
 
 
-def get_logits(inputs, num_classes, num_steps, num_hidden_units):
+def get_logits(inputs, num_classes, num_steps, num_hidden_units, mode, use_batch_norm=False):
     outputs = reshape(inputs, [-1, num_hidden_units])
-    logits = slim.fully_connected(outputs, num_classes)
+    logits = slim.fully_connected(outputs, num_classes,
+                                  weights_initializer=slim.xavier_initializer())
     logits = reshape(logits, [num_steps, -1, num_classes])
     return logits
-
-
-def get_shape(tensor):
-    return tf.shape(tensor)
 
 
 def dense_to_sparse(tensor, eos_token=0):
@@ -154,12 +147,13 @@ def div(inputs, divisor, is_floor=True):
 
 def run_experiment(model, train_input_fn, checkpoint_dir, validation_input_fn=None,
                    validation_steps=100):
+    validation_monitor = learn.monitors.ValidationMonitor(input_fn=validation_input_fn,
+                                                          every_n_steps=validation_steps)
     estimator = learn.Estimator(model_fn=model.model_fn,
                                 params=model.params,
                                 model_dir=checkpoint_dir,
                                 config=learn.RunConfig(save_checkpoints_steps=validation_steps))
-    estimator.fit(input_fn=train_input_fn)
-    estimator.evaluate(input_fn=validation_input_fn)
+    estimator.fit(input_fn=train_input_fn, monitors=[validation_monitor])
 
 
 def input_fn(x_feed_dict, y, num_epochs=1, shuffle=True, batch_size=1):
@@ -175,3 +169,32 @@ def collapse_to_rnn_dims(inputs):
     if batch_size is None:
         batch_size = -1
     return tf.reshape(inputs, [batch_size, height * width, num_channels])
+
+
+def add_to_summary(name, value):
+    tf.summary.scalar(name, value)
+
+
+def create_train_op(loss, learning_rate, optimizer_name):
+    optimizer = get_optimizer(learning_rate, optimizer_name)
+    return slim.learning.create_train_op(loss, optimizer, global_step=tf.train.get_or_create_global_step())
+
+
+def create_model_fn(mode, predictions, loss, train_op):
+    return model_fn_lib.ModelFnOps(mode=mode,
+                                   predictions=predictions,
+                                   loss=loss,
+                                   train_op=train_op)
+
+def is_inference(mode):
+    return mode == ModeKeys.INFER
+
+
+def is_training(mode):
+    return mode == ModeKeys.TRAIN
+
+
+def batch_norm(inputs, mode):
+    return slim.batch_norm(inputs, is_training=is_training(mode))
+
+

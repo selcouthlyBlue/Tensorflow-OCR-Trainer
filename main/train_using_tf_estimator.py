@@ -26,7 +26,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
                                                      desired_image_width, images, learning_rate, num_hidden_units, optimizer)
 
     labels = dataset_utils.encode(labels)
-    labels = dataset_utils.pad(labels, blank_token_index=80, max_label_length=50)
+    labels = dataset_utils.pad(labels, blank_token_index=80)
     x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=test_fraction, labels=labels)
 
     print("Number of training samples:", len(x_train))

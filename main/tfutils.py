@@ -120,7 +120,7 @@ def get_optimizer(learning_rate, optimizer_name):
     return optimizer
 
 
-def get_logits(inputs, num_classes, num_steps, num_hidden_units, mode, use_batch_norm=False):
+def get_logits(inputs, num_classes, num_steps, num_hidden_units):
     outputs = reshape(inputs, [-1, num_hidden_units])
     logits = slim.fully_connected(outputs, num_classes,
                                   weights_initializer=slim.xavier_initializer())

@@ -1,7 +1,10 @@
 import tensorflow as tf
 
 from optimizer_enum import Optimizers
+
 from tensorflow.contrib import grid_rnn, learn, rnn
+from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
+from tensorflow.contrib.learn import ModeKeys
 from six.moves import xrange
 from tensorflow.contrib import slim
 
@@ -164,3 +167,26 @@ def collapse_to_rnn_dims(inputs):
     if batch_size is None:
         batch_size = -1
     return tf.reshape(inputs, [batch_size, height * width, num_channels])
+
+
+def add_to_summary(name, value):
+    tf.summary.scalar(name, value)
+
+
+def create_train_op(loss, learning_rate, optimizer_name):
+    optimizer = get_optimizer(learning_rate, optimizer_name)
+    return slim.learning.create_train_op(loss, optimizer, global_step=tf.train.get_or_create_global_step())
+
+
+def create_model_fn(mode, predictions, loss, train_op):
+    return model_fn_lib.ModelFnOps(mode=mode,
+                                   predictions=predictions,
+                                   loss=loss,
+                                   train_op=train_op)
+
+def is_inference(mode):
+    return mode == ModeKeys.INFER
+
+
+def is_training(mode):
+    return mode == ModeKeys.TRAIN

@@ -83,7 +83,7 @@ def _bidirectional_rnn_scan(cell_fw, cell_bw, inputs):
         return output
 
 
-def conv2d(inputs, num_filters_out, kernel, mode, activation_fn=tf.nn.tanh, use_batch_norm=False, scope=None):
+def conv2d(inputs, num_filters_out, kernel, mode, activation_fn=tf.nn.relu, use_batch_norm=False, scope=None):
     return slim.conv2d(inputs, num_filters_out, kernel,
                        scope=scope, activation_fn=activation_fn,
                        normalizer_fn=slim.batch_norm if use_batch_norm else None,

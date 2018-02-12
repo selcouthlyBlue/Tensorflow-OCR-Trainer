@@ -22,7 +22,9 @@ class GridRNNCTCModel(Model):
         net = network_utils.get_logits(inputs=net,
                                        num_classes=params["num_classes"],
                                        num_steps=net.shape[1],
-                                       num_hidden_units=params["num_hidden_units"] * 2)
+                                       num_hidden_units=params["num_hidden_units"] * 2,
+                                       mode=mode,
+                                       use_batch_norm=True)
 
         loss = None
         train_op = None

@@ -31,11 +31,11 @@ def bidirectional_grid_lstm(inputs, num_hidden):
 
 def _get_cell(num_filters_out, cell_type='LSTM'):
     if cell_type == 'LSTM':
-        return rnn.BasicLSTMCell(num_filters_out)
+        return rnn.LSTMCell(num_filters_out, initializer=slim.xavier_initializer())
     if cell_type == 'GRU':
-        return rnn.GRUCell(num_filters_out)
+        return rnn.GRUCell(num_filters_out, kernel_initializer=slim.xavier_initializer())
     if cell_type == 'GLSTM':
-        return rnn.GLSTMCell(num_filters_out)
+        return rnn.GLSTMCell(num_filters_out, initializer=slim.xavier_initializer())
     raise NotImplementedError(cell_type, "is not supported.")
 
 
@@ -83,8 +83,12 @@ def _bidirectional_rnn_scan(cell_fw, cell_bw, inputs):
         return output
 
 
-def conv2d(inputs, num_filters_out, kernel, activation_fn=tf.nn.tanh, scope=None):
-    return slim.conv2d(inputs, num_filters_out, kernel, scope=scope, activation_fn=activation_fn)
+def conv2d(inputs, num_filters_out, kernel, mode, activation_fn=tf.nn.relu, use_batch_norm=False, scope=None):
+    return slim.conv2d(inputs, num_filters_out, kernel,
+                       scope=scope, activation_fn=activation_fn,
+                       normalizer_fn=slim.batch_norm if use_batch_norm else None,
+                       normalizer_params={'is_training': is_training(mode)}
+                       if use_batch_norm else None)
 
 
 def max_pool2d(inputs, kernel, scope=None):
@@ -119,9 +123,13 @@ def get_optimizer(learning_rate, optimizer_name):
     return optimizer
 
 
-def get_logits(inputs, num_classes, num_steps, num_hidden_units):
+def get_logits(inputs, num_classes, num_steps, num_hidden_units, mode, use_batch_norm=False):
     outputs = reshape(inputs, [-1, num_hidden_units])
-    logits = slim.fully_connected(outputs, num_classes)
+    logits = slim.fully_connected(outputs, num_classes,
+                                  normalizer_fn=slim.batch_norm if use_batch_norm else None,
+                                  normalizer_params={'is_training': is_training(mode)}
+                                  if use_batch_norm else None,
+                                  weights_initializer=slim.xavier_initializer())
     logits = reshape(logits, [num_steps, -1, num_classes])
     return logits
 

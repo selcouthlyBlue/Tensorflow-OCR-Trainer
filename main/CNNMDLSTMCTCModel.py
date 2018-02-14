@@ -25,13 +25,13 @@ class CNNMDLSTMCTCModel(Model):
         net = network_utils.max_pool2d(net, 2)
         seq_lens = network_utils.div(seq_lens, 2)
         net = network_utils.mdlstm(net, starting_filter_size * 4, cell_type="GLSTM")
-        net = network_utils.dropout(net, 0.25)
+        net = network_utils.dropout(net, 0.25, mode)
         net = network_utils.conv2d(net, starting_filter_size * 8, 3)
         net = network_utils.max_pool2d(net, 2)
-        net = network_utils.dropout(net, 0.25)
+        net = network_utils.dropout(net, 0.25, mode)
         seq_lens = network_utils.div(seq_lens, 2)
         net = network_utils.mdlstm(net, starting_filter_size * 8, cell_type="GLSTM")
-        net = network_utils.dropout(net, 0.25)
+        net = network_utils.dropout(net, 0.25, mode)
         net = network_utils.collapse_to_rnn_dims(net)
         net = network_utils.get_logits(inputs=net,
                                        num_classes=params["num_classes"],

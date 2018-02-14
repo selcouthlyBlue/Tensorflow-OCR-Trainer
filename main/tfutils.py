@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from optimizer_enum import Optimizers
 
-from tensorflow.contrib import grid_rnn, learn, rnn
+from tensorflow.contrib import learn, rnn
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 from tensorflow.contrib.learn import ModeKeys
 from six.moves import xrange
@@ -23,10 +23,16 @@ def reshape(tensor: tf.Tensor, new_shape: list):
     return tf.reshape(tensor, new_shape, name="reshape")
 
 
-def bidirectional_grid_lstm(inputs, num_hidden):
-    cell_fw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
-    cell_bw = grid_rnn.Grid2LSTMCell(num_units=num_hidden)
-    return tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs, dtype=tf.float32)[0]
+def bidirectional_rnn(inputs, num_hidden, cell_type='LSTM', concat_output=True):
+    cell_fw = _get_cell(num_hidden, cell_type)
+    cell_bw = _get_cell(num_hidden, cell_type)
+    outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw,
+                                                 cell_bw,
+                                                 inputs,
+                                                 dtype=tf.float32)
+    if concat_output:
+        return tf.concat(outputs, 2)
+    return outputs
 
 
 def _get_cell(num_filters_out, cell_type='LSTM'):

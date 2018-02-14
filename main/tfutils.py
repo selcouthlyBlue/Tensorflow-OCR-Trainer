@@ -198,3 +198,5 @@ def batch_norm(inputs, mode):
     return slim.batch_norm(inputs, is_training=is_training(mode))
 
 
+def l2_normalize(inputs, axis):
+    return tf.nn.l2_normalize(inputs, axis)

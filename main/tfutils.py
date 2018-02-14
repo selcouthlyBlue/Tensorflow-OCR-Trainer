@@ -186,18 +186,16 @@ def create_train_op(loss, learning_rate, optimizer_name):
     return slim.learning.create_train_op(loss, optimizer, global_step=tf.train.get_or_create_global_step())
 
 
-def create_model_fn(mode, predictions, loss, train_op):
+def create_model_fn(mode, predictions, loss=None, train_op=None, eval_metric_ops=None):
     return model_fn_lib.ModelFnOps(mode=mode,
                                    predictions=predictions,
                                    loss=loss,
-                                   train_op=train_op)
-
-def is_inference(mode):
-    return mode == ModeKeys.INFER
+                                   train_op=train_op,
+                                   eval_metric_ops=eval_metric_ops)
 
 
 def is_training(mode):
-    return mode == ModeKeys.TRAIN
+    return mode == tf.estimator.ModeKeys.TRAIN
 
 
 def batch_norm(inputs, mode):
@@ -206,3 +204,15 @@ def batch_norm(inputs, mode):
 
 def l2_normalize(inputs, axis):
     return tf.nn.l2_normalize(inputs, axis)
+
+
+def is_predict(mode):
+    return mode == ModeKeys.INFER
+
+
+def is_evaluation(mode):
+    return mode == ModeKeys.EVAL
+
+
+def create_metric(values):
+    return tf.metrics.mean(values)

@@ -66,7 +66,3 @@ def initialize_model(architecture, checkpoint_dir, desired_image_height,
                                   learning_rate=learning_rate, optimizer=optimizer, num_classes=80)
         checkpoint_dir += Architectures.CNNMDLSTM.value
     return checkpoint_dir, images, model
-
-
-if __name__ == '__main__':
-    tf.app.run(main=train)

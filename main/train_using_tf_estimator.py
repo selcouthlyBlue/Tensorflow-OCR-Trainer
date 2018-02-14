@@ -3,7 +3,6 @@ import tensorflow as tf
 import numpy as np
 
 from architecture_enum import Architectures
-from GridRNNCTCModel import GridRNNCTCModel
 from CNNMDLSTMCTCModel import CNNMDLSTMCTCModel
 from tfutils import run_experiment, input_fn
 
@@ -57,6 +56,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
 
 def initialize_model(architecture, checkpoint_dir, desired_image_height,
                      desired_image_width, images, learning_rate, num_hidden_units, optimizer):
+    model = None
     if architecture == Architectures.CNNMDLSTM:
         num_channels = 1
         if len(np.array(images).shape) == 4:
@@ -65,14 +65,6 @@ def initialize_model(architecture, checkpoint_dir, desired_image_height,
                                   starting_filter_size=num_hidden_units,
                                   learning_rate=learning_rate, optimizer=optimizer, num_classes=80)
         checkpoint_dir += Architectures.CNNMDLSTM.value
-    else:
-        images = dataset_utils.transpose(images)
-        if len(np.array(images).shape) == 4:
-            images = dataset_utils.binarize(images)
-        model = GridRNNCTCModel(input_shape=[-1, desired_image_width, desired_image_height],
-                                num_hidden_units=num_hidden_units, num_classes=80,
-                                learning_rate=learning_rate, optimizer=optimizer)
-        checkpoint_dir += Architectures.GRIDLSTM.value
     return checkpoint_dir, images, model
 
 

@@ -44,7 +44,7 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
         x_feed_dict={"x": np.array(x_test),
                      "seq_lens": dataset_utils.set_seq_lens(desired_image_width, len(x_test))},
         y=np.array(y_test, dtype=np.int32),
-        batch_size=batch_size,
+        num_epochs=1,
         shuffle=False
     )
 

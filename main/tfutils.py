@@ -156,7 +156,7 @@ def run_experiment(model, train_input_fn, checkpoint_dir, validation_input_fn=No
     estimator.fit(input_fn=train_input_fn, monitors=[validation_monitor])
 
 
-def input_fn(x_feed_dict, y, num_epochs=1, shuffle=True, batch_size=1):
+def input_fn(x_feed_dict, y, num_epochs=1, shuffle=True, batch_size=128):
     return tf.estimator.inputs.numpy_input_fn(x=x_feed_dict,
                                               y=y,
                                               shuffle=shuffle,

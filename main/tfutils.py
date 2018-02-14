@@ -141,8 +141,8 @@ def dense_to_sparse(tensor, eos_token=0):
     return tf.SparseTensor(indices, values, shape)
 
 
-def dropout(inputs, rate, scope=None):
-    return slim.dropout(inputs, rate, scope=scope)
+def dropout(inputs, rate, mode, scope=None):
+    return slim.dropout(inputs, rate, scope=scope, is_training=is_training(mode))
 
 
 def div(inputs, divisor, is_floor=True):

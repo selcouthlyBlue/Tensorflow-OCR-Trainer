@@ -1,7 +1,5 @@
 import tensorflow as tf
 
-from optimizer_enum import Optimizers
-
 from tensorflow.contrib import learn, rnn
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 from tensorflow.contrib.learn import ModeKeys
@@ -19,8 +17,8 @@ def ctc_loss(labels, inputs, sequence_length,
                           time_major=inputs_are_time_major))
 
 
-def reshape(tensor: tf.Tensor, new_shape: list):
-    return tf.reshape(tensor, new_shape, name="reshape")
+def reshape(tensor: tf.Tensor, new_shape: list, name="reshape"):
+    return tf.reshape(tensor, new_shape, name=name)
 
 
 def bidirectional_rnn(inputs, num_hidden, cell_type='LSTM', concat_output=True):
@@ -45,9 +43,9 @@ def _get_cell(num_filters_out, cell_type='LSTM'):
     raise NotImplementedError(cell_type, "is not supported.")
 
 
-def mdlstm(inputs, num_filters_out, cell_type='LSTM', scope=None):
+def mdrnn(inputs, num_hidden, cell_type='LSTM', scope=None):
     with tf.variable_scope(scope, "multidimensional_rnn", [inputs]):
-        cells = [_get_cell(num_filters_out // 2, cell_type) for _ in xrange(4)]
+        cells = [_get_cell(num_hidden // 2, cell_type) for _ in xrange(4)]
         cell_fw1 = cells[0]
         cell_bw1 = cells[1]
         cell_fw2 = cells[2]
@@ -89,8 +87,8 @@ def _bidirectional_rnn_scan(cell_fw, cell_bw, inputs):
         return output
 
 
-def conv2d(inputs, num_filters_out, kernel, activation_fn=tf.nn.relu, scope=None):
-    return slim.conv2d(inputs, num_filters_out, kernel,
+def conv2d(inputs, num_filters, kernel, activation_fn=tf.nn.relu, scope=None):
+    return slim.conv2d(inputs, num_filters, kernel,
                        scope=scope, activation_fn=activation_fn)
 
 
@@ -115,18 +113,20 @@ def label_error_rate(y_pred, y_true):
 
 
 def get_optimizer(learning_rate, optimizer_name):
-    if optimizer_name == Optimizers.MOMENTUM:
-        optimizer = tf.train.MomentumOptimizer(learning_rate, momentum=0.9)
-    elif optimizer_name == Optimizers.ADAM:
-        optimizer = tf.train.AdamOptimizer(learning_rate)
-    elif optimizer_name == Optimizers.ADADELTA:
-        optimizer = tf.train.AdadeltaOptimizer(learning_rate)
-    else:
-        optimizer = tf.train.RMSPropOptimizer(learning_rate)
-    return optimizer
+    if optimizer_name == "momentum":
+        return tf.train.MomentumOptimizer(learning_rate,
+                                          momentum=0.9,
+                                          use_nesterov=True)
+    elif optimizer_name == "adam":
+        return tf.train.AdamOptimizer(learning_rate)
+    elif optimizer_name == "adadelta":
+        return tf.train.AdadeltaOptimizer(learning_rate)
+    elif optimizer_name == "rmsprop":
+        return tf.train.RMSPropOptimizer(learning_rate)
+    raise NotImplementedError(optimizer_name + " optimizer not supported")
 
 
-def get_logits(inputs, num_classes, num_steps, num_hidden_units):
+def convert_to_ctc_dims(inputs, num_classes, num_steps, num_hidden_units):
     outputs = reshape(inputs, [-1, num_hidden_units])
     logits = slim.fully_connected(outputs, num_classes,
                                   weights_initializer=slim.xavier_initializer())
@@ -141,8 +141,8 @@ def dense_to_sparse(tensor, eos_token=0):
     return tf.SparseTensor(indices, values, shape)
 
 
-def dropout(inputs, rate, mode, scope=None):
-    return slim.dropout(inputs, rate, scope=scope, is_training=is_training(mode))
+def dropout(inputs, keep_prob, mode, scope=None):
+    return slim.dropout(inputs, keep_prob, scope=scope, is_training=is_training(mode))
 
 
 def div(inputs, divisor, is_floor=True):
@@ -174,15 +174,15 @@ def collapse_to_rnn_dims(inputs):
     batch_size, height, width, num_channels = inputs.get_shape().as_list()
     if batch_size is None:
         batch_size = -1
-    return tf.reshape(inputs, [batch_size, height * width, num_channels])
+    return tf.reshape(inputs, [batch_size, width, height * num_channels])
 
 
 def add_to_summary(name, value):
     tf.summary.scalar(name, value)
 
 
-def create_train_op(loss, learning_rate, optimizer_name):
-    optimizer = get_optimizer(learning_rate, optimizer_name)
+def create_train_op(loss, learning_rate, optimizer):
+    optimizer = get_optimizer(learning_rate, optimizer)
     return slim.learning.create_train_op(loss, optimizer, global_step=tf.train.get_or_create_global_step())
 
 
@@ -216,3 +216,70 @@ def is_evaluation(mode):
 
 def create_metric(values):
     return tf.metrics.mean(values)
+
+
+def format_labels(labels, target_type):
+    if target_type == "sparse":
+        return dense_to_sparse(labels)
+    return labels
+
+
+def feed(features, layer, mode):
+    return _feed_to_layer(features, layer, mode)
+
+
+def _feed_to_layer(inputs, layer, mode):
+    layer_type = layer["layer_type"]
+    if layer_type == "input_layer":
+        return reshape(inputs, layer["shape"], layer["name"])
+    if layer_type == "conv2d":
+        return conv2d(inputs, num_filters=layer["num_filters"],
+                      kernel=layer["kernel_size"])
+    if layer_type == "max_pool2d":
+        return max_pool2d(inputs, kernel=layer["pool_size"])
+    if layer_type == "mdrnn":
+        return mdrnn(inputs, num_hidden=layer["num_hidden"],
+                     cell_type=layer["cell_type"])
+    if layer_type == "dropout":
+        return dropout(inputs, keep_prob=layer["keep_prob"],
+                       mode=mode)
+    if layer_type == "collapse_to_rnn_dims":
+        return collapse_to_rnn_dims(inputs)
+    if layer_type == "convert_to_ctc_dims":
+        return convert_to_ctc_dims(inputs, num_classes=layer["num_classes"],
+                                   num_steps=inputs.shape[1],
+                                   num_hidden_units=inputs.shape[-1])
+    if layer_type == "l2_normalize":
+        return l2_normalize(inputs, layer["axis"])
+    raise NotImplementedError(layer_type + " layer not implemented.")
+
+
+def _get_sequence_lengths(inputs):
+    dims = tf.stack([tf.shape(inputs)[1], 1])
+    return tf.fill(dims, inputs.shape[0])
+
+
+def get_output(inputs, output_layer):
+    if output_layer == "ctc_decoder":
+        decoded, _ = ctc_beam_search_decoder(inputs,
+                                             _get_sequence_lengths(inputs))
+        return sparse_to_dense(decoded, name="output")
+    raise NotImplementedError(output_layer + " not implemented")
+
+
+def get_loss(loss, labels, inputs):
+    if loss == "ctc":
+        return ctc_loss(labels, inputs, _get_sequence_lengths(inputs))
+    raise NotImplementedError(loss + " loss not implemented")
+
+
+def get_metric(metrics, y_pred, y_true):
+    metrics_dict = {}
+    for metric in metrics:
+        if metric == "label_error_rate":
+            ler = label_error_rate(y_pred, y_true)
+            add_to_summary(metric, ler)
+            metrics_dict[metric] = ler
+        else:
+            raise NotImplementedError(metric + " metric not implemented")
+    return metrics_dict

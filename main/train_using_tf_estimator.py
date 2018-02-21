@@ -9,8 +9,10 @@ from tfutils import run_experiment, input_fn
 tf.logging.set_verbosity(tf.logging.INFO)
 
 
-def train(labels_file, data_dir, desired_image_height, desired_image_width, architecture, num_hidden_units, optimizer, learning_rate,
-          test_fraction, validation_steps=5, num_epochs=1, batch_size=1, labels_delimiter=' '):
+def train(labels_file, data_dir, desired_image_height, desired_image_width,
+          architecture, num_hidden_units, optimizer, learning_rate,
+          test_fraction, validation_steps=5, num_epochs=1,
+          batch_size=1, labels_delimiter=' ', max_label_length=120):
     image_paths, labels = dataset_utils.read_dataset_list(labels_file, delimiter=labels_delimiter)
     images = dataset_utils.read_images(data_dir=data_dir, image_paths=image_paths, image_extension='png')
     images = dataset_utils.binarize(images)
@@ -21,12 +23,21 @@ def train(labels_file, data_dir, desired_image_height, desired_image_width, arch
 
     checkpoint_dir = "checkpoint/"
 
-    checkpoint_dir, images, model = initialize_model(architecture, checkpoint_dir, desired_image_height,
-                                                     desired_image_width, images, learning_rate, num_hidden_units, optimizer)
+    checkpoint_dir, images, model = initialize_model(architecture,
+                                                     checkpoint_dir,
+                                                     desired_image_height,
+                                                     desired_image_width,
+                                                     images, learning_rate,
+                                                     num_hidden_units,
+                                                     optimizer)
 
     labels = dataset_utils.encode(labels)
-    labels = dataset_utils.pad(labels, blank_token_index=80)
-    x_train, x_test, y_train, y_test = dataset_utils.split(features=images, test_size=test_fraction, labels=labels)
+    labels = dataset_utils.pad(labels,
+                               blank_token_index=80,
+                               max_label_length=max_label_length)
+    x_train, x_test, y_train, y_test = dataset_utils.split(features=images,
+                                                           test_size=test_fraction,
+                                                           labels=labels)
 
     print("Number of training samples:", len(x_train))
     print("Number of validation samples:", len(x_test))

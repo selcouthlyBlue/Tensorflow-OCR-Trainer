@@ -220,9 +220,9 @@ def create_metric(values):
     return tf.metrics.mean(values)
 
 
-def format_labels(labels, target_type):
+def format_labels(labels, target_type, num_classes):
     if target_type == "sparse":
-        return dense_to_sparse(labels)
+        return dense_to_sparse(labels, eos_token=num_classes)
     return labels
 
 
@@ -285,7 +285,7 @@ def get_metric(metrics, y_pred, y_true):
                                                 _get_sequence_lengths(y_pred))
             ler = label_error_rate(y_pred, y_true)
             add_to_summary(metric, ler)
-            metrics_dict[metric] = ler
+            metrics_dict[metric] = create_metric(ler)
         else:
             raise NotImplementedError(metric + " metric not implemented")
     return metrics_dict
@@ -301,8 +301,9 @@ def model_fn(features, labels, mode, params):
     loss = params["loss"]
     learning_rate = params["learning_rate"]
     optimizer = params["optimizer"]
+    num_classes = params["num_classes"]
 
-    labels = format_labels(labels, target_type)
+    labels = format_labels(labels, target_type, num_classes)
 
     for layer in network:
         features = feed(features, layer, mode)

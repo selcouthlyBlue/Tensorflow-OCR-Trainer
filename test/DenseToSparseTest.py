@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.contrib import grid_rnn
-from tfutils import dense_to_sparse
+from experiment_ops import dense_to_sparse
 
 
 class DenseToSparseTest(tf.test.TestCase):

@@ -1,7 +1,7 @@
 import dataset_utils
 import numpy as np
 
-from tfutils import run_experiment, input_fn
+from experiment_ops import run_experiment, input_fn
 
 
 def train(model_config_file, labels_file, data_dir, desired_image_height,

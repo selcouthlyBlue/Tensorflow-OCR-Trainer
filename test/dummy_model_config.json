@@ -1,5 +1,4 @@
 {
-  "target_type": "sparse",
   "network":[
     {"layer_type": "input_layer", "name": "inputs", "shape": [-1, 64, 3200, 1]},
     {"layer_type": "conv2d", "num_filters": 16, "kernel_size": [3, 3]},

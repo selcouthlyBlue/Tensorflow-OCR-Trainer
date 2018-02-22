@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tfutils as network_utils
+import experiment_ops as network_utils
 
 
 class MultidimensionalRNNTest(tf.test.TestCase):

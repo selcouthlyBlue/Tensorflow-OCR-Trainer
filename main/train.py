@@ -1,7 +1,7 @@
 from train_ocr import train
 
 def main():
-    train(model_config_file='../models/CNN_BiRNN_model.json',
+    train(model_config_file='../models/Three_layer_CNN_BiRNN_model.json',
           labels_file='/home/kapitan/Desktop/Jerome/words.txt',
           data_dir='/home/kapitan/Desktop/Jerome/words/',
           desired_image_height=48,

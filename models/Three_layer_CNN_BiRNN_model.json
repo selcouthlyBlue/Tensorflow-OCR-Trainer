@@ -1,0 +1,27 @@
+{
+  "network":[
+    {"layer_type": "input_layer", "name": "inputs", "shape": [-1, 48, 256, 1]},
+    {"layer_type": "l2_normalize", "axis": [1, 2]},
+    {"layer_type": "conv2d", "num_filters": 20, "kernel_size": [3, 3]},
+    {"layer_type": "max_pool2d", "pool_size": [2, 2]},
+    {"layer_type": "l2_normalize", "axis": [1, 2]},
+    {"layer_type": "conv2d", "num_filters": 50, "kernel_size": [3, 3]},
+    {"layer_type": "max_pool2d", "pool_size": [2, 2]},
+    {"layer_type": "l2_normalize", "axis": [1, 2]},
+    {"layer_type": "dropout", "keep_prob": 0.5},
+    {"layer_type": "conv2d", "num_filters": 100, "kernel_size": [3, 3]},
+    {"layer_type": "max_pool2d", "pool_size": [2, 2]},
+    {"layer_type": "l2_normalize", "axis": [1, 2]},
+    {"layer_type": "dropout", "keep_prob": 0.5},
+    {"layer_type": "collapse_to_rnn_dims"},
+    {"layer_type": "birnn", "num_hidden": 200, "cell_type": "LSTM"},
+    {"layer_type": "dropout", "keep_prob": 0.5},
+    {"layer_type": "convert_to_ctc_dims", "num_classes": 80}
+  ],
+  "output_layer": "ctc_decoder",
+  "loss": "ctc",
+  "metrics": ["label_error_rate"],
+  "num_classes": 80,
+  "learning_rate": 0.001,
+  "optimizer": "momentum"
+}

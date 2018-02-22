@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tfutils as network_utils
+import experiment_ops as network_utils
 
 
 class MultidimensionalRNNTest(tf.test.TestCase):
@@ -13,15 +13,15 @@ class MultidimensionalRNNTest(tf.test.TestCase):
         self.labels = tf.sparse_placeholder(tf.int32)
 
     def test_simple_mdrnn(self):
-        net = network_utils.mdlstm(self.input_layer, 16)
+        net = network_utils.mdrnn(self.input_layer, 16)
 
     def test_image_to_sequence(self):
-        net = network_utils.mdlstm(self.input_layer, 16)
+        net = network_utils.mdrnn(self.input_layer, 16)
         net = network_utils.images_to_sequence(net)
 
     def test_stack_ndlstms(self):
-        net = network_utils.mdlstm(self.input_layer, 16)
-        net = network_utils.mdlstm(net, 16)
+        net = network_utils.mdrnn(self.input_layer, 16)
+        net = network_utils.mdrnn(net, 16)
 
 
 if __name__ == '__main__':

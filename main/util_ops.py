@@ -20,6 +20,9 @@ def _feed_to_layer(inputs, layer, is_training):
                              kernel=layer["kernel_size"])
     if layer_type == "max_pool2d":
         return layers.max_pool2d(inputs, kernel=layer["pool_size"])
+    if layer_type == "birnn":
+        return layers.bidirectional_rnn(inputs, num_hidden=layer["num_hidden"],
+                                        cell_type=layer["cell_type"])
     if layer_type == "mdrnn":
         return layers.mdrnn(inputs, num_hidden=layer["num_hidden"],
                             cell_type=layer["cell_type"])

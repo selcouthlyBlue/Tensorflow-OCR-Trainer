@@ -1,7 +1,7 @@
 from train_ocr import train
 
 def main():
-    train(model_config_file='dummy_model_config.json',
+    train(model_config_file='../models/CNN_BiRNN_model.json',
           labels_file='dummy_labels_file.txt',
           data_dir='dummy_data/',
           desired_image_height=64,

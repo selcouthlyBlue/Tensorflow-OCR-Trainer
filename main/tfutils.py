@@ -255,7 +255,7 @@ def _feed_to_layer(inputs, layer, mode):
 
 
 def _get_sequence_lengths(inputs):
-    dims = tf.stack([tf.shape(inputs)[1], 1])
+    dims = tf.stack([tf.shape(inputs)[1]])
     return tf.fill(dims, inputs.shape[0])
 
 

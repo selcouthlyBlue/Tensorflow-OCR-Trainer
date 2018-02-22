@@ -1,4 +1,5 @@
 import tensorflow as tf
+import json
 
 from tensorflow.contrib import learn, rnn
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
@@ -6,6 +7,7 @@ from tensorflow.contrib.learn import ModeKeys
 from six.moves import xrange
 from tensorflow.contrib import slim
 
+tf.logging.set_verbosity(tf.logging.INFO)
 
 def ctc_loss(labels, inputs, sequence_length,
              preprocess_collapse_repeated_labels=True,
@@ -151,12 +153,12 @@ def div(inputs, divisor, is_floor=True):
     return tf.to_int32(tf.ceil(tf.truediv(inputs, tf.constant(divisor, dtype=inputs.dtype))))
 
 
-def run_experiment(model, train_input_fn, checkpoint_dir, validation_input_fn=None,
+def run_experiment(model_config_file, train_input_fn, checkpoint_dir, validation_input_fn=None,
                    validation_steps=100):
     validation_monitor = learn.monitors.ValidationMonitor(input_fn=validation_input_fn,
                                                           every_n_steps=validation_steps)
-    estimator = learn.Estimator(model_fn=model.model_fn,
-                                params=model.params,
+    estimator = learn.Estimator(model_fn=model_fn,
+                                params=json.load(open(model_config_file, 'r')),
                                 model_dir=checkpoint_dir,
                                 config=learn.RunConfig(save_checkpoints_steps=validation_steps))
     estimator.fit(input_fn=train_input_fn, monitors=[validation_monitor])
@@ -269,7 +271,9 @@ def get_output(inputs, output_layer):
 
 def get_loss(loss, labels, inputs):
     if loss == "ctc":
-        return ctc_loss(labels, inputs, _get_sequence_lengths(inputs))
+        return ctc_loss(labels=labels,
+                        inputs=inputs,
+                        sequence_length=_get_sequence_lengths(inputs))
     raise NotImplementedError(loss + " loss not implemented")
 
 
@@ -277,9 +281,52 @@ def get_metric(metrics, y_pred, y_true):
     metrics_dict = {}
     for metric in metrics:
         if metric == "label_error_rate":
+            y_pred, _ = ctc_beam_search_decoder(y_pred,
+                                                _get_sequence_lengths(y_pred))
             ler = label_error_rate(y_pred, y_true)
             add_to_summary(metric, ler)
             metrics_dict[metric] = ler
         else:
             raise NotImplementedError(metric + " metric not implemented")
     return metrics_dict
+
+
+def model_fn(features, labels, mode, params):
+    features = features["x"]
+
+    network = params["network"]
+    target_type = params["target_type"]
+    metrics = params["metrics"]
+    output_layer = params["output_layer"]
+    loss = params["loss"]
+    learning_rate = params["learning_rate"]
+    optimizer = params["optimizer"]
+
+    labels = format_labels(labels, target_type)
+
+    for layer in network:
+        features = feed(features, layer, mode)
+
+    outputs = get_output(features, output_layer)
+    predictions = {
+        "outputs": outputs
+    }
+    if is_predict(mode):
+        return create_model_fn(mode, predictions=predictions)
+
+    loss = get_loss(loss, labels=labels, inputs=features)
+    metrics = get_metric(metrics, y_pred=features, y_true=labels)
+
+    if is_evaluation(mode):
+        return create_model_fn(mode, predictions=predictions, loss=loss,
+                               eval_metric_ops=metrics)
+
+    assert is_training(mode)
+
+    train_op = create_train_op(loss,
+                               learning_rate=learning_rate,
+                               optimizer=optimizer)
+    return create_model_fn(mode,
+                           predictions=predictions,
+                           loss=loss,
+                           train_op=train_op)

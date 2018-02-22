@@ -1,13 +1,14 @@
-import tensorflow as tf
 import json
-import losses
-import ctc_ops
-import metric_functions
 
+import tensorflow as tf
 from tensorflow.contrib import learn
-from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 from tensorflow.contrib import slim
 from tensorflow.contrib.learn import ModeKeys
+from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
+
+import ctc_ops
+import losses
+import metric_functions
 from util_ops import feed
 
 tf.logging.set_verbosity(tf.logging.INFO)

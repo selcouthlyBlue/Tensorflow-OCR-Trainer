@@ -1,5 +1,6 @@
 import dataset_utils
 import numpy as np
+import os
 
 from experiment_ops import run_experiment, input_fn
 
@@ -43,8 +44,11 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
             shuffle=False
         )
 
+    filename, _ = os.path.splitext(model_config_file)
+    model_name = filename.split('/')[-1]
+
     run_experiment(model_config_file=model_config_file,
                    train_input_fn=train_input_fn,
                    validation_input_fn=validation_input_fn,
-                   checkpoint_dir="checkpoint/" + model_config_file.split('.')[0],
+                   checkpoint_dir="checkpoint/" + model_name,
                    validation_steps=validation_steps * (len(x_train)//batch_size))

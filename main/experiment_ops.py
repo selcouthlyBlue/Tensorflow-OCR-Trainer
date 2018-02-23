@@ -120,6 +120,7 @@ def _model_fn(features, labels, mode, params):
         return _create_model_fn(mode, predictions=predictions)
 
     loss = _get_loss(loss, labels=labels, inputs=features, num_classes=num_classes)
+    _add_to_summary("loss", loss)
     metrics = _get_metric(metrics, y_pred=features, y_true=labels, num_classes=num_classes)
 
     if mode==ModeKeys.EVAL:

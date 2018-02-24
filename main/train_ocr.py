@@ -13,10 +13,10 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
     images = dataset_utils.read_images(data_dir=data_dir,
                                        image_paths=image_paths,
                                        image_extension='png')
-    images = dataset_utils.binarize(images)
     images = dataset_utils.resize(images,
                                   desired_height=desired_image_height,
                                   desired_width=desired_image_width)
+    images = dataset_utils.binarize(images)
     images = dataset_utils.images_as_float32(images)
 
     labels = dataset_utils.encode(labels)

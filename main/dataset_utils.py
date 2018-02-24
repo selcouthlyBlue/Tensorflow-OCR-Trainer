@@ -64,12 +64,11 @@ def _resize(image, desired_height=None, desired_width=None):
     if dim is (None, None):
         return image
     raw_height, raw_width, num_channels = image.shape
-    new_width = int(round(raw_width * (desired_height / raw_height)))
-    rescaled_image = cv2.resize(image, (new_width, desired_height), cv2.INTER_NEAREST)
-    image_array = np.array(rescaled_image).astype(np.uint8)
-    padding = np.full((desired_height, desired_width - new_width + 1, num_channels), 255)
-    padded_image = np.concatenate((image_array, padding), axis=1)
-    return np.array(padded_image[:, 0:desired_width, :]).astype(np.uint8)
+    wpercent = int(desired_width/float(raw_width))
+    new_height = int(float(raw_height) * float(wpercent))
+    rescaled_image = cv2.resize(image, (desired_width, new_height), cv2.INTER_AREA)
+    resized_image = cv2.resize(rescaled_image, (desired_width, desired_height), cv2.INTER_AREA)
+    return np.array(resized_image).astype(np.uint8)
 
 
 def charset():

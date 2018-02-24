@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from EncoderDecoder import EncoderDecoder
 
+
 from sklearn.model_selection import train_test_split
 
 def split(features, test_size, labels=None):
@@ -60,13 +61,15 @@ def resize(images, desired_height=None, desired_width=None):
 
 def _resize(image, desired_height=None, desired_width=None):
     dim = (desired_width, desired_height)
-    if (desired_width is None and desired_height is None) or dim is (None, None):
+    if dim is (None, None):
         return image
-    if desired_width is None:
-        dim = (desired_height, image.shape[1])
-    elif desired_height is None:
-        dim = (image.shape[0], desired_width)
-    return cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+    raw_height, raw_width, num_channels = image.shape
+    new_width = int(round(raw_width * (desired_height / raw_height)))
+    rescaled_image = cv2.resize(image, (new_width, desired_height), cv2.INTER_NEAREST)
+    image_array = np.array(rescaled_image).astype(np.uint8)
+    padding = np.full((desired_height, desired_width - new_width + 1, num_channels), 255)
+    padded_image = np.concatenate((image_array, padding), axis=1)
+    return np.array(padded_image[:, 0:desired_width, :]).astype(np.uint8)
 
 
 def charset():

@@ -1,6 +1,6 @@
 {
   "network":[
-    {"layer_type": "input_layer", "name": "inputs", "shape": [-1, 64, 3200, 1]},
+    {"layer_type": "input_layer", "name": "inputs", "shape": [-1, 64, 1024, 1]},
     {"layer_type": "l2_normalize", "axis": [1, 2]},
     {"layer_type": "conv2d", "num_filters": 20, "kernel_size": [5, 5]},
     {"layer_type": "max_pool2d", "pool_size": [2, 2]},

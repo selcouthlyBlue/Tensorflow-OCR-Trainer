@@ -1,5 +1,7 @@
-import layers
 import tensorflow as tf
+
+from backend.tf import layers
+
 
 def get_sequence_lengths(inputs):
     dims = tf.stack([tf.shape(inputs)[1]])

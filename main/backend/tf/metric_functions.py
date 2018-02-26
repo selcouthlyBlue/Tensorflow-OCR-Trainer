@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-from util_ops import dense_to_sparse
+from backend.tf.util_ops import dense_to_sparse
+
 
 def create_metric(values):
     return tf.metrics.mean(values)

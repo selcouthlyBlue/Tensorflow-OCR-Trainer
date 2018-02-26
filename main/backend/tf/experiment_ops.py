@@ -6,10 +6,8 @@ from tensorflow.contrib import slim
 from tensorflow.contrib.learn import ModeKeys
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
-import ctc_ops
-import losses
-import metric_functions
-from util_ops import feed
+from backend.tf import ctc_ops, losses, metric_functions
+from backend.tf.util_ops import feed
 
 tf.logging.set_verbosity(tf.logging.INFO)
 

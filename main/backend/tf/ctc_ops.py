@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-from util_ops import get_sequence_lengths
+from backend.tf.util_ops import get_sequence_lengths
+
 
 def ctc_beam_search_decoder(inputs, merge_repeated=True):
     sequence_length = get_sequence_lengths(inputs)

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from util_ops import get_sequence_lengths, dense_to_sparse
+from backend.tf.util_ops import get_sequence_lengths, dense_to_sparse
 
 
 def ctc_loss(labels, inputs, preprocess_collapse_repeated_labels=True,

@@ -1,8 +1,9 @@
-import dataset_utils
-import numpy as np
 import os
 
-from experiment_ops import run_experiment, input_fn
+import numpy as np
+
+import dataset_utils
+from backend.tf.experiment_ops import run_experiment, input_fn
 
 
 def train(model_config_file, labels_file, data_dir, desired_image_height,
@@ -27,8 +28,7 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
         features=images, test_size=test_fraction, labels=labels)
 
     train_input_fn = input_fn(
-        x_feed_dict={"x": np.array(x_train),
-                     "seq_lens": dataset_utils.set_seq_lens(desired_image_width, len(x_train))},
+        x_feed_dict={"x": np.array(x_train)},
         y=np.array(y_train, dtype=np.int32),
         num_epochs=num_epochs,
         batch_size=batch_size
@@ -37,8 +37,7 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
     validation_input_fn = None
     if test_fraction:
         validation_input_fn = input_fn(
-            x_feed_dict={"x": np.array(x_test),
-                         "seq_lens": dataset_utils.set_seq_lens(desired_image_width, len(x_test))},
+            x_feed_dict={"x": np.array(x_test)},
             y=np.array(y_test, dtype=np.int32),
             batch_size=batch_size,
             shuffle=False

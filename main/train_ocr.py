@@ -18,6 +18,7 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
                                   desired_height=desired_image_height,
                                   desired_width=desired_image_width)
     images = dataset_utils.binarize(images)
+    images = dataset_utils.invert(images)
     images = dataset_utils.images_as_float32(images)
 
     labels = dataset_utils.encode(labels)

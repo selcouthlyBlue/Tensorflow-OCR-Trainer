@@ -42,6 +42,16 @@ def binarize(images):
     return binarized_images
 
 
+def invert(images):
+    print('Inverting color of images...')
+    inverted_images = []
+    for image in images:
+        inverted_image = cv2.bitwise_not(image)
+        inverted_images.append(inverted_image)
+    print('Done inverting color of images.')
+    return inverted_images
+
+
 def images_as_float32(images):
     float32_images = []
     for image in images:
@@ -64,11 +74,30 @@ def _resize(image, desired_height=None, desired_width=None):
     if dim is (None, None):
         return image
     raw_height, raw_width, num_channels = image.shape
-    wpercent = int(desired_width/float(raw_width))
-    new_height = int(float(raw_height) * float(wpercent))
-    rescaled_image = cv2.resize(image, (desired_width, new_height), cv2.INTER_AREA)
-    resized_image = cv2.resize(rescaled_image, (desired_width, desired_height), cv2.INTER_AREA)
-    return np.array(resized_image).astype(np.uint8)
+    ratio = float(desired_width)/max(raw_height, raw_width)
+
+    scaled_width = int(raw_width * ratio)
+    scaled_height = int(raw_height * ratio)
+    resized_image = cv2.resize(image, (scaled_width, scaled_height))
+
+    square_image = _add_padding(desired_height, desired_width, resized_image, scaled_height, scaled_width)
+    return np.array(square_image).astype(np.uint8)
+
+
+def _add_padding(desired_height, desired_width, image, scaled_height, scaled_width):
+    delta_width = desired_width - scaled_width
+    delta_height = desired_height - scaled_height
+    top, bottom = delta_height // 2, delta_height - (delta_height // 2)
+    left, right = delta_width // 2, delta_width - (delta_width // 2)
+    color = [255, 255, 255]
+    square_image = cv2.copyMakeBorder(image,
+                                      top,
+                                      bottom,
+                                      left,
+                                      right,
+                                      cv2.BORDER_CONSTANT,
+                                      value=color)
+    return square_image
 
 
 def charset():

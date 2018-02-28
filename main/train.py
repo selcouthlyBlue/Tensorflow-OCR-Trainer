@@ -2,7 +2,7 @@ from train_ocr import train
 
 def main():
     train(model_config_file='../models/two_layer_cnn_birnn_ctc_model.json',
-          labels_file='/home/kapitan/Desktop/Jerome/lines.txt',
+          labels_file='/home/kapitan/Desktop/Jerome/words.txt',
           data_dir='/home/kapitan/Desktop/Jerome/words/',
           desired_image_height=128,
           desired_image_width=128,

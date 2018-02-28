@@ -53,9 +53,11 @@ def invert(images):
 
 
 def images_as_float32(images):
+    print('Converting pixel values to float...')
     float32_images = []
     for image in images:
         float32_images.append(image.astype(np.float32))
+    print('Done converting pixel values to float...')
     return float32_images
 
 

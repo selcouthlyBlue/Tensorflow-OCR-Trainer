@@ -75,14 +75,6 @@ def max_pool2d(inputs, kernel, scope=None):
     return slim.max_pool2d(inputs, kernel, scope=scope)
 
 
-def convert_to_ctc_dims(inputs, num_classes, num_steps, num_hidden_units):
-    outputs = reshape(inputs, [-1, num_hidden_units])
-    logits = slim.fully_connected(outputs, num_classes,
-                                  weights_initializer=slim.xavier_initializer())
-    logits = reshape(logits, [num_steps, -1, num_classes])
-    return logits
-
-
 def dropout(inputs, keep_prob, is_training, scope=None):
     return slim.dropout(inputs, keep_prob, scope=scope, is_training=is_training)
 

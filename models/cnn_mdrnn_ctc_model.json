@@ -24,13 +24,11 @@
     {"layer_type": "dropout", "keep_prob": 0.25},
     {"layer_type": "mdrnn", "num_hidden": 160, "cell_type": "GLSTM"},
     {"layer_type": "dropout", "keep_prob": 0.25},
-    {"layer_type": "collapse_to_rnn_dims"},
-    {"layer_type": "convert_to_ctc_dims", "num_classes": 80}
+    {"layer_type": "collapse_to_rnn_dims"}
   ],
   "output_layer": "ctc_decoder",
   "loss": "ctc",
   "metrics": ["label_error_rate"],
-  "num_classes": 80,
   "learning_rate": 0.001,
   "optimizer": "momentum"
 }

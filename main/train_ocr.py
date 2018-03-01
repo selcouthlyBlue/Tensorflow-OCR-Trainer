@@ -7,7 +7,8 @@ from backend.tf.experiment_ops import run_experiment, input_fn
 
 
 def train(model_config_file, labels_file, data_dir, desired_image_height,
-          desired_image_width, labels_delimiter=' ', max_label_length=120,
+          desired_image_width, charset_file='../charsets/chars.txt',
+          labels_delimiter=' ', max_label_length=120,
           test_fraction=None, num_epochs=1, batch_size=1, validation_steps=1):
     image_paths, labels = dataset_utils.read_dataset_list(
         labels_file, delimiter=labels_delimiter)
@@ -19,10 +20,11 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
                                   desired_width=desired_image_width)
     images = dataset_utils.binarize(images)
     images = dataset_utils.invert(images)
+    classes = dataset_utils.get_characters_from(charset_file)
     images = dataset_utils.images_as_float32(images)
-
-    labels = dataset_utils.encode(labels)
-    labels = dataset_utils.pad(labels, blank_token_index=80,
+    labels = dataset_utils.encode(labels, classes)
+    num_classes = len(classes) + 1
+    labels = dataset_utils.pad(labels, padding_index=num_classes,
                                max_label_length=max_label_length)
 
     x_train, x_test, y_train, y_test = dataset_utils.split(
@@ -49,6 +51,7 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
 
     run_experiment(model_config_file=model_config_file,
                    train_input_fn=train_input_fn,
+                   num_classes=num_classes,
                    validation_input_fn=validation_input_fn,
-                   checkpoint_dir="checkpoint/" + model_name,
+                   checkpoint_dir="checkpoint/" + str(model_name),
                    validation_steps=validation_steps * (len(x_train)//batch_size))

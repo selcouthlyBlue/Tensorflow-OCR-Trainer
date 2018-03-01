@@ -100,35 +100,25 @@ def _add_padding(desired_height, desired_width, image, scaled_height, scaled_wid
     return square_image
 
 
-def charset():
-    return ''.join([line.rstrip('\n') for line in open('chars.txt')])
+def get_characters_from(charset_file):
+    return ''.join([line.rstrip('\n') for line in open(charset_file)])
 
 
-def encode(labels):
+def encode(labels, classes):
     encoder_decoder = EncoderDecoder()
-    encoder_decoder.initialize_encode_and_decode_maps_from(charset())
+    encoder_decoder.initialize_encode_and_decode_maps_from(
+        classes
+    )
     encoded_labels = []
     for label in labels:
         encoded_labels.append(encoder_decoder.encode(label))
     return encoded_labels
 
 
-def set_seq_lens(length, number_of_samples):
-    return np.full(number_of_samples, length)
-
-
-def transpose(images):
-    transposed_images = []
-    for image in images:
-        transposed_images.append(image.swapaxes(0,1))
-    return transposed_images
-
-
-def pad(labels, blank_token_index, max_label_length=120):
+def pad(labels, padding_index, max_label_length=120):
     padded_labels = []
     for label in labels:
-        label = np.append(label, [blank_token_index])
         while len(label) < max_label_length:
-            label = np.append(label, [blank_token_index])
+            label = np.append(label, [padding_index])
         padded_labels.append(label)
     return padded_labels

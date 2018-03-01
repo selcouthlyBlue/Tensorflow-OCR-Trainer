@@ -33,10 +33,6 @@ def _feed_to_layer(inputs, layer, is_training):
                               is_training=is_training)
     if layer_type == "collapse_to_rnn_dims":
         return layers.collapse_to_rnn_dims(inputs)
-    if layer_type == "convert_to_ctc_dims":
-        return layers.convert_to_ctc_dims(inputs, num_classes=layer["num_classes"],
-                                          num_steps=inputs.shape[1],
-                                          num_hidden_units=inputs.shape[-1])
     if layer_type == "l2_normalize":
         return layers.l2_normalize(inputs, layer["axis"])
     if layer_type == 'batch_norm':

@@ -3,7 +3,7 @@ import tensorflow as tf
 from backend.tf.util_ops import get_sequence_lengths, dense_to_sparse
 
 
-def ctc_loss(labels, inputs, preprocess_collapse_repeated_labels=True,
+def ctc_loss(labels, inputs, preprocess_collapse_repeated_labels=False,
              ctc_merge_repeated=True, inputs_are_time_major=True,
              eos_token=0):
     sequence_length = get_sequence_lengths(inputs)

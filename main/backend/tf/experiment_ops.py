@@ -52,8 +52,6 @@ def run_experiment(model_config_file, features, labels, checkpoint_dir,
     x_train = features
     y_train = labels
     num_steps_per_epoch = len(x_train) // batch_size
-    x_validation = None
-    y_validation = None
     validation_monitor = None
     if test_fraction:
         x_train, x_validation, y_train, y_validation = train_test_split(
@@ -66,6 +64,7 @@ def run_experiment(model_config_file, features, labels, checkpoint_dir,
             input_fn=_input_fn(x_validation,
                                y_validation,
                                batch_size,
+                               num_epochs,
                                shuffle=False),
             every_n_steps=save_checkpoint_every_n_epochs * num_steps_per_epoch)
         print('Number of training samples:', len(x_train))
@@ -80,19 +79,20 @@ def run_experiment(model_config_file, features, labels, checkpoint_dir,
                                     save_checkpoints_steps=num_steps_per_epoch,
                                     log_step_count_steps=num_steps_per_epoch)
                                 )
-    estimator.fit(input_fn=_input_fn(x_validation,
-                                     y_validation,
+    estimator.fit(input_fn=_input_fn(x_train,
+                                     y_train,
                                      batch_size),
                   monitors=[validation_monitor],
                   steps=num_epochs * num_steps_per_epoch)
 
 
-def _input_fn(features, labels, batch_size=1, shuffle=True):
+def _input_fn(features, labels, batch_size=1, num_epochs=None, shuffle=True):
     return tf.estimator.inputs.numpy_input_fn(
         x={"x": np.array(features)},
         y=np.array(labels),
-        shuffle=shuffle,
-        batch_size=batch_size
+        batch_size=batch_size,
+        num_epochs=num_epochs,
+        shuffle=shuffle
     )
 
 

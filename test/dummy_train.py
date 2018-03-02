@@ -9,7 +9,8 @@ def main():
           test_fraction=0.3,
           num_epochs=1,
           save_checkpoint_epochs=1,
-          batch_size=1)
+          batch_size=1,
+          max_label_length=37)
 
 
 if __name__ == '__main__':

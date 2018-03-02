@@ -8,7 +8,7 @@ def main():
           desired_image_width=256,
           test_fraction=0.3,
           num_epochs=1,
-          validation_steps=1,
+          save_checkpoint_epochs=1,
           batch_size=1)
 
 

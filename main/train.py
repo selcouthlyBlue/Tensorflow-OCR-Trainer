@@ -8,8 +8,8 @@ def main():
           desired_image_width=128,
           test_fraction=0.3,
           num_epochs=160,
-          validation_steps=5,
-          batch_size=360,
+          save_checkpoint_epochs=5,
+          batch_size=320,
           max_label_length=32)
 
 

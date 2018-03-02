@@ -3,12 +3,6 @@ import numpy as np
 from EncoderDecoder import EncoderDecoder
 
 
-from sklearn.model_selection import train_test_split
-
-def split(features, test_size, labels=None):
-    return train_test_split(features, labels, test_size=test_size)
-
-
 def read_dataset_list(dataset_list_file, delimiter=' '):
     features = []
     labels = []

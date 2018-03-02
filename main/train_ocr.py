@@ -1,15 +1,14 @@
 import os
 
-import numpy as np
-
 import dataset_utils
-from backend.tf.experiment_ops import run_experiment, input_fn
+from backend.tf.experiment_ops import run_experiment
 
 
 def train(model_config_file, labels_file, data_dir, desired_image_height,
           desired_image_width, charset_file='../charsets/chars.txt',
           labels_delimiter=' ', max_label_length=120,
-          test_fraction=None, num_epochs=1, batch_size=1, validation_steps=1):
+          test_fraction=None, num_epochs=1, batch_size=1,
+          save_checkpoint_epochs=1):
     image_paths, labels = dataset_utils.read_dataset_list(
         labels_file, delimiter=labels_delimiter)
     images = dataset_utils.read_images(data_dir=data_dir,
@@ -27,31 +26,15 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
     labels = dataset_utils.pad(labels, padding_index=num_classes,
                                max_label_length=max_label_length)
 
-    x_train, x_test, y_train, y_test = dataset_utils.split(
-        features=images, test_size=test_fraction, labels=labels)
-
-    train_input_fn = input_fn(
-        x_feed_dict={"x": np.array(x_train)},
-        y=np.array(y_train, dtype=np.int32),
-        num_epochs=num_epochs,
-        batch_size=batch_size
-    )
-
-    validation_input_fn = None
-    if test_fraction:
-        validation_input_fn = input_fn(
-            x_feed_dict={"x": np.array(x_test)},
-            y=np.array(y_test, dtype=np.int32),
-            batch_size=batch_size,
-            shuffle=False
-        )
-
     filename, _ = os.path.splitext(model_config_file)
     model_name = filename.split('/')[-1]
 
     run_experiment(model_config_file=model_config_file,
-                   train_input_fn=train_input_fn,
+                   features=images,
+                   labels=labels,
                    num_classes=num_classes,
-                   validation_input_fn=validation_input_fn,
                    checkpoint_dir="checkpoint/" + str(model_name),
-                   validation_steps=validation_steps * (len(x_train)//batch_size))
+                   batch_size=batch_size,
+                   num_epochs=num_epochs,
+                   save_checkpoint_every_n_epochs=save_checkpoint_epochs,
+                   test_fraction=test_fraction)

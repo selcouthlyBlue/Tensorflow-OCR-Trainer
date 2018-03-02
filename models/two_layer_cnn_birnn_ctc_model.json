@@ -11,13 +11,11 @@
     {"layer_type": "dropout", "keep_prob": 0.5},
     {"layer_type": "collapse_to_rnn_dims"},
     {"layer_type": "birnn", "num_hidden": 128, "cell_type": "LSTM"},
-    {"layer_type": "dropout", "keep_prob": 0.5},
-    {"layer_type": "convert_to_ctc_dims", "num_classes": 80}
+    {"layer_type": "dropout", "keep_prob": 0.5}
   ],
   "output_layer": "ctc_decoder",
   "loss": "ctc",
   "metrics": ["label_error_rate"],
-  "num_classes": 80,
   "learning_rate": 0.001,
   "optimizer": "momentum"
 }

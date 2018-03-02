@@ -16,7 +16,6 @@
   "output_layer": "ctc_decoder",
   "loss": "ctc",
   "metrics": ["label_error_rate"],
-  "num_classes": 80,
   "learning_rate": 0.001,
   "optimizer": "momentum"
 }

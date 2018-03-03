@@ -1,7 +1,6 @@
 class EncoderDecoder:
     def __init__(self):
         self.charset = ""
-        self.eos_token = '`'
         self.encode_map = {}
         self.decode_map = {}
 

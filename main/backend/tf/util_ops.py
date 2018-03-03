@@ -40,8 +40,8 @@ def _feed_to_layer(inputs, layer, is_training):
     raise NotImplementedError(layer_type + " layer not implemented.")
 
 
-def dense_to_sparse(tensor, eos_token=0):
-    indices = tf.where(tf.not_equal(tensor, tf.constant(eos_token, dtype=tensor.dtype)))
+def dense_to_sparse(tensor, token_to_ignore=0):
+    indices = tf.where(tf.not_equal(tensor, tf.constant(token_to_ignore, dtype=tensor.dtype)))
     values = tf.gather_nd(tensor, indices)
     shape = tf.shape(tensor, out_type=tf.int64)
     return tf.SparseTensor(indices, values, shape)

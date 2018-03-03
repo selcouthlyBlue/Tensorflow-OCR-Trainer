@@ -23,8 +23,7 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
     images = dataset_utils.images_as_float32(images)
     labels = dataset_utils.encode(labels, classes)
     num_classes = len(classes) + 1
-    labels = dataset_utils.pad(labels, padding_index=num_classes,
-                               max_label_length=max_label_length)
+    labels = dataset_utils.pad(labels, max_label_length=max_label_length)
 
     filename, _ = os.path.splitext(model_config_file)
     model_name = filename.split('/')[-1]

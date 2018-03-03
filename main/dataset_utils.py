@@ -109,10 +109,10 @@ def encode(labels, classes):
     return encoded_labels
 
 
-def pad(labels, padding_index, max_label_length=120):
+def pad(labels, max_label_length=120):
     padded_labels = []
     for label in labels:
         while len(label) < max_label_length:
-            label = np.append(label, [padding_index])
+            label = np.append(label, [-1])
         padded_labels.append(label)
     return padded_labels

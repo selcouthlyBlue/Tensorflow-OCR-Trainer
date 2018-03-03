@@ -9,7 +9,7 @@ from tensorflow.contrib.learn import ModeKeys
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
 from backend.tf import ctc_ops, losses, metric_functions
-from backend.tf.util_ops import feed
+from backend.tf.util_ops import feed, dense_to_sparse, get_sequence_lengths
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -19,9 +19,10 @@ def _get_loss(loss, labels, inputs, num_classes):
                                              num_classes=num_classes,
                                              num_steps=inputs.shape[1],
                                              num_outputs=inputs.shape[-1])
+        labels = dense_to_sparse(labels, token_to_ignore=-1)
         return losses.ctc_loss(labels=labels,
                                inputs=inputs,
-                               eos_token=num_classes)
+                               sequence_length=get_sequence_lengths(inputs))
     raise NotImplementedError(loss + " loss not implemented")
 
 
@@ -135,9 +136,9 @@ def _get_metrics(metrics, y_pred, y_true, num_classes, log_step_count_steps=100)
                                                  num_steps=y_pred.shape[1],
                                                  num_outputs=y_pred.shape[-1])
             y_pred, _ = ctc_ops.ctc_beam_search_decoder(y_pred)
+            y_true = dense_to_sparse(y_true, token_to_ignore=-1)
             value = metric_functions.label_error_rate(y_pred,
                                                       y_true,
-                                                      num_classes,
                                                       metric)
         else:
             raise NotImplementedError(metric + " metric not implemented")

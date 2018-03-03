@@ -90,7 +90,7 @@ def run_experiment(model_config_file, features, labels, checkpoint_dir,
 def _input_fn(features, labels, batch_size=1, num_epochs=None, shuffle=True):
     return tf.estimator.inputs.numpy_input_fn(
         x={"x": np.array(features)},
-        y=np.array(labels),
+        y=np.array(labels, dtype=np.int32),
         batch_size=batch_size,
         num_epochs=num_epochs,
         shuffle=shuffle

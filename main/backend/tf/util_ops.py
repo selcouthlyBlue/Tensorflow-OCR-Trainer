@@ -24,10 +24,11 @@ def _feed_to_layer(inputs, layer, is_training):
         return layers.max_pool2d(inputs, kernel=layer["pool_size"])
     if layer_type == "birnn":
         return layers.bidirectional_rnn(inputs, num_hidden=layer["num_hidden"],
-                                        cell_type=layer["cell_type"])
+                                        cell_type=layer.get("cell_type") or 'LSTM',
+                                        activation=layer.get("activation") or 'tanh')
     if layer_type == "mdrnn":
         return layers.mdrnn(inputs, num_hidden=layer["num_hidden"],
-                            cell_type=layer["cell_type"])
+                            cell_type=layer.get("cell_type") or 'LSTM')
     if layer_type == "dropout":
         return layers.dropout(inputs, keep_prob=layer["keep_prob"],
                               is_training=is_training)

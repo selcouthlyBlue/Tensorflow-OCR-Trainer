@@ -13,13 +13,13 @@
     {"layer_type": "max_pool2d", "pool_size": [2, 2]},
     {"layer_type": "l2_normalize", "axis": [1, 2]},
     {"layer_type": "dropout", "keep_prob": 0.5},
+    {"layer_type": "mdrnn", "num_hidden": 128, "cell_type": "LSTM"},
     {"layer_type": "collapse_to_rnn_dims"},
-    {"layer_type": "birnn", "num_hidden": 128, "cell_type": "LSTM"},
     {"layer_type": "dropout", "keep_prob": 0.5}
   ],
   "output_layer": "ctc_decoder",
   "loss": "ctc",
   "metrics": ["label_error_rate"],
   "learning_rate": 0.001,
-  "optimizer": "momentum"
+  "optimizer": "adam"
 }

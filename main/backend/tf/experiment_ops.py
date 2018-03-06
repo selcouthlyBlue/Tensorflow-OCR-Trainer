@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 from sklearn.model_selection import train_test_split
+from tensorflow.contrib.estimator import TowerOptimizer
 from tensorflow.contrib import learn
 from tensorflow.contrib import slim
 from tensorflow.contrib.learn import ModeKeys
@@ -103,6 +104,7 @@ def _add_to_summary(name, value):
 
 def _create_train_op(loss, learning_rate, optimizer):
     optimizer = _get_optimizer(learning_rate, optimizer)
+    optimizer = TowerOptimizer(optimizer)
     return slim.learning.create_train_op(loss, optimizer, global_step=tf.train.get_or_create_global_step())
 
 

@@ -52,7 +52,7 @@ def run_experiment(params, features, labels, checkpoint_dir,
     x_train = features
     y_train = labels
     num_steps_per_epoch = len(x_train) // batch_size
-    validation_monitor = None
+    monitors = []
     if test_fraction:
         x_train, x_validation, y_train, y_validation = train_test_split(
             x_train,
@@ -67,10 +67,11 @@ def run_experiment(params, features, labels, checkpoint_dir,
                                num_epochs,
                                shuffle=False),
             every_n_steps=save_checkpoint_every_n_epochs * num_steps_per_epoch)
+        monitors.append(validation_monitor)
         print('Number of training samples:', len(x_train))
         print('Number of validation samples', len(x_validation))
     params['num_classes'] = num_classes
-    params['log_step_count_steps'] = len(x_train) // batch_size
+    params['log_step_count_steps'] = num_steps_per_epoch
     estimator = learn.Estimator(model_fn=_model_fn,
                                 params=params,
                                 model_dir=checkpoint_dir,
@@ -82,7 +83,7 @@ def run_experiment(params, features, labels, checkpoint_dir,
     estimator.fit(input_fn=_input_fn(x_train,
                                      y_train,
                                      batch_size),
-                  monitors=[validation_monitor],
+                  monitors=monitors,
                   steps=num_epochs * num_steps_per_epoch)
 
 

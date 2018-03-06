@@ -6,9 +6,10 @@ def reshape(tensor: tf.Tensor, new_shape: list, name="reshape"):
     return tf.reshape(tensor, new_shape, name=name)
 
 
-def bidirectional_rnn(inputs, num_hidden, cell_type='LSTM', concat_output=True):
-    cell_fw = _get_cell(num_hidden, cell_type)
-    cell_bw = _get_cell(num_hidden, cell_type)
+def bidirectional_rnn(inputs, num_hidden, cell_type='LSTM',
+                      activation='tanh', concat_output=True):
+    cell_fw = _get_cell(num_hidden, cell_type, activation)
+    cell_bw = _get_cell(num_hidden, cell_type, activation)
     outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw,
                                                  cell_bw,
                                                  inputs,
@@ -18,13 +19,30 @@ def bidirectional_rnn(inputs, num_hidden, cell_type='LSTM', concat_output=True):
     return outputs
 
 
-def _get_cell(num_filters_out, cell_type='LSTM'):
+def _get_activation(name):
+    if name == 'tanh':
+        return tf.nn.tanh
+    if name == 'relu':
+        return tf.nn.relu
+    if name == 'relu6':
+        return tf.nn.relu6
+    raise NotImplementedError(name, "activation function not implemented")
+
+
+def _get_cell(num_filters_out, cell_type='LSTM', activation='tanh'):
+    activation_function = _get_activation(activation)
     if cell_type == 'LSTM':
-        return rnn.LSTMCell(num_filters_out, initializer=slim.xavier_initializer())
+        return rnn.LSTMCell(num_filters_out,
+                            initializer=slim.xavier_initializer(),
+                            activation=activation_function)
     if cell_type == 'GRU':
-        return rnn.GRUCell(num_filters_out, kernel_initializer=slim.xavier_initializer())
+        return rnn.GRUCell(num_filters_out,
+                           kernel_initializer=slim.xavier_initializer(),
+                           activation=activation_function)
     if cell_type == 'GLSTM':
-        return rnn.GLSTMCell(num_filters_out, initializer=slim.xavier_initializer())
+        return rnn.GLSTMCell(num_filters_out,
+                             initializer=slim.xavier_initializer(),
+                             activation=activation_function)
     raise NotImplementedError(cell_type, "is not supported.")
 
 
@@ -57,11 +75,11 @@ def sequence_to_images(tensor, height):
     return tf.transpose(reshaped, [1, 2, 0, 3])
 
 
-def _bidirectional_rnn_scan(inputs, num_hidden, cell_type='LSTM'):
+def _bidirectional_rnn_scan(inputs, num_hidden, cell_type='LSTM', activation='tanh'):
     with tf.variable_scope("BidirectionalRNN", [inputs]):
         height = inputs.get_shape().as_list()[1]
         inputs = images_to_sequence(inputs)
-        output_sequence = bidirectional_rnn(inputs, num_hidden, cell_type)
+        output_sequence = bidirectional_rnn(inputs, num_hidden, cell_type, activation)
         output = sequence_to_images(output_sequence, height)
         return output
 

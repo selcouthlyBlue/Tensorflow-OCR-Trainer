@@ -1,8 +1,8 @@
-import json
 import tensorflow as tf
 import numpy as np
 
 from sklearn.model_selection import train_test_split
+from tensorflow.contrib.estimator import TowerOptimizer
 from tensorflow.contrib import learn
 from tensorflow.contrib import slim
 from tensorflow.contrib.learn import ModeKeys
@@ -47,13 +47,13 @@ def _get_optimizer(learning_rate, optimizer_name):
     raise NotImplementedError(optimizer_name + " optimizer not supported")
 
 
-def run_experiment(model_config_file, features, labels, checkpoint_dir,
+def run_experiment(params, features, labels, checkpoint_dir,
                    num_classes, batch_size=1, num_epochs=1,
                    save_checkpoint_every_n_epochs=1, test_fraction=None):
     x_train = features
     y_train = labels
     num_steps_per_epoch = len(x_train) // batch_size
-    validation_monitor = None
+    monitors = []
     if test_fraction:
         x_train, x_validation, y_train, y_validation = train_test_split(
             x_train,
@@ -68,22 +68,23 @@ def run_experiment(model_config_file, features, labels, checkpoint_dir,
                                num_epochs,
                                shuffle=False),
             every_n_steps=save_checkpoint_every_n_epochs * num_steps_per_epoch)
+        monitors.append(validation_monitor)
         print('Number of training samples:', len(x_train))
         print('Number of validation samples', len(x_validation))
-    params = json.load(open(model_config_file, 'r'))
     params['num_classes'] = num_classes
-    params['log_step_count_steps'] = len(x_train) // batch_size
+    params['log_step_count_steps'] = num_steps_per_epoch
     estimator = learn.Estimator(model_fn=_model_fn,
                                 params=params,
                                 model_dir=checkpoint_dir,
                                 config=learn.RunConfig(
                                     save_checkpoints_steps=num_steps_per_epoch,
-                                    log_step_count_steps=num_steps_per_epoch)
+                                    log_step_count_steps=num_steps_per_epoch,
+                                    save_summary_steps=num_steps_per_epoch)
                                 )
     estimator.fit(input_fn=_input_fn(x_train,
                                      y_train,
                                      batch_size),
-                  monitors=[validation_monitor],
+                  monitors=monitors,
                   steps=num_epochs * num_steps_per_epoch)
 
 
@@ -103,6 +104,7 @@ def _add_to_summary(name, value):
 
 def _create_train_op(loss, learning_rate, optimizer):
     optimizer = _get_optimizer(learning_rate, optimizer)
+    optimizer = TowerOptimizer(optimizer)
     return slim.learning.create_train_op(loss, optimizer, global_step=tf.train.get_or_create_global_step())
 
 

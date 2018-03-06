@@ -377,7 +377,7 @@ class TowerOptimizer(optimizer_lib.Optimizer):
     class _PerGraphState(object):
         """Gradient reduction related state of a Tensorflow graph."""
 
-        def __init__(self, name="per_graph_state"):
+        def __init__(self, name="graph_reduction"):
             self._collected_grads_and_vars = defaultdict(list)
             self._current_tower_index = 0
             self._number_of_towers = 1

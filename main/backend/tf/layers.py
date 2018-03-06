@@ -7,16 +7,18 @@ def reshape(tensor: tf.Tensor, new_shape: list, name="reshape"):
 
 
 def bidirectional_rnn(inputs, num_hidden, cell_type='LSTM',
-                      activation='tanh', concat_output=True):
-    cell_fw = _get_cell(num_hidden, cell_type, activation)
-    cell_bw = _get_cell(num_hidden, cell_type, activation)
-    outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw,
-                                                 cell_bw,
-                                                 inputs,
-                                                 dtype=tf.float32)
-    if concat_output:
-        return tf.concat(outputs, 2)
-    return outputs
+                      activation='tanh', concat_output=True,
+                      scope=None):
+    with tf.variable_scope(scope, "bidirectional_rnn", [inputs]):
+        cell_fw = _get_cell(num_hidden, cell_type, activation)
+        cell_bw = _get_cell(num_hidden, cell_type, activation)
+        outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw,
+                                                     cell_bw,
+                                                     inputs,
+                                                     dtype=tf.float32)
+        if concat_output:
+            return tf.concat(outputs, 2)
+        return outputs
 
 
 def _get_activation(name):

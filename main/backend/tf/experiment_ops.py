@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 from sklearn.model_selection import train_test_split
-from tensorflow.contrib.estimator import TowerOptimizer
+from backend.tf.replicate_model_fn import TowerOptimizer
 from tensorflow.contrib import learn
 from tensorflow.contrib import slim
 from tensorflow.contrib.learn import ModeKeys

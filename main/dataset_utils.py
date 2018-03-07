@@ -31,6 +31,7 @@ def binarize(images):
     for image in images:
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         _, binarized_image = cv2.threshold(gray_image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        binarized_image = binarized_image[:, :, np.newaxis]
         binarized_images.append(binarized_image)
     print('Done binarizing images.')
     return binarized_images
@@ -41,6 +42,7 @@ def invert(images):
     inverted_images = []
     for image in images:
         inverted_image = cv2.bitwise_not(image)
+        inverted_image = inverted_image[:, :, np.newaxis]
         inverted_images.append(inverted_image)
     print('Done inverting color of images.')
     return inverted_images

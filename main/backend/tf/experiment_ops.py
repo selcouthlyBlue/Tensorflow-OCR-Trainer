@@ -153,6 +153,7 @@ def _get_metrics(metrics, y_pred, y_true, num_classes, log_step_count_steps=100)
 
 def _model_fn(features, labels, mode, params):
     features = features["x"]
+    features = _set_dynamic_batch_size(features)
 
     network = params["network"]
     metrics = params["metrics"]
@@ -195,3 +196,10 @@ def _model_fn(features, labels, mode, params):
                             loss=loss,
                             train_op=train_op,
                             training_hooks=training_hooks)
+
+
+def _set_dynamic_batch_size(inputs):
+    new_shape = [-1]
+    new_shape.extend(inputs.get_shape().as_list()[1:])
+    inputs = tf.reshape(inputs, new_shape, name="inputs")
+    return inputs

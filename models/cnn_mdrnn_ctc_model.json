@@ -1,6 +1,5 @@
 {
   "network":[
-    {"layer_type": "input_layer", "name": "inputs", "shape": [-1, 128, 3200, 1]},
     {"layer_type": "conv2d", "num_filters": 16, "kernel_size": [3, 3]},
     {"layer_type": "max_pool2d", "pool_size": [2, 2]},
     {"layer_type": "mdrnn", "num_hidden": 32, "cell_type": "GLSTM"},

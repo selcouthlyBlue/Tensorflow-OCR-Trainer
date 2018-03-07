@@ -1,5 +1,6 @@
 import os
 import json
+import time
 
 import dataset_utils
 from backend.tf.experiment_ops import run_experiment
@@ -35,7 +36,10 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
                    features=images,
                    labels=labels,
                    num_classes=num_classes,
-                   checkpoint_dir="checkpoint/" + str(model_name),
+                   checkpoint_dir="checkpoint/"
+                                  + str(model_name)
+                                  + "_"
+                                  + time.strftime("%Y%m%d-%H%M%S"),
                    batch_size=batch_size,
                    num_epochs=num_epochs,
                    save_checkpoint_every_n_epochs=save_checkpoint_epochs,

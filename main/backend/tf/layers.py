@@ -62,19 +62,18 @@ def images_to_sequence(inputs):
     _, _, width, num_channels = inputs.get_shape().as_list()
     s = tf.shape(inputs)
     batch_size, height = s[0], s[1]
-    transposed = tf.transpose(inputs, [2, 0, 1, 3])
-    return reshape(transposed, [width, batch_size * height, num_channels])
+    return reshape(inputs, [batch_size * height, width, num_channels])
 
 
 def sequence_to_images(tensor, height):
-    width, num_batches, depth = tensor.get_shape().as_list()
+    num_batches, width, depth = tensor.get_shape().as_list()
     if num_batches is None:
         num_batches = -1
     else:
         num_batches = num_batches // height
     reshaped = tf.reshape(tensor,
-                                 [width, num_batches, height, depth])
-    return tf.transpose(reshaped, [1, 2, 0, 3])
+                                 [num_batches, width, height, depth])
+    return tf.transpose(reshaped, [0, 2, 1, 3])
 
 
 def _bidirectional_rnn_scan(inputs, num_hidden, cell_type='LSTM', activation='tanh'):
@@ -103,7 +102,8 @@ def collapse_to_rnn_dims(inputs):
     batch_size, height, width, num_channels = inputs.get_shape().as_list()
     if batch_size is None:
         batch_size = -1
-    return tf.reshape(inputs, [batch_size, width, height * num_channels])
+    transposed_inputs = tf.transpose(inputs, (0, 2, 1, 3))
+    return tf.reshape(transposed_inputs, [batch_size, width, height * num_channels])
 
 
 def batch_norm(inputs, is_training):

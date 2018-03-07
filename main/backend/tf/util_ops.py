@@ -15,8 +15,9 @@ def feed(features, layer, is_training):
 
 def _feed_to_layer(inputs, layer, is_training):
     layer_type = layer["layer_type"]
-    if layer_type == "input_layer":
-        return layers.reshape(inputs, layer["shape"], layer["name"])
+    if layer_type == "reshape":
+        return layers.reshape(inputs, layer["shape"],
+                              layer.get("name") or "reshape")
     if layer_type == "conv2d":
         return layers.conv2d(inputs, num_filters=layer["num_filters"],
                              kernel=layer["kernel_size"])

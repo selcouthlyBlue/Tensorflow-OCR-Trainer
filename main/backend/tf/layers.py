@@ -32,6 +32,8 @@ def _get_activation(name):
 
 
 def _get_cell(num_filters_out, cell_type='LSTM', activation='tanh'):
+    cell_type = cell_type or 'LSTM'
+    activation = activation or 'tanh'
     activation_function = _get_activation(activation)
     if cell_type == 'LSTM':
         return rnn.LSTMCell(num_filters_out,
@@ -48,9 +50,12 @@ def _get_cell(num_filters_out, cell_type='LSTM', activation='tanh'):
     raise NotImplementedError(cell_type, "is not supported.")
 
 
-def mdrnn(inputs, num_hidden, cell_type='LSTM', scope=None):
+def mdrnn(inputs, num_hidden, cell_type='LSTM', activation='tanh', scope=None):
     with tf.variable_scope(scope, "multidimensional_rnn", [inputs]):
-        hidden_sequence_horizontal = _bidirectional_rnn_scan(inputs, num_hidden // 2, cell_type=cell_type)
+        hidden_sequence_horizontal = _bidirectional_rnn_scan(inputs,
+                                                             num_hidden // 2,
+                                                             cell_type=cell_type,
+                                                             activation=activation)
         with tf.variable_scope("vertical"):
             transposed = tf.transpose(hidden_sequence_horizontal, [0, 2, 1, 3])
             output_transposed = _bidirectional_rnn_scan(transposed, num_hidden // 2, cell_type=cell_type)
@@ -85,13 +90,16 @@ def _bidirectional_rnn_scan(inputs, num_hidden, cell_type='LSTM', activation='ta
         return output
 
 
-def conv2d(inputs, num_filters, kernel, activation_fn=tf.nn.relu, scope=None):
+def conv2d(inputs, num_filters, kernel, activation="relu", scope=None):
+    activation = activation or "relu"
     return slim.conv2d(inputs, num_filters, kernel,
-                       scope=scope, activation_fn=activation_fn)
+                       scope=scope,
+                       activation_fn=_get_activation(activation))
 
 
-def max_pool2d(inputs, kernel, scope=None):
-    return slim.max_pool2d(inputs, kernel, scope=scope)
+def max_pool2d(inputs, kernel, padding='VALID', scope=None):
+    padding = padding or 'VALID'
+    return slim.max_pool2d(inputs, kernel, padding=padding, scope=scope)
 
 
 def dropout(inputs, keep_prob, is_training, scope=None):

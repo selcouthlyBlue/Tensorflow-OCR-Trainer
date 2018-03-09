@@ -1,5 +1,5 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 from backend.tf.util_ops import dense_to_sparse
 

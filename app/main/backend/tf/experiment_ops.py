@@ -1,14 +1,13 @@
-import tensorflow as tf
 import numpy as np
-
+import tensorflow as tf
 from sklearn.model_selection import train_test_split
-from backend.tf.replicate_model_fn import TowerOptimizer
 from tensorflow.contrib import learn
 from tensorflow.contrib import slim
 from tensorflow.contrib.learn import ModeKeys
 from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
 from backend.tf import ctc_ops, losses, metric_functions
+from backend.tf.replicate_model_fn import TowerOptimizer
 from backend.tf.util_ops import feed, dense_to_sparse, get_sequence_lengths
 
 tf.logging.set_verbosity(tf.logging.INFO)

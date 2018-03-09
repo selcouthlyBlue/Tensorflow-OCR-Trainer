@@ -16,7 +16,7 @@
                 <a class="brand-logo" href="{{ url_for('index') }}">Mem2Speech OCR Trainer</a>
                 <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
-                    <li><a href="">Dataset</a></li>
+                    <li><a href="{{ url_for('dataset') }}">Dataset</a></li>
                     <li><a href="">Network Architectures</a></li>
                     <li><a href="">Train</a></li>
                 </ul>
@@ -29,13 +29,11 @@
         </div>
     </nav>
 </header>
-<div class="parallax-container">
-    <div class="parallax up-green">
-    </div>
-    <div class="container white-text valign-wrapper" style="height: 100%;">
+<main>
+    <div class="container white-text">
         {% block body %}{% endblock %}
     </div>
-</div>
+</main>
 <footer class="page-footer up-maroon">
     <div class="footer-copyright">
         <div class="container">

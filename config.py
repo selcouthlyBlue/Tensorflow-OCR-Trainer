@@ -1,9 +1,11 @@
 class BaseConfig(object):
     DEBUG = False
     TESTING = False
-    MODELS_DIRECTORY = "models"
+    ARCHITECTURES_DIRECTORY = "architectures"
     DATASET_DIRECTORY = "dataset"
     CHARSET_DIRECTORY = "charset"
+    ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+    ALLOWED_LABELS_FILE_EXTENSIONS = {'txt', 'csv'}
 
 
 class DevelopmentConfig(BaseConfig):

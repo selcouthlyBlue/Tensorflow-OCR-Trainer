@@ -1,9 +1,9 @@
 from train_ocr import train
 
 def main():
-    train(model_config_file='../models/test_model.json',
-          labels_file='dummy_labels_file.txt',
-          data_dir='dummy_data/',
+    train(model_config_file='../architectures/test_model.json',
+          labels_file='labels.txt',
+          data_dir='Test/',
           desired_image_height=360,
           desired_image_width=360,
           test_fraction=0.3,

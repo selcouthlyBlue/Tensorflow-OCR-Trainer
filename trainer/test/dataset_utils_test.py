@@ -8,7 +8,7 @@ class DatasetUtilsTest(unittest.TestCase):
         self.data = {'numbers': [1, 2], 'labels':['a', 'c']}
 
     def test_read_labels_file(self):
-        features, labels = dataset_utils.read_dataset_list('dummy_labels_file.txt')
+        features, labels = dataset_utils.read_dataset_list('labels.txt')
         self.assertTrue(len(features) == len(labels) == 2)
         
 

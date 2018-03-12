@@ -19,6 +19,16 @@ def index():
     return render_template("index.html")
 
 
+@app.route('/create_network_architecture')
+def create_network_architecture():
+    return render_template("create_network_architecture.html")
+
+
+@app.route('/upload_dataset')
+def upload_dataset():
+    return render_template("upload_dataset.html")
+
+
 @app.route('/dataset', methods=['GET', 'POST'])
 def dataset():
     if request.method == 'POST':
@@ -40,6 +50,7 @@ def dataset():
                 and (images and _allowed_image_files(image.filename) for image in images):
             upload_dataset(images, labels_file, app.config['DATASET_DIRECTORY'],
                            request.form['dataset_name'])
+            flash(request.form['dataset_name'], " uploaded.")
     dataset_list = get_directory_list(app.config['DATASET_DIRECTORY'])
     return render_template("dataset.html", dataset_list=dataset_list)
 

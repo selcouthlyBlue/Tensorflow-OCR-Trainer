@@ -90,16 +90,20 @@ def _bidirectional_rnn_scan(inputs, num_hidden, cell_type='LSTM', activation='ta
         return output
 
 
-def conv2d(inputs, num_filters, kernel, activation="relu", scope=None):
+def conv2d(inputs, num_filters, kernel, activation="relu", stride=1, padding='VALID', scope=None):
+    padding = padding or 'VALID'
     activation = activation or "relu"
     return slim.conv2d(inputs, num_filters, kernel,
-                       scope=scope,
-                       activation_fn=_get_activation(activation))
+                       activation_fn=_get_activation(activation),
+                       padding=padding,
+                       stride=stride,
+                       scope=scope)
 
 
-def max_pool2d(inputs, kernel, padding='VALID', scope=None):
+def max_pool2d(inputs, kernel, padding='VALID', stride=2, scope=None):
     padding = padding or 'VALID'
-    return slim.max_pool2d(inputs, kernel, padding=padding, scope=scope)
+    stride = stride or 2
+    return slim.max_pool2d(inputs, kernel, padding=padding, stride=stride, scope=scope)
 
 
 def dropout(inputs, keep_prob, is_training, scope=None):

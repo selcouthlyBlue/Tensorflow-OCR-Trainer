@@ -21,10 +21,12 @@ def _feed_to_layer(inputs, layer, is_training):
         return layers.conv2d(inputs, num_filters=layer["num_filters"],
                              kernel=layer["kernel_size"],
                              activation=layer.get("activation"),
+                             padding=layer.get("padding"),
                              scope=layer.get("name"))
     if layer_type == "max_pool2d":
         return layers.max_pool2d(inputs, kernel=layer["pool_size"],
                                  padding=layer.get("padding"),
+                                 stride=layer.get("stride"),
                                  scope=layer.get("name"))
     if layer_type == "birnn":
         return layers.bidirectional_rnn(inputs, num_hidden=layer["num_hidden"],

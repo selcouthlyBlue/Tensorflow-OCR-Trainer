@@ -7,34 +7,8 @@
         <li class="collection-item">{{ dataset }}</li>
     {% endfor %}
     </ul>
-    <h3>Upload Dataset</h3>
-    <form method="post" enctype="multipart/form-data" action="">
-        <div class="row">
-            <div class="input-field col s4">
-                <input placeholder="Placeholder" id="dataset_name" class="validate" type="text" name="dataset_name" required>
-                <label for="dataset_name">Dataset Name</label>
-            </div>
-            <div class="file-field input-field col s4">
-                <div class="btn">
-                    <span>File</span>
-                    <input class="validate" type="file" name="images[]" multiple required>
-                </div>
-                <div class="file-path-wrapper">
-                    <input class="file-path validate" type="text" placeholder="Upload one or more images">
-                </div>
-            </div>
-            <div class="file-field input-field col s4">
-                <div class="btn">
-                    <span>File</span>
-                    <input class="validate" type="file" name="labels_file" required>
-                </div>
-                <div class="file-path-wrapper">
-                    <input class="file-path validate" type="text" placeholder="Upload labels file">
-                </div>
-            </div>
-        </div>
-        <button class="btn waves-effect waves-light right" type="submit" name="action">Upload
-            <i class="material-icons right">send</i>
-        </button>
-    </form>
+    <a href="{{ url_for('upload_dataset') }}" class="right waves-effect waves-light btn">
+        <i class="material-icons left">add</i>
+        Upload Dataset
+    </a>
 {% endblock %}

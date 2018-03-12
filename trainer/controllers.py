@@ -16,7 +16,8 @@ def start_training(train_params):
         num_epochs=train_params['num_epochs'],
         test_fraction=train_params['test_fraction'],
         batch_size=train_params['batch_size'],
-        save_checkpoint_epochs=train_params['save_checkpoint_epochs']
+        save_checkpoint_epochs=train_params['save_checkpoint_epochs'],
+        charset_file=train_params['charset_file']
     )  # TODO: pass this to a python script instead.
 
 def get_directory_list(path):

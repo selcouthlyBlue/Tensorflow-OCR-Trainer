@@ -1,7 +1,9 @@
 import os
 
-from train_ocr import train
 from werkzeug.utils import secure_filename
+
+from trainer.backend.train_ocr import train
+
 
 def start_training(train_params):
     train(
@@ -15,7 +17,7 @@ def start_training(train_params):
         test_fraction=train_params['test_fraction'],
         batch_size=train_params['batch_size'],
         save_checkpoint_epochs=train_params['save_checkpoint_epochs']
-    )
+    )  # TODO: pass this to a python script instead.
 
 def get_directory_list(path):
     directory_names = os.listdir(path)

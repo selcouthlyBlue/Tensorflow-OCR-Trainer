@@ -2,12 +2,12 @@ import json
 import os
 import time
 
-import dataset_utils
-from backend.tf.experiment_ops import run_experiment
+from trainer.backend import dataset_utils
+from trainer.backend.tf import run_experiment
 
 
 def train(model_config_file, labels_file, data_dir, desired_image_height,
-          desired_image_width, charset_file='../charsets/chars.txt',
+          desired_image_width, charset_file,
           labels_delimiter=' ', max_label_length=120,
           test_fraction=None, num_epochs=1, batch_size=1,
           save_checkpoint_epochs=1):

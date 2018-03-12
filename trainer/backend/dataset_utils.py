@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-from EncoderDecoder import EncoderDecoder
+
+from trainer.backend.EncoderDecoder import EncoderDecoder
 
 
 def read_dataset_list(dataset_list_file, delimiter=' '):

@@ -6,6 +6,11 @@ setup(
     include_package_data=True,
     install_requires=[
         'flask',
-        'tensorflow'
+        'tensorflow',
+        'cv2',
+        'numpy',
+        'werkzeug',
+        'six',
+        'scikit-learn'
     ],
 )

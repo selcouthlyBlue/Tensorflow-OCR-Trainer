@@ -1,6 +1,8 @@
 from flask import request, render_template, flash, redirect
+
 from trainer import app
 from trainer.controllers import *
+
 
 @app.route('/')
 def index():

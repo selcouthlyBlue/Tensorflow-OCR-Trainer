@@ -23,19 +23,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import copy
 from collections import defaultdict
 from contextlib import contextmanager
-import copy
 
 import six
-
-from tensorflow.python.framework import ops as ops_lib
 from tensorflow.core.framework import node_def_pb2
 from tensorflow.python.client import device_lib
 from tensorflow.python.estimator import model_fn as model_fn_lib
 from tensorflow.python.estimator import util
 from tensorflow.python.estimator.export import export_output as export_output_lib
 from tensorflow.python.framework import device as framework_device
+from tensorflow.python.framework import ops as ops_lib
 from tensorflow.python.framework import sparse_tensor
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import control_flow_ops

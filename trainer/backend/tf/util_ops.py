@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from backend.tf import layers
+from trainer.backend.tf import layers
 
 
 def get_sequence_lengths(inputs):

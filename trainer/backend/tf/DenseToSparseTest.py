@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from backend.tf.util_ops import dense_to_sparse
+from trainer.backend.tf.util_ops import dense_to_sparse
 
 
 class DenseToSparseTest(tf.test.TestCase):

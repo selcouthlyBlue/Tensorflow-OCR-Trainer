@@ -1,7 +1,6 @@
 import tensorflow as tf
-
+from trainer.backend.tf.util_ops import get_sequence_lengths
 from tensorflow.contrib import slim
-from backend.tf.util_ops import get_sequence_lengths
 
 
 def ctc_beam_search_decoder(inputs, merge_repeated=True):

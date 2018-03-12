@@ -1,2 +1,0 @@
-dummy_image1 ok 154 19 408 746 1661 89 A|MOVE|to|stop|Mr.|Gaitskell|from
-dummy_image2 ok 156 19 395 932 1850 105 nominating|any|more|Labour|life|Peers

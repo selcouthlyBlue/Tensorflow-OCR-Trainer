@@ -1,0 +1,27 @@
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    background-color: #014421 !important;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.parallax-container {
+    flex: 1 0 auto;
+}
+
+.up-maroon {
+    background-color: #7b1113 !important;
+}
+
+.up-green {
+    background-color: #014421 !important;
+}
+
+.brand-logo{
+    font-size: 0.1em;
+    padding: 0 auto;
+}

@@ -1,7 +1,60 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
+{% block title %}Create Network Architecture{% endblock %}
 {% block body %}
-    <form>
-
+    <h3>Create Network Architecture</h3>
+    <form method="post" action="{{ url_for('architectures') }}">
+        <fieldset name="network">
+            <legend>Network</legend>
+        </fieldset>
+        <div class="input-field col s12">
+            <input id="architecture_name" class="validate"
+                   type="text" name="architecture_name"
+                   required>
+            <label for="architecture_name">Architecture Name</label>
+        </div>
+        <div class="row">
+            <div class="input-field col s8">
+                <select id="output-layer-select" name="output_layer" required>
+                    <option style="display: none">Select Output Layer</option>
+                    <option value="ctc_decoder">CTC Decoder</option>
+                </select>
+                <label for="output-layer-select">Output Layer</label>
+            </div>
+            <div class="input-field col s4">
+                <select id="loss-select" name="loss" required>
+                    <option value="" disabled selected>Select Loss</option>
+                    <option value="ctc_decoder">CTC</option>
+                </select>
+                <label for="loss-select">Loss</label>
+            </div>
+        </div>
+        <div class="input-field col s12">
+            <select id="metrics-select" name="metrics" multiple>
+                <option value="" disabled selected>Select Metrics</option>
+                <option value="label_error_rate">Label Error Rate</option>
+            </select>
+            <label for="metrics-select">Metrics</label>
+        </div>
+        <div class="row">
+            <div class="input-field col s4">
+                <input id="learning_rate" class="validate"
+                   type="number" name="learning_rate"
+                   min="0"
+                   max="1"
+                   step="any"
+                   required>
+                <label for="learning_rate">Learning Rate</label>
+            </div>
+            <div class="input-field col s8">
+                <select id="optimizer-select" name="optimizer" required>
+                    <option value="" disabled selected>Select Optimizer</option>
+                    <option value="adam">Adam</option>
+                    <option value="momentum">Momentum</option>
+                    <option value="adadelta">Adadelta</option>
+                    <option value="rmsprop">RMS Prop</option>
+                </select>
+                <label for="optimizer-select">Optimizer</label>
+            </div>
+        </div>
     </form>
 {% endblock %}

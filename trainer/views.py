@@ -6,17 +6,30 @@ from trainer.controllers import *
 
 def _allowed_labels_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_LABELS_FILE_EXTENSIONS']
+           filename.rsplit('.', 1)[1].lower() \
+           in app.config['ALLOWED_LABELS_FILE_EXTENSIONS']
 
 
 def _allowed_image_files(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_IMAGE_EXTENSIONS']
+           filename.rsplit('.', 1)[1].lower() \
+           in app.config['ALLOWED_IMAGE_EXTENSIONS']
 
 
 @app.route('/')
 def index():
     return render_template("index.html")
+
+
+@app.route('/architectures')
+def architectures():
+    network_architectures = get_directory_list(
+        app.config['ARCHITECTURES_DIRECTORY']
+    )
+    network_architectures = [network_architecture.split('.')[0]
+                             for network_architecture in network_architectures]
+    return render_template("architectures.html",
+                           network_architectures=network_architectures)
 
 
 @app.route('/create_network_architecture')
@@ -47,8 +60,10 @@ def dataset():
             flash('No images selected')
             return redirect(request.url)
         if (labels_file and _allowed_labels_file(labels_file.filename)) \
-                and (images and _allowed_image_files(image.filename) for image in images):
-            upload_dataset(images, labels_file, app.config['DATASET_DIRECTORY'],
+                and (images and _allowed_image_files(image.filename)
+                     for image in images):
+            upload_dataset(images, labels_file,
+                           app.config['DATASET_DIRECTORY'],
                            request.form['dataset_name'])
             flash(request.form['dataset_name'], " uploaded.")
     dataset_list = get_directory_list(app.config['DATASET_DIRECTORY'])

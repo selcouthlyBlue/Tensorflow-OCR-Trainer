@@ -4,8 +4,8 @@ from trainer.backend.tf import layers
 
 
 def get_sequence_lengths(inputs):
-    dims = tf.stack([tf.shape(inputs)[1]])
-    sequence_length = tf.fill(dims, inputs.shape[0])
+    dims = tf.shape(inputs)[1]
+    sequence_length = tf.fill([dims], inputs.shape[0])
     return sequence_length
 
 
@@ -37,6 +37,7 @@ def _feed_to_layer(inputs, layer, is_training):
         return layers.mdrnn(inputs, num_hidden=layer["num_hidden"],
                             cell_type=layer.get("cell_type"),
                             activation=layer.get("activation"),
+                            kernel_size=layer.get("kernel_size"),
                             scope=layer.get("name"))
     if layer_type == "dropout":
         return layers.dropout(inputs, keep_prob=layer["keep_prob"],

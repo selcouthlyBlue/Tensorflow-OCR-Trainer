@@ -2,6 +2,7 @@ import tensorflow as tf
 
 from tensorflow.contrib import rnn, slim
 
+
 def reshape(tensor: tf.Tensor, new_shape: list, name="reshape"):
     return tf.reshape(tensor, new_shape, name=name)
 
@@ -50,7 +51,9 @@ def _get_cell(num_filters_out, cell_type='LSTM', activation='tanh'):
     raise NotImplementedError(cell_type, "is not supported.")
 
 
-def mdrnn(inputs, num_hidden, cell_type='LSTM', activation='tanh', scope=None):
+def mdrnn(inputs, num_hidden, cell_type='LSTM', activation='tanh', kernel_size=None, scope=None):
+    if kernel_size is not None:
+        inputs = _get_blocks(inputs, kernel_size)
     with tf.variable_scope(scope, "multidimensional_rnn", [inputs]):
         hidden_sequence_horizontal = _bidirectional_rnn_scan(inputs,
                                                              num_hidden // 2,
@@ -63,11 +66,51 @@ def mdrnn(inputs, num_hidden, cell_type='LSTM', activation='tanh', scope=None):
         return output
 
 
+def _get_blocks(inputs, kernel_size):
+    if isinstance(kernel_size, int):
+        kernel_size = [kernel_size, kernel_size]
+    with tf.variable_scope("image_blocks"):
+        batch_size, height, width, channels = _get_shape_as_list(inputs)
+        if batch_size is None:
+            batch_size = -1
+
+        if height % kernel_size[0] != 0:
+            offset = tf.fill([tf.shape(inputs)[0],
+                              kernel_size[0] - (height % kernel_size[0]),
+                              width,
+                              channels], 0.0)
+            inputs = tf.concat([inputs, offset], 1)
+            _, height, width, channels = _get_shape_as_list(inputs)
+        if width % kernel_size[1] != 0:
+            offset = tf.fill([tf.shape(inputs)[0],
+                              height,
+                              kernel_size[1] - (width % kernel_size[1]),
+                              channels], 0.0)
+            inputs = tf.concat([inputs, offset], 2)
+            _, height, width, channels = _get_shape_as_list(inputs)
+
+        h, w = int(height / kernel_size[0]), int(width / kernel_size[1])
+        features = kernel_size[1] * kernel_size[0] * channels
+
+        lines = tf.split(inputs, h, axis=1)
+        line_blocks = []
+        for line in lines:
+            line = tf.transpose(line, [0, 2, 3, 1])
+            line = reshape(line, [batch_size, w, features])
+            line_blocks.append(line)
+
+        return tf.stack(line_blocks, axis=1)
+
+
 def images_to_sequence(inputs):
-    _, _, width, num_channels = inputs.get_shape().as_list()
+    _, _, width, num_channels = _get_shape_as_list(inputs)
     s = tf.shape(inputs)
     batch_size, height = s[0], s[1]
     return reshape(inputs, [batch_size * height, width, num_channels])
+
+
+def _get_shape_as_list(tensor):
+    return tensor.get_shape().as_list()
 
 
 def sequence_to_images(tensor, height):
@@ -77,7 +120,7 @@ def sequence_to_images(tensor, height):
     else:
         num_batches = num_batches // height
     reshaped = tf.reshape(tensor,
-                                 [num_batches, width, height, depth])
+                          [num_batches, width, height, depth])
     return tf.transpose(reshaped, [0, 2, 1, 3])
 
 

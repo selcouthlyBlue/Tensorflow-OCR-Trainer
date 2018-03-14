@@ -11,35 +11,35 @@ $(document).ready(function(){
         "dropout": "dropout",
         "collapse_to_rnn_dims": "collapse_to_rnn_dims"
     };
+
+    function populate(selector, values) {
+        for (var key in values) {
+            $(selector).append($('<option>', {value: key}).text(values[key]))
+        }
+    }
+
     $('#add-layer').click(function (e) {
         e.preventDefault();
         $('#layers').append(
-            $('<li>').append(
-                $('<div>').append(
-                    $('<select>').attr(
-                        {
-                            "name": "network[][layer_type]",
-                            "class": "layer"
-                        }
-                    )
+            $('<li>', {"class": "collection-item row"}).append(
+                $($('<div>', {"class": "input-field col s3"})).append(
+                    $('<select>', {
+                        "name": "network[][layer_type]",
+                        "class": "layer"
+                    })
                     .prop('required', true)
-                    .append($('<option>').attr({"value": ""})
+                    .append($('<option>', {"value": ""})
                         .prop('disabled', true)
                         .prop('selected', true)
                         .text("Select Layer Type")
-                    )
-                ).attr({"class": "input-field col s3"})
+                    ).each(function(){
+                        populate(this, layer_types);
+                    })
+                )
             ).append($('<div>')
                 .append($('<a>')).attr({})
             )
-                .attr({
-                "class": "collection-item row"
-            })
         );
         $('select').material_select();
-        $.each(layer_types, function (key, value) {
-
-            }
-        );
     });
 });

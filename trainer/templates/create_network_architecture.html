@@ -3,19 +3,27 @@
 {% block body %}
     <h3>Create Network Architecture</h3>
     <form method="post" action="{{ url_for('architectures') }}">
-        <fieldset name="network">
-            <legend>Network</legend>
-        </fieldset>
-        <div class="input-field col s12">
-            <input id="architecture_name" class="validate"
-                   type="text" name="architecture_name"
-                   required>
-            <label for="architecture_name">Architecture Name</label>
+        <div class="row valign-wrapper">
+            <div class="input-field col s8">
+                <input id="architecture_name" class="validate"
+                       type="text" name="architecture_name"
+                       required>
+                <label for="architecture_name">Architecture Name</label>
+            </div>
+            <div class="col s4">
+                <a id="add-layer" class="right waves-effect waves-light btn">
+                    <i class="material-icons left">add</i>
+                    Add Layer
+                </a>
+            </div>
         </div>
+        <ul id="layers" class="white collection with-header black-text">
+            <li class="collection-header"><h5>Layers</h5></li>
+        </ul>
         <div class="row">
             <div class="input-field col s8">
                 <select id="output-layer-select" name="output_layer" required>
-                    <option style="display: none">Select Output Layer</option>
+                    <option value="" disabled selected>Select Output Layer</option>
                     <option value="ctc_decoder">CTC Decoder</option>
                 </select>
                 <label for="output-layer-select">Output Layer</label>

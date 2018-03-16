@@ -14,22 +14,19 @@ $(document).ready(function(){
     };
 
     function populate(selector, values) {
-        for (var key in values) {
-            $(selector).append($('<option>', {value: key}).text(values[key]))
-        }
+        $.each(values, function(key, value){
+            $(selector).append($('<option>', {value: key}).text(value))
+        });
     }
 
     function create_selector(key, placeholder_text, values) {
         var placeholder = $('<option>', {"value": ""})
             .prop('disabled', true)
             .prop('selected', true).text(placeholder_text);
-        var selector = $('<select>', {
-            "name": key
-        }).prop('required', true)
-            .append(placeholder)
-            .each(function () {
-                populate(this, values);
-            });
+        var selector = $('<select>', {"name": key})
+            .prop('required', true)
+            .append(placeholder);
+        populate(selector, values);
         return selector
     }
 
@@ -59,49 +56,42 @@ $(document).ready(function(){
         return "network[][" + key + "]"
     }
 
-    var conv2d_params = {
-        "num_filters": create_int_input_field(create_network_layer_param("num_filters"))
-            .prop('required', true),
-        "kernel_size": create_int_input_field(create_network_layer_param("kernel_size"))
-            .prop({'required': true, 'multiple': true}),
-        "stride": create_int_input_field(create_network_layer_param("stride"))
-            .prop({'required': true, 'multiple': true}),
-        "padding": create_selector(create_network_layer_param("padding"), "Select padding", paddings)
+    var conv2d_params = function() {
+        return {"Num Filters": create_int_input_field(create_network_layer_param("num_filters")),
+                "Kernel Size": create_int_input_field(create_network_layer_param("kernel_size"))
+                    .prop('multiple', true),
+                "Stride": create_int_input_field(create_network_layer_param("stride"))
+                    .prop('multiple', true),
+                "Padding": create_selector(create_network_layer_param("padding"), "Select padding", paddings)}
     };
 
-    var maxpool2d_params = {
-        "pool_size": create_int_input_field(create_network_layer_param("pool_size")).prop('required', true),
-        "stride": create_int_input_field(create_network_layer_param("stride")).prop('required', true),
-        "padding": create_selector(create_network_layer_param("padding"), "Select padding", paddings)
+    var maxpool2d_params = function() {
+        return {"Pool size": create_int_input_field(create_network_layer_param("pool_size")),
+                "Stride": create_int_input_field(create_network_layer_param("stride")).prop('multiple', true),
+                "Padding": create_selector(create_network_layer_param("padding"), "Select padding", paddings)}
     };
 
-    var mdrnn_params = {
-        "num_hidden": create_int_input_field(create_network_layer_param("num_hidden")),
-        "kernel_size": create_int_input_field(create_network_layer_param("kernel_size"))
-            .prop({'required': true, 'multiple': true}),
-        "cell_type": create_selector(create_network_layer_param("cell_type"),
-            "Select cell type", cell_types),
-        "activation": create_selector(create_network_layer_param("activation"),
-            "Select activation function", activation_functions)
+    var mdrnn_params = function() {
+        return {"Num Hidden": create_int_input_field(create_network_layer_param("num_hidden")),
+                "Kernel Size": create_int_input_field(create_network_layer_param("kernel_size")).prop('multiple', true),
+                "Cell Type": create_selector(create_network_layer_param("cell_type"), "Select cell type", cell_types),
+                "Activation": create_selector(create_network_layer_param("activation"), "Select activation", activation_functions)}
     };
 
-    var birnn_params = {
-        "num_hidden": create_int_input_field(create_network_layer_param("num_hidden")),
-        "cell_type": create_selector(create_network_layer_param("cell_type"),
-            "Select cell type", cell_types),
-        "activation": create_selector(create_network_layer_param("activation"),
-            "Select activation function", activation_functions)
+    var birnn_params = function() {
+        return {"Num Hidden": create_int_input_field(create_network_layer_param("num_hidden")),
+                "Cell Type": create_selector(create_network_layer_param("cell_type"), "Select cell type", cell_types),
+                "Activation": create_selector(create_network_layer_param("activation"), "Select activation", activation_functions)}
     };
 
-    var l2_normalize_params = {
-        "axis": create_int_input_field(create_network_layer_param("axis"))
-            .prop({'required': true, 'multiple': true})
+    var l2_normalize_params = function() {
+        return {"Axis": create_int_input_field(create_network_layer_param("axis")).prop('multiple', true)}
     };
 
-    var dropout_params = {
-        "keep_prob": $('<input>').attr({'type': 'number',
+    var dropout_params = function() {
+        return {"Keep Prob": $('<input>').attr({'type': 'number',
             'step': "any", "max": "1", "min": "0.000001",  "name": create_network_layer_param("keep_prob")}).prop('required', true)
-            .attr('placeholder', 'Keep Prob')
+            .attr('placeholder', 'Keep Prob')}
     };
 
     var layer_params = {
@@ -120,27 +110,29 @@ $(document).ready(function(){
             $('<li>', {"class": "collection-item row overflowing"}).append(
                 $($('<ul>', {"class": "layer"})).append($('<ul>', {"class": "layer_parameters"}))
                     .prepend(
-                    $('<li>', {"class": "input-field col s3"}).append(
+                    $('<li>', {"class": "input-field col s2"}).append(
                         $(layer_type_selector)
                             .change(
                                 function () {
-                                    var val = $(this).val();
-                                    var params_container = $(this).parent().parent().parent().find('.layer_parameters');
+                                    var layer_type = $(this).val();
+                                    var params_container = $(this).parent().parent().parent().children('.layer_parameters');
                                     params_container.empty();
 
                                     function append_layer_params(input_fields){
-                                        for(var input_field in input_fields){
-                                            var element = input_fields[input_field];
-                                            var input_field_label = $('<label>', {'for': element.attr('id')});
-                                            input_field_label.text(input_field_label.text() + input_field);
+                                        $.each(input_fields, function(key, input_field){
+                                            var input_field_label = $('<label>', {'for': input_field.attr('id')});
+                                            input_field_label.text(input_field_label.text() + key);
                                             params_container.append(
                                                 $('<li>', {"class": "input-field col s2"})
-                                                    .append(element)
+                                                    .append(input_field)
                                                     .append($(input_field_label))
                                             );
-                                        }
+                                            if (input_field.is('select')){
+                                                input_field.material_select();
+                                            }
+                                        });
                                     }
-                                    append_layer_params(layer_params[val]);
+                                    append_layer_params(layer_params[layer_type]());
                                 }
                             )
                         )

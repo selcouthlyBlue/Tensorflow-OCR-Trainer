@@ -3,27 +3,39 @@
 {% block body %}
     <h3>Create Network Architecture</h3>
     <form method="post" action="{{ url_for('architectures') }}">
-        <fieldset name="network">
-            <legend>Network</legend>
-        </fieldset>
-        <div class="input-field col s12">
-            <input id="architecture_name" class="validate"
-                   type="text" name="architecture_name"
-                   required>
-            <label for="architecture_name">Architecture Name</label>
+        <div class="row valign-wrapper">
+            <div class="input-field col s8">
+                <input id="architecture_name" class="validate"
+                       type="text" name="architecture_name"
+                       required>
+                <label for="architecture_name">Architecture Name</label>
+            </div>
+            <div class="col s4">
+                <a id="add-layer" class="right waves-effect waves-light btn">
+                    <i class="material-icons left">add</i>
+                    Add Layer
+                </a>
+            </div>
         </div>
+        <ul id="layers" class="collection with-header black-text overflowing">
+            <li class="collection-header"><h5>Layers</h5></li>
+        </ul>
         <div class="row">
             <div class="input-field col s8">
                 <select id="output-layer-select" name="output_layer" required>
-                    <option style="display: none">Select Output Layer</option>
-                    <option value="ctc_decoder">CTC Decoder</option>
+                    <option value="" disabled selected>Select Output Layer</option>
+                    {% for output_layer in output_layers %}
+                        <option value="{{ output_layer }}">{{ output_layer.replace('_', ' ')|upper }}</option>
+                    {% endfor %}
                 </select>
                 <label for="output-layer-select">Output Layer</label>
             </div>
             <div class="input-field col s4">
                 <select id="loss-select" name="loss" required>
                     <option value="" disabled selected>Select Loss</option>
-                    <option value="ctc_decoder">CTC</option>
+                    {% for loss in losses %}
+                        <option value="{{ loss }}">{{ loss|upper }}</option>
+                    {% endfor %}
                 </select>
                 <label for="loss-select">Loss</label>
             </div>
@@ -31,7 +43,9 @@
         <div class="input-field col s12">
             <select id="metrics-select" name="metrics" multiple>
                 <option value="" disabled selected>Select Metrics</option>
-                <option value="label_error_rate">Label Error Rate</option>
+                {% for metric in metrics %}
+                    <option value="{{ metric }}">{{ metric.replace("_", " ")|capitalize }}</option>
+                {% endfor %}
             </select>
             <label for="metrics-select">Metrics</label>
         </div>
@@ -48,13 +62,23 @@
             <div class="input-field col s8">
                 <select id="optimizer-select" name="optimizer" required>
                     <option value="" disabled selected>Select Optimizer</option>
-                    <option value="adam">Adam</option>
-                    <option value="momentum">Momentum</option>
-                    <option value="adadelta">Adadelta</option>
-                    <option value="rmsprop">RMS Prop</option>
+                    {% for optimizer in optimizers %}
+                        <option value="{{ optimizer }}">{{ optimizer|capitalize }}</option>
+                    {% endfor %}
                 </select>
                 <label for="optimizer-select">Optimizer</label>
             </div>
         </div>
+        <div class="row">
+            <button class="btn waves-effect waves-light right" type="submit" name="action">Create Architecture
+            <i class="material-icons right">send</i>
+        </button>
+        </div>
     </form>
+{% endblock %}
+{% block extra_script %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/network_architecture_creation.js') }}"></script>
+    <script>
+        create_dynamic_layer_builder({{ layer_types|safe }}, {{ padding_types|safe }}, {{ cell_types|safe }}, {{ activation_functions|safe }});
+    </script>
 {% endblock %}

@@ -1,6 +1,11 @@
 import numpy as np
 import tensorflow as tf
 
+from trainer.backend.GraphKeys import Optimizers
+from trainer.backend.GraphKeys import OutputLayers
+from trainer.backend.GraphKeys import Metrics
+from trainer.backend.GraphKeys import Losses
+
 from trainer.backend.tf import ctc_ops, losses, metric_functions
 from trainer.backend.tf.replicate_model_fn import TowerOptimizer
 from trainer.backend.tf.util_ops import feed, dense_to_sparse, get_sequence_lengths
@@ -14,7 +19,7 @@ from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_f
 tf.logging.set_verbosity(tf.logging.INFO)
 
 def _get_loss(loss, labels, inputs, num_classes):
-    if loss == "ctc":
+    if loss == Losses.CTC:
         inputs = ctc_ops.convert_to_ctc_dims(inputs,
                                              num_classes=num_classes,
                                              num_steps=inputs.shape[1],
@@ -34,15 +39,15 @@ def _sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
 
 
 def _get_optimizer(learning_rate, optimizer_name):
-    if optimizer_name == "momentum":
+    if optimizer_name == Optimizers.MOMENTUM.value:
         return tf.train.MomentumOptimizer(learning_rate,
                                           momentum=0.9,
                                           use_nesterov=True)
-    elif optimizer_name == "adam":
+    if optimizer_name == Optimizers.ADAM.value:
         return tf.train.AdamOptimizer(learning_rate)
-    elif optimizer_name == "adadelta":
+    if optimizer_name == Optimizers.ADADELTA.value:
         return tf.train.AdadeltaOptimizer(learning_rate)
-    elif optimizer_name == "rmsprop":
+    elif optimizer_name == Optimizers.RMSPROP.value:
         return tf.train.RMSPropOptimizer(learning_rate)
     raise NotImplementedError(optimizer_name + " optimizer not supported")
 
@@ -118,7 +123,7 @@ def _create_model_fn(mode, predictions, loss=None, train_op=None, eval_metric_op
 
 
 def _get_output(inputs, output_layer, num_classes):
-    if output_layer == "ctc_decoder":
+    if output_layer == OutputLayers.CTC_DECODER:
         inputs = ctc_ops.convert_to_ctc_dims(inputs,
                                              num_classes=num_classes,
                                              num_steps=inputs.shape[1],
@@ -132,7 +137,7 @@ def _get_metrics(metrics, y_pred, y_true, num_classes, log_step_count_steps=100)
     metrics_dict = {}
     training_hooks = []
     for metric in metrics:
-        if metric == "label_error_rate":
+        if metric == Metrics.LABEL_ERROR_RATE:
             y_pred = ctc_ops.convert_to_ctc_dims(y_pred,
                                                  num_classes=num_classes,
                                                  num_steps=y_pred.shape[1],

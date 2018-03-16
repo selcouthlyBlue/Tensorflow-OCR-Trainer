@@ -25,3 +25,7 @@ main {
     font-size: 0.1em;
     padding: 0 auto;
 }
+
+.overflowing{
+    overflow: visible;
+}

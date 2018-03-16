@@ -36,3 +36,7 @@ def upload_dataset(images, labels_file, dataset_directory, dataset_name):
 
 def _create_path(*args):
     return os.path.join(*args)
+
+
+def get_enum_values(enum_type):
+    return [key.value.replace('"', '') for key in enum_type]

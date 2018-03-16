@@ -1,6 +1,7 @@
 import tensorflow as tf
 
 from trainer.backend.tf import layers
+from trainer.backend.GraphKeys import LayerTypes
 
 
 def get_sequence_lengths(inputs):
@@ -15,39 +16,37 @@ def feed(features, layer, is_training):
 
 def _feed_to_layer(inputs, layer, is_training):
     layer_type = layer["layer_type"]
-    if layer_type == "reshape":
-        return layers.reshape(inputs, layer["shape"], layer.get("name"))
-    if layer_type == "conv2d":
+    if layer_type == LayerTypes.CONV2D.value:
         return layers.conv2d(inputs, num_filters=layer["num_filters"],
                              kernel=layer["kernel_size"],
                              activation=layer.get("activation"),
                              padding=layer.get("padding"),
                              scope=layer.get("name"))
-    if layer_type == "max_pool2d":
+    if layer_type == LayerTypes.MAX_POOL2D.value:
         return layers.max_pool2d(inputs, kernel=layer["pool_size"],
                                  padding=layer.get("padding"),
                                  stride=layer.get("stride"),
                                  scope=layer.get("name"))
-    if layer_type == "birnn":
+    if layer_type == LayerTypes.BIRNN.value:
         return layers.bidirectional_rnn(inputs, num_hidden=layer["num_hidden"],
                                         cell_type=layer.get("cell_type"),
                                         activation=layer.get("activation"),
                                         scope=layer.get("name"))
-    if layer_type == "mdrnn":
+    if layer_type == LayerTypes.MDRNN.value:
         return layers.mdrnn(inputs, num_hidden=layer["num_hidden"],
                             cell_type=layer.get("cell_type"),
                             activation=layer.get("activation"),
                             kernel_size=layer.get("kernel_size"),
                             scope=layer.get("name"))
-    if layer_type == "dropout":
+    if layer_type == LayerTypes.DROPOUT.value:
         return layers.dropout(inputs, keep_prob=layer["keep_prob"],
                               is_training=is_training,
                               scope=layer.get("name"))
-    if layer_type == "collapse_to_rnn_dims":
+    if layer_type == LayerTypes.COLLAPSE_TO_RNN_DIMS.value:
         return layers.collapse_to_rnn_dims(inputs)
-    if layer_type == "l2_normalize":
+    if layer_type == LayerTypes.L2_NORMALIZE.value:
         return layers.l2_normalize(inputs, layer["axis"])
-    if layer_type == 'batch_norm':
+    if layer_type == LayerTypes.BATCH_NORM.value:
         return layers.batch_norm(inputs, is_training=is_training)
     raise NotImplementedError(layer_type + " layer not implemented.")
 

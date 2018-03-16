@@ -1,7 +1,11 @@
 from flask import request, render_template, flash, redirect
 
 from trainer import app
-from trainer.controllers import *
+from trainer.backend import GraphKeys
+from trainer.controllers import upload_dataset
+from trainer.controllers import get_directory_list
+from trainer.controllers import start_training
+from trainer.controllers import get_enum_values
 
 
 def _allowed_labels_file(filename):
@@ -34,7 +38,15 @@ def architectures():
 
 @app.route('/create_network_architecture')
 def create_network_architecture():
-    return render_template("create_network_architecture.html")
+    return render_template("create_network_architecture.html",
+                           layer_types=get_enum_values(GraphKeys.LayerTypes),
+                           padding_types=get_enum_values(GraphKeys.PaddingTypes),
+                           cell_types=get_enum_values(GraphKeys.CellTypes),
+                           activation_functions=get_enum_values(GraphKeys.ActivationFunctions),
+                           optimizers=get_enum_values(GraphKeys.Optimizers),
+                           metrics=get_enum_values(GraphKeys.Metrics),
+                           losses=get_enum_values(GraphKeys.Losses),
+                           output_layers=get_enum_values(GraphKeys.OutputLayers))
 
 
 @app.route('/upload_dataset')

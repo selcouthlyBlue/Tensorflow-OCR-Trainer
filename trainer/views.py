@@ -6,7 +6,8 @@ from trainer.controllers import upload_dataset
 from trainer.controllers import get_directory_list
 from trainer.controllers import start_training
 from trainer.controllers import get_enum_values
-
+from trainer.controllers import generate_model_dict
+from trainer.controllers import save_model_as_json
 
 def _allowed_labels_file(filename):
     return '.' in filename and \
@@ -25,8 +26,11 @@ def index():
     return render_template("index.html")
 
 
-@app.route('/architectures')
+@app.route('/architectures', methods=['GET', 'POST'])
 def architectures():
+    if request.method == 'POST':
+        resulting_dict = generate_model_dict()
+        save_model_as_json(app.config['ARCHITECTURES_DIRECTORY'], request.form['architecture_name'], resulting_dict)
     network_architectures = get_directory_list(
         app.config['ARCHITECTURES_DIRECTORY']
     )

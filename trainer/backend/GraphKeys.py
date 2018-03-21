@@ -10,23 +10,19 @@ class LayerTypes(Enum):
     BATCH_NORM = "batch_norm"
     DROPOUT = "dropout"
 
-
 class PaddingTypes(Enum):
     SAME = "same"
     VALID = "valid"
-
 
 class CellTypes(Enum):
     LSTM = "LSTM"
     GRU = "GRU"
     GLSTM = "GLSTM"
 
-
 class ActivationFunctions(Enum):
     TANH = "tanh"
     RELU = "relu"
     RELU6 = "relu6"
-
 
 class Optimizers(Enum):
     ADAM = "adam"
@@ -34,14 +30,11 @@ class Optimizers(Enum):
     ADADELTA = "adadelta"
     RMSPROP = "rmsprop"
 
-
 class Metrics(Enum):
     LABEL_ERROR_RATE = "label_error_rate"
 
-
 class Losses(Enum):
     CTC = "ctc"
-
 
 class OutputLayers(Enum):
     CTC_DECODER = "ctc_decoder"

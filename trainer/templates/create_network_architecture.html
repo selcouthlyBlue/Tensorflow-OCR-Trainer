@@ -2,7 +2,7 @@
 {% block title %}Create Network Architecture{% endblock %}
 {% block body %}
     <h3>Create Network Architecture</h3>
-    <form method="post" action="{{ url_for('architectures') }}">
+    <form id="my_form" method="post" action="{{ url_for('architectures') }}">
         <div class="row valign-wrapper">
             <div class="input-field col s8">
                 <input id="architecture_name" class="validate"
@@ -79,6 +79,6 @@
 {% block extra_script %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/network_architecture_creation.js') }}"></script>
     <script>
-        create_dynamic_layer_builder({{ layer_types|safe }}, {{ padding_types|safe }}, {{ cell_types|safe }}, {{ activation_functions|safe }});
+        create_dynamic_layer_builder({{ layer_types|tojson }}, {{ padding_types|tojson }}, {{ cell_types|tojson }}, {{ activation_functions|tojson }});
     </script>
 {% endblock %}

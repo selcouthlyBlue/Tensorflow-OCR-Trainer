@@ -5,24 +5,8 @@ from werkzeug.utils import secure_filename
 from flask import request
 from collections import OrderedDict
 
-from trainer.backend.train_ocr import start_training
 from trainer.backend import GraphKeys
 
-
-def start_training(train_params):
-    start_training(
-        model_config_file=train_params['model_config'],
-        labels_file=train_params['labels_file'],
-        data_dir=train_params['data_dir'],
-        desired_image_height=train_params['desired_image_height'],
-        desired_image_width=train_params['desired_image_width'],
-        max_label_length=train_params['max_label_length'],
-        num_epochs=train_params['num_epochs'],
-        test_fraction=train_params['test_fraction'],
-        batch_size=train_params['batch_size'],
-        save_checkpoint_epochs=train_params['save_checkpoint_epochs'],
-        charset_file=train_params['charset_file']
-    )  # TODO: pass this to a python script instead.
 
 def get_directory_list(path):
     directory_names = os.listdir(path)
@@ -48,7 +32,7 @@ def get_enum_values(enum_type):
 
 def _get_layer(layer_index):
     layer = OrderedDict()
-    layer["layer_type"] = request.form[_create_network_key(layer_index, "layer_type")]
+    layer["layer_type"] = _get(_create_network_key(layer_index, "layer_type"))
     layer_type = layer["layer_type"]
     if layer_type == GraphKeys.LayerTypes.CONV2D.value:
         layer["num_filters"] = _get(_create_network_key(layer_index, "num_filters"))
@@ -71,7 +55,7 @@ def _get_layer(layer_index):
     elif layer_type == GraphKeys.LayerTypes.DROPOUT.value:
         layer["keep_prob"] = _get(_create_network_key(layer_index, "keep_prob"))
     elif layer_type == GraphKeys.LayerTypes.L2_NORMALIZE:
-        layer["axis"] = request.form.getlist([_create_network_key(layer_index, "axis")])
+        layer["axis"] = _get(_create_network_key(layer_index, "axis"))
     return layer
 
 
@@ -89,10 +73,6 @@ def generate_model_dict():
         network.append(layer)
     resulting_dict['network'] = network
     resulting_dict['output_layer'] = _get("output_layer")
-    resulting_dict['loss'] = _get("loss")
-    resulting_dict['metrics'] = request.form.getlist("metrics")
-    resulting_dict['learning_rate'] = _get("learning_rate")
-    resulting_dict['optimizer'] = _get("optimizer")
     return resulting_dict
 
 def save_model_as_json(directory, model_name, contents):

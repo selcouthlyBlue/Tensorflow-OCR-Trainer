@@ -25,9 +25,5 @@
     {"layer_type": "dropout", "keep_prob": 0.25},
     {"layer_type": "collapse_to_rnn_dims"}
   ],
-  "output_layer": "ctc_decoder",
-  "loss": "ctc",
-  "metrics": ["label_error_rate"],
-  "learning_rate": 0.001,
-  "optimizer": "momentum"
+  "output_layer": "ctc_decoder"
 }

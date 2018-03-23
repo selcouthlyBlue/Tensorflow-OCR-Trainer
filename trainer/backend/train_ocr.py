@@ -6,16 +6,17 @@ from trainer.backend import dataset_utils
 from trainer.backend.tf import train
 
 
-def start_training(model_config_file, labels_file, data_dir, desired_image_height,
-                   desired_image_width, charset_file,
-                   labels_delimiter=' ', max_label_length=120,
-                   num_epochs=1, batch_size=1,
-                   save_checkpoint_epochs=1):
-    params = json.load(open(model_config_file, 'r'))
-
+def train_model(network_config_file, dataset_dir,
+                learning_rate, metrics, loss, optimizer,
+                desired_image_height, desired_image_width,
+                charset_file, labels_delimiter=' ',
+                max_label_length=120, num_epochs=1,
+                batch_size=1, checkpoint_epochs=1):
+    params = json.load(open(network_config_file, 'r'))
+    labels_file = os.path.join(dataset_dir, "labels.txt")
     image_paths, labels = dataset_utils.read_dataset_list(
         labels_file, delimiter=labels_delimiter)
-    images = dataset_utils.read_images(data_dir=data_dir,
+    images = dataset_utils.read_images(data_dir=dataset_dir,
                                        image_paths=image_paths,
                                        image_extension='png')
     images = dataset_utils.resize(images,
@@ -29,10 +30,15 @@ def start_training(model_config_file, labels_file, data_dir, desired_image_heigh
     num_classes = len(classes) + 1
     labels = dataset_utils.pad(labels, max_label_length=max_label_length)
 
-    filename, _ = os.path.splitext(model_config_file)
+    filename, _ = os.path.splitext(network_config_file)
     model_name = filename.split('/')[-1]
 
     checkpoint_dir = "checkpoint/" + str(model_name) + "_" + time.strftime("%Y%m%d-%H%M%S")
+
+    params["learning_rate"] = learning_rate
+    params["optimizer"] = optimizer
+    params["metrics"] = metrics
+    params["loss"] = loss
 
     train(params=params,
           features=images,
@@ -41,4 +47,4 @@ def start_training(model_config_file, labels_file, data_dir, desired_image_heigh
           checkpoint_dir=checkpoint_dir,
           batch_size=batch_size,
           num_epochs=num_epochs,
-          save_checkpoint_every_n_epochs=save_checkpoint_epochs)
+          save_checkpoint_every_n_epochs=checkpoint_epochs)

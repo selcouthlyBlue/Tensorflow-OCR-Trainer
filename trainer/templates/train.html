@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+    <form action="{{ url_for('training_progress') }}" method="post">
+    <div class="section">
+        <h5>Dataset Preparation</h5>
+        <div class="row">
+            <div class="input-field col s6">
+                <select id="dataset-select" required>
+                    <option value="" disabled selected>Select Dataset</option>
+                    {% for dataset_name in dataset_list %}
+                        <option value="{{ dataset_name }}">{{ dataset_name|capitalize }}</option>
+                    {% endfor %}
+                </select>
+                <label for="dataset-select">Dataset</label>
+            </div>
+            <div class="input-field col s3">
+                <input id="desired_image_size"
+                       name="desired_image_size"
+                       class="validate"
+                       type="number"
+                       min="16"
+                       step="1"
+                       required>
+                <label for="desired_image_size">Desired Image Size</label>
+            </div>
+            <div class="input-field col s3">
+                <input id="max_label_length"
+                       name="max_label_length"
+                       class="validate"
+                       type="number"
+                       min="1"
+                       step="1"
+                       required>
+                <label for="max_label_length">Max Label Length</label>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h5>Architecture Selection</h5>
+        <div class="row">
+            <div class="input-field col s12">
+                <select id="architecture-select" required>
+                    <option value="" disabled selected>Select Architecture</option>
+                    {% for network_architecture in network_architectures %}
+                        <option value="{{ network_architecture }}">{{ network_architecture }}</option>
+                    {% endfor %}
+                </select>
+                <label for="architecture-select">Architecture</label>
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <h5>Training Parameters</h5>
+        <div class="row">
+            <div class="input-field col s3">
+                <select id="loss-select" name="loss" required>
+                    <option value="" disabled selected>Select Loss</option>
+                    {% for loss in losses %}
+                        <option value="{{ loss }}">{{ loss|upper }}</option>
+                    {% endfor %}
+                </select>
+                <label for="loss-select">Loss</label>
+            </div>
+            <div class="input-field col s3">
+                <select id="optimizer-select" name="optimizer" required>
+                    <option value="" disabled selected>Select Optimizer</option>
+                    {% for optimizer in optimizers %}
+                        <option value="{{ optimizer }}">{{ optimizer|capitalize }}</option>
+                    {% endfor %}
+                </select>
+                <label for="optimizer-select">Optimizer</label>
+            </div>
+            <div class="input-field col s3">
+                <input id="learning_rate" class="validate"
+                   type="number" name="learning_rate"
+                   min="0.0000001"
+                   max="1"
+                   step="any"
+                   required>
+                <label for="learning_rate">Learning Rate</label>
+            </div>
+            <div class="input-field col s3">
+                <select id="metrics-select" name="metrics" required multiple>
+                    <option value="" disabled selected>Select Metrics</option>
+                    {% for metric in metrics %}
+                        <option value="{{ metric }}">{{ metric|capitalize }}</option>
+                    {% endfor %}
+                </select>
+                <label for="metrics-select">Metrics</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s3">
+                <input id="num_epochs"
+                       name="num_epochs"
+                       class="validate"
+                       type="number"
+                       min="1"
+                       step="1">
+                <label for="num_epochs">Number of Epochs</label>
+            </div>
+            <div class="input-field col s3">
+                <input id="checkpoint_epochs"
+                       name="checkpoint_epochs"
+                       class="validate"
+                       type="number"
+                       min="1"
+                       step="1">
+                <label for="checkpoint_epochs">Checkpoint Epochs</label>
+            </div>
+            <div class="input-field col s3">
+                <input id="batch_size"
+                       name="batch_size"
+                       class="validate"
+                       type="number"
+                       min="1"
+                       step="1">
+                <label for="batch_size">Batch Size</label>
+            </div>
+        </div>
+    </div>
+    </form>
+{% endblock %}
+{% block extra_script %}
+    <script>
+        $(document).ready(function () {
+           $('select').material_select();
+        });
+    </script>
+{% endblock %}

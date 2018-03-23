@@ -1,1 +1,2 @@
-from trainer.backend.tf.experiment_ops import run_experiment
+from trainer.backend.tf.experiment_ops import train
+from trainer.backend.tf.experiment_ops import evaluate

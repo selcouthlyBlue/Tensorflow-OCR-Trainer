@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def create_metric(values):
+def create_eval_metric(values):
     return tf.metrics.mean(values)
 
 

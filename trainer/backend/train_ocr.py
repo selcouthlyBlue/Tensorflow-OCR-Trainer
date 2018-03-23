@@ -3,14 +3,14 @@ import os
 import time
 
 from trainer.backend import dataset_utils
-from trainer.backend.tf import run_experiment
+from trainer.backend.tf import train
 
 
-def train(model_config_file, labels_file, data_dir, desired_image_height,
-          desired_image_width, charset_file,
-          labels_delimiter=' ', max_label_length=120,
-          test_fraction=None, num_epochs=1, batch_size=1,
-          save_checkpoint_epochs=1):
+def start_training(model_config_file, labels_file, data_dir, desired_image_height,
+                   desired_image_width, charset_file,
+                   labels_delimiter=' ', max_label_length=120,
+                   num_epochs=1, batch_size=1,
+                   save_checkpoint_epochs=1):
     params = json.load(open(model_config_file, 'r'))
 
     image_paths, labels = dataset_utils.read_dataset_list(
@@ -32,15 +32,13 @@ def train(model_config_file, labels_file, data_dir, desired_image_height,
     filename, _ = os.path.splitext(model_config_file)
     model_name = filename.split('/')[-1]
 
-    run_experiment(params=params,
-                   features=images,
-                   labels=labels,
-                   num_classes=num_classes,
-                   checkpoint_dir="checkpoint/"
-                                  + str(model_name)
-                                  + "_"
-                                  + time.strftime("%Y%m%d-%H%M%S"),
-                   batch_size=batch_size,
-                   num_epochs=num_epochs,
-                   save_checkpoint_every_n_epochs=save_checkpoint_epochs,
-                   test_fraction=test_fraction)
+    checkpoint_dir = "checkpoint/" + str(model_name) + "_" + time.strftime("%Y%m%d-%H%M%S")
+
+    train(params=params,
+          features=images,
+          labels=labels,
+          num_classes=num_classes,
+          checkpoint_dir=checkpoint_dir,
+          batch_size=batch_size,
+          num_epochs=num_epochs,
+          save_checkpoint_every_n_epochs=save_checkpoint_epochs)

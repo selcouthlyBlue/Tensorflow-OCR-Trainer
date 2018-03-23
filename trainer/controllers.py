@@ -5,12 +5,12 @@ from werkzeug.utils import secure_filename
 from flask import request
 from collections import OrderedDict
 
-from trainer.backend.train_ocr import train
+from trainer.backend.train_ocr import start_training
 from trainer.backend import GraphKeys
 
 
 def start_training(train_params):
-    train(
+    start_training(
         model_config_file=train_params['model_config'],
         labels_file=train_params['labels_file'],
         data_dir=train_params['data_dir'],

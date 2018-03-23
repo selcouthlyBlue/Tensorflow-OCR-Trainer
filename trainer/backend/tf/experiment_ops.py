@@ -10,16 +10,12 @@ from trainer.backend.tf import ctc_ops, losses, metric_functions
 from trainer.backend.tf.replicate_model_fn import TowerOptimizer
 from trainer.backend.tf.util_ops import feed, dense_to_sparse, get_sequence_lengths
 
-from sklearn.model_selection import train_test_split
-from tensorflow.contrib import learn
 from tensorflow.contrib import slim
-from tensorflow.contrib.learn import ModeKeys
-from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
 def _get_loss(loss, labels, inputs, num_classes):
-    if loss == Losses.CTC:
+    if loss == Losses.CTC.value:
         inputs = ctc_ops.convert_to_ctc_dims(inputs,
                                              num_classes=num_classes,
                                              num_steps=inputs.shape[1],
@@ -52,45 +48,33 @@ def _get_optimizer(learning_rate, optimizer_name):
     raise NotImplementedError(optimizer_name + " optimizer not supported")
 
 
-def run_experiment(params, features, labels, checkpoint_dir,
-                   num_classes, batch_size=1, num_epochs=1,
-                   save_checkpoint_every_n_epochs=1, test_fraction=None):
-    x_train = features
-    y_train = labels
-    num_steps_per_epoch = len(x_train) // batch_size
-    monitors = []
-    if test_fraction:
-        x_train, x_validation, y_train, y_validation = train_test_split(
-            x_train,
-            y_train,
-            test_size=test_fraction
-        )
-        num_steps_per_epoch = len(x_train) // batch_size
-        validation_monitor = learn.monitors.ValidationMonitor(
-            input_fn=_input_fn(x_validation,
-                               y_validation,
-                               batch_size,
-                               num_epochs,
-                               shuffle=False),
-            every_n_steps=save_checkpoint_every_n_epochs * num_steps_per_epoch)
-        monitors.append(validation_monitor)
-        print('Number of training samples:', len(x_train))
-        print('Number of validation samples', len(x_validation))
+def train(params, features, labels, num_classes, checkpoint_dir,
+          batch_size=1, num_epochs=1, save_checkpoint_every_n_epochs=1):
+    num_steps_per_epoch = len(features) // batch_size
+    save_checkpoint_steps = save_checkpoint_every_n_epochs * num_steps_per_epoch
     params['num_classes'] = num_classes
     params['log_step_count_steps'] = num_steps_per_epoch
-    estimator = learn.Estimator(model_fn=_model_fn,
-                                params=params,
-                                model_dir=checkpoint_dir,
-                                config=learn.RunConfig(
-                                    save_checkpoints_steps=num_steps_per_epoch,
-                                    log_step_count_steps=num_steps_per_epoch,
-                                    save_summary_steps=num_steps_per_epoch)
-                                )
-    estimator.fit(input_fn=_input_fn(x_train,
-                                     y_train,
-                                     batch_size),
-                  monitors=monitors,
-                  steps=num_epochs * num_steps_per_epoch)
+    estimator = tf.estimator.Estimator(model_fn=_train_model_fn,
+                                       params=params,
+                                       model_dir=checkpoint_dir,
+                                       config=tf.estimator.RunConfig(
+                                           save_checkpoints_steps=save_checkpoint_steps,
+                                           log_step_count_steps=num_steps_per_epoch,
+                                           save_summary_steps=num_steps_per_epoch
+                                       ))
+    estimator.train(input_fn=_input_fn(features, labels, batch_size),
+                    steps=num_epochs * num_steps_per_epoch)
+
+def evaluate(params, features, labels, num_classes, checkpoint_dir, batch_size):
+    params['num_classes'] = num_classes
+    estimator = tf.estimator.Estimator(model_fn=_eval_model_fn,
+                                       params=params,
+                                       model_dir=checkpoint_dir)
+    estimator.evaluate(input_fn=_input_fn(features,
+                                          labels,
+                                          batch_size=batch_size,
+                                          num_epochs=1,
+                                          shuffle=False))
 
 
 def _input_fn(features, labels, batch_size=1, num_epochs=None, shuffle=True):
@@ -114,16 +98,16 @@ def _create_train_op(loss, learning_rate, optimizer):
 
 
 def _create_model_fn(mode, predictions, loss=None, train_op=None, eval_metric_ops=None, training_hooks=None):
-    return model_fn_lib.ModelFnOps(mode=mode,
-                                   predictions=predictions,
-                                   loss=loss,
-                                   train_op=train_op,
-                                   eval_metric_ops=eval_metric_ops,
-                                   training_hooks=training_hooks)
+    return tf.estimator.EstimatorSpec(mode=mode,
+                                      predictions=predictions,
+                                      loss=loss,
+                                      train_op=train_op,
+                                      eval_metric_ops=eval_metric_ops,
+                                      training_hooks=training_hooks)
 
 
 def _get_output(inputs, output_layer, num_classes):
-    if output_layer == OutputLayers.CTC_DECODER:
+    if output_layer == OutputLayers.CTC_DECODER.value:
         inputs = ctc_ops.convert_to_ctc_dims(inputs,
                                              num_classes=num_classes,
                                              num_steps=inputs.shape[1],
@@ -133,11 +117,10 @@ def _get_output(inputs, output_layer, num_classes):
     raise NotImplementedError(output_layer + " not implemented")
 
 
-def _get_metrics(metrics, y_pred, y_true, num_classes, log_step_count_steps=100):
+def _get_metrics(metrics, y_pred, y_true, num_classes):
     metrics_dict = {}
-    training_hooks = []
     for metric in metrics:
-        if metric == Metrics.LABEL_ERROR_RATE:
+        if metric == Metrics.LABEL_ERROR_RATE.value:
             y_pred = ctc_ops.convert_to_ctc_dims(y_pred,
                                                  num_classes=num_classes,
                                                  num_steps=y_pred.shape[1],
@@ -149,58 +132,79 @@ def _get_metrics(metrics, y_pred, y_true, num_classes, log_step_count_steps=100)
                                                       metric)
         else:
             raise NotImplementedError(metric + " metric not implemented")
-        _add_to_summary(metric, value)
-        training_hooks.append(tf.train.LoggingTensorHook({metric: metric},
-                                                         every_n_iter=log_step_count_steps))
-        metrics_dict[metric] = metric_functions.create_metric(value)
-    return metrics_dict, training_hooks
+        metrics_dict[metric] = value
+    return metrics_dict
 
 
-def _model_fn(features, labels, mode, params):
-    features = features["x"]
-    features = _set_dynamic_batch_size(features)
+def _predict_model_fn(features, mode, params):
+    features = _network_fn(features, mode, params)
 
-    network = params["network"]
-    metrics = params["metrics"]
-    output_layer = params["output_layer"]
-    loss = params["loss"]
-    learning_rate = params["learning_rate"]
-    optimizer = params["optimizer"]
-    num_classes = params["num_classes"]
-    log_step_count_steps = params['log_step_count_steps']
-
-    for layer in network:
-        features = feed(features, layer, is_training=mode==ModeKeys.TRAIN)
-
-    outputs = _get_output(features, output_layer, num_classes)
+    outputs = _get_output(features, params["output_layer"], params["num_classes"])
     predictions = {
         "outputs": outputs
     }
-    if mode==ModeKeys.INFER:
-        return _create_model_fn(mode, predictions=predictions)
 
-    loss = _get_loss(loss, labels=labels, inputs=features, num_classes=num_classes)
-    _add_to_summary("loss", loss)
-    metrics, training_hooks = _get_metrics(metrics,
-                                           y_pred=features,
-                                           y_true=labels,
-                                           num_classes=num_classes,
-                                           log_step_count_steps=log_step_count_steps)
+    return _create_model_fn(mode, predictions=predictions)
 
-    if mode==ModeKeys.EVAL:
-        return _create_model_fn(mode, predictions=predictions, loss=loss,
-                                eval_metric_ops=metrics)
+def _eval_model_fn(features, labels, mode, params):
+    features = _network_fn(features, mode, params)
 
-    assert mode==ModeKeys.TRAIN
+    outputs = _get_output(features, params["output_layer"], params["num_classes"])
+    predictions = {
+        "outputs": outputs
+    }
+
+    loss = _get_loss(params["loss"], labels=labels, inputs=features, num_classes=params["num_classes"])
+    metrics = _get_metrics(params["metrics"],
+                           y_pred=features,
+                           y_true=labels,
+                           num_classes=params["num_classes"])
+    for metric_key in metrics:
+        metrics[metric_key] = metric_functions.create_eval_metric(metrics[metric_key])
+    return _create_model_fn(mode, predictions=predictions, loss=loss,
+                            eval_metric_ops=metrics)
+
+def _train_model_fn(features, labels, mode, params):
+    features = _network_fn(features, mode, params)
+
+    outputs = _get_output(features, params["output_layer"],
+                          params["num_classes"])
+    predictions = {
+        "outputs": outputs
+    }
+
+    loss = _get_loss(params["loss"], labels=labels,
+                     inputs=features, num_classes=params["num_classes"])
+    metrics = _get_metrics(params["metrics"],
+                           y_pred=features,
+                           y_true=labels,
+                           num_classes=params["num_classes"])
 
     train_op = _create_train_op(loss,
-                                learning_rate=learning_rate,
-                                optimizer=optimizer)
+                                learning_rate=params["learning_rate"],
+                                optimizer=params["optimizer"])
+
+    training_hooks = []
+    for metric_key in metrics:
+        _add_to_summary(metric_key, metrics[metric_key])
+        training_hooks.append(tf.train.LoggingTensorHook(
+            {metric_key: metric_key},
+            every_n_iter=params["log_step_count_steps"])
+        )
+
     return _create_model_fn(mode,
                             predictions=predictions,
                             loss=loss,
                             train_op=train_op,
                             training_hooks=training_hooks)
+
+
+def _network_fn(features, mode, params):
+    features = features["x"]
+    features = _set_dynamic_batch_size(features)
+    for layer in params["network"]:
+        features = feed(features, layer, is_training=mode == tf.estimator.ModeKeys.TRAIN)
+    return features
 
 
 def _set_dynamic_batch_size(inputs):

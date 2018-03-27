@@ -6,7 +6,7 @@
         <h5>Dataset Preparation</h5>
         <div class="row">
             <div class="input-field col s6">
-                <select id="dataset-select" required>
+                <select id="dataset-select" name="dataset_name" required>
                     <option value="" disabled selected>Select Dataset</option>
                     {% for dataset_name in dataset_list %}
                         <option value="{{ dataset_name }}">{{ dataset_name|capitalize }}</option>
@@ -40,7 +40,7 @@
         <h5>Architecture Selection</h5>
         <div class="row">
             <div class="input-field col s12">
-                <select id="architecture-select" required>
+                <select id="architecture-select" name="architecture_name" required>
                     <option value="" disabled selected>Select Architecture</option>
                     {% for network_architecture in network_architectures %}
                         <option value="{{ network_architecture }}">{{ network_architecture }}</option>
@@ -119,6 +119,11 @@
                 <label for="batch_size">Batch Size</label>
             </div>
         </div>
+    </div>
+    <div class="row">
+        <button class="btn waves-effect waves-light right" type="submit" name="action">Train
+            <i class="material-icons right">send</i>
+        </button>
     </div>
     </form>
 {% endblock %}

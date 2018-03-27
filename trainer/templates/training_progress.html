@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+    <div id="log_output">
+        <p>Starting {{ task }}...</p>
+        {% for log in logs %}
+            <p>{{ log|tojson }}</p>
+        {% endfor %}
+    </div>
+{% endblock %}

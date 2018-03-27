@@ -1,12 +1,18 @@
-from flask import request, render_template, flash, redirect
+import subprocess
+import time
+
+from flask import request, render_template, flash, redirect, Response, stream_with_context
 
 from trainer import app
 from trainer.backend import GraphKeys
-from trainer.controllers import upload_dataset
+from trainer.controllers import upload_dataset, create_path
 from trainer.controllers import get_directory_list
 from trainer.controllers import get_enum_values
 from trainer.controllers import generate_model_dict
 from trainer.controllers import save_model_as_json
+from trainer.controllers import get
+from trainer.controllers import get_list
+
 
 def _allowed_labels_file(filename):
     return '.' in filename and \
@@ -70,7 +76,7 @@ def dataset():
         if labels_file.filename == '':
             flash('No selected labels file')
             return redirect(request.url)
-        images = request.files.getlist("images[]")
+        images = get_list('images[]')
         if not images:
             flash('No images selected')
             return redirect(request.url)
@@ -104,7 +110,37 @@ def train():
 
 @app.route('/training_progress', methods=['POST'])
 def training_progress():
-    pass
+
+    def start_training():
+        command = [
+            'python', 'train.py',
+            '--architecture', create_path(app.config['ARCHITECTURES_DIRECTORY'],
+                                          get('architecture_name') + '.json'),
+            '--dataset_dir', create_path(app.config['DATASET_DIRECTORY'],
+                                         get('dataset_name'), ''),
+            '--desired_image_size', get('desired_image_size'),
+            '--num_epochs', get('num_epochs'),
+            '--batch_size', get('batch_size'),
+            '--learning_rate', get('learning_rate'),
+            '--optimizer', get('optimizer'),
+            '--loss', get('loss'),
+            '--metrics', get_list('metrics'),
+            '--max_label_length', get('max_label_length')
+        ]
+        training_process = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE)
+        for line in iter(training_process.stderr.readline, b''):
+            time.sleep(1)
+            yield line.rstrip().decode('utf-8')
+
+    def stream_template(template_name, **context):
+        app.update_template_context(context)
+        t = app.jinja_env.get_template(template_name)
+        rv = t.stream(context)
+        return rv
+
+    return Response(stream_with_context(stream_template('training_progress.html',
+                                                        logs=stream_with_context(start_training()),
+                                                        task='training')))
 
 
 @app.errorhandler(404)

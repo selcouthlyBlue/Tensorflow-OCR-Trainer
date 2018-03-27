@@ -6,13 +6,13 @@ from trainer.backend import dataset_utils
 from trainer.backend.tf import train
 
 
-def train_model(network_config_file, dataset_dir,
+def train_model(architecture_config_file, dataset_dir,
                 learning_rate, metrics, loss, optimizer,
-                desired_image_height, desired_image_width,
+                desired_image_size,
                 charset_file, labels_delimiter=' ',
                 max_label_length=120, num_epochs=1,
                 batch_size=1, checkpoint_epochs=1):
-    params = json.load(open(network_config_file, 'r'))
+    params = json.load(open(architecture_config_file, 'r'))
     labels_file = os.path.join(dataset_dir, "labels.txt")
     image_paths, labels = dataset_utils.read_dataset_list(
         labels_file, delimiter=labels_delimiter)
@@ -20,8 +20,8 @@ def train_model(network_config_file, dataset_dir,
                                        image_paths=image_paths,
                                        image_extension='png')
     images = dataset_utils.resize(images,
-                                  desired_height=desired_image_height,
-                                  desired_width=desired_image_width)
+                                  desired_height=desired_image_size,
+                                  desired_width=desired_image_size)
     images = dataset_utils.binarize(images)
     images = dataset_utils.invert(images)
     classes = dataset_utils.get_characters_from(charset_file)
@@ -30,8 +30,8 @@ def train_model(network_config_file, dataset_dir,
     num_classes = len(classes) + 1
     labels = dataset_utils.pad(labels, max_label_length=max_label_length)
 
-    filename, _ = os.path.splitext(network_config_file)
-    model_name = filename.split('/')[-1]
+    filename, _ = os.path.splitext(architecture_config_file)
+    model_name = filename.split('\\')[-1]
 
     checkpoint_dir = "checkpoint/" + str(model_name) + "_" + time.strftime("%Y%m%d-%H%M%S")
 

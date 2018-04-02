@@ -1,17 +1,14 @@
-import subprocess
-import time
-
 from flask import request, render_template, flash, redirect, Response, stream_with_context
 
 from trainer import app
 from trainer.backend import GraphKeys
-from trainer.controllers import upload_dataset, create_path
 from trainer.controllers import get_directory_list
 from trainer.controllers import get_enum_values
 from trainer.controllers import generate_model_dict
 from trainer.controllers import save_model_as_json
-from trainer.controllers import get
-from trainer.controllers import get_list
+from trainer.controllers import split_dataset
+from trainer.controllers import start_training
+from trainer.controllers import upload_dataset
 
 
 def _allowed_labels_file(filename):
@@ -35,7 +32,7 @@ def index():
 def architectures():
     if request.method == 'POST':
         resulting_dict = generate_model_dict()
-        save_model_as_json(app.config['ARCHITECTURES_DIRECTORY'], request.form['architecture_name'], resulting_dict)
+        save_model_as_json(app.config['ARCHITECTURES_DIRECTORY'], resulting_dict)
     network_architectures = _get_network_architectures()
     return render_template("architectures.html",
                            network_architectures=network_architectures)
@@ -58,9 +55,9 @@ def create_network_architecture():
                            output_layers=get_enum_values(GraphKeys.OutputLayers))
 
 
-@app.route('/upload_dataset')
-def upload_dataset():
-    return render_template("upload_dataset.html")
+@app.route('/dataset_form')
+def dataset_form():
+    return render_template("dataset_form.html")
 
 
 @app.route('/dataset', methods=['GET', 'POST'])
@@ -69,24 +66,22 @@ def dataset():
         if 'labels_file' not in request.files:
             flash('No labels file part.')
             return redirect(request.url)
-        if 'images[]' not in request.files:
+        if 'images' not in request.files:
             flash('No images file part.')
             return redirect(request.url)
         labels_file = request.files['labels_file']
         if labels_file.filename == '':
             flash('No selected labels file')
             return redirect(request.url)
-        images = get_list('images[]')
+        images = request.files.getlist('images')
         if not images:
             flash('No images selected')
             return redirect(request.url)
         if (labels_file and _allowed_labels_file(labels_file.filename)) \
                 and (images and _allowed_image_files(image.filename)
                      for image in images):
-            upload_dataset(images, labels_file,
-                           app.config['DATASET_DIRECTORY'],
-                           request.form['dataset_name'])
-            flash(request.form['dataset_name'], " uploaded.")
+            upload_dataset(images, labels_file, app.config['DATASET_DIRECTORY'])
+            split_dataset(labels_file, app.config['DATASET_DIRECTORY'])
     dataset_list = _get_dataset_list()
     return render_template("dataset.html", dataset_list=dataset_list)
 
@@ -110,27 +105,6 @@ def train():
 
 @app.route('/training_progress', methods=['POST'])
 def training_progress():
-
-    def start_training():
-        command = [
-            'python', 'train.py',
-            '--architecture', create_path(app.config['ARCHITECTURES_DIRECTORY'],
-                                          get('architecture_name') + '.json'),
-            '--dataset_dir', create_path(app.config['DATASET_DIRECTORY'],
-                                         get('dataset_name'), ''),
-            '--desired_image_size', get('desired_image_size'),
-            '--num_epochs', get('num_epochs'),
-            '--batch_size', get('batch_size'),
-            '--learning_rate', get('learning_rate'),
-            '--optimizer', get('optimizer'),
-            '--loss', get('loss'),
-            '--metrics', get_list('metrics'),
-            '--max_label_length', get('max_label_length')
-        ]
-        training_process = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE)
-        for line in iter(training_process.stderr.readline, b''):
-            time.sleep(1)
-            yield line.rstrip().decode('utf-8')
 
     def stream_template(template_name, **context):
         app.update_template_context(context)

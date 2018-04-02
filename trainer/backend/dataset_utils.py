@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 
 from trainer.backend.EncoderDecoder import EncoderDecoder
 
@@ -21,7 +22,8 @@ def read_images(data_dir, image_paths, image_extension='png'):
     print('Reading images...')
     images = []
     for image_name in image_paths:
-        images.append(cv2.imread(data_dir + image_name + '.' + image_extension))
+        print(image_name)
+        images.append(cv2.imread(os.path.join(data_dir, image_name) + '.' + image_extension))
     print('Done reading images. Number of images read:', len(image_paths))
     return images
 

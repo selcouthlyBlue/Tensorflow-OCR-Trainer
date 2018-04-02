@@ -5,7 +5,7 @@
     <div class="section">
         <h5>Dataset Preparation</h5>
         <div class="row">
-            <div class="input-field col s6">
+            <div class="input-field col s9">
                 <select id="dataset-select" name="dataset_name" required>
                     <option value="" disabled selected>Select Dataset</option>
                     {% for dataset_name in dataset_list %}
@@ -23,16 +23,6 @@
                        step="1"
                        required>
                 <label for="desired_image_size">Desired Image Size</label>
-            </div>
-            <div class="input-field col s3">
-                <input id="max_label_length"
-                       name="max_label_length"
-                       class="validate"
-                       type="number"
-                       min="1"
-                       step="1"
-                       required>
-                <label for="max_label_length">Max Label Length</label>
             </div>
         </div>
     </div>

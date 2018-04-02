@@ -23,7 +23,6 @@ def main():
                 num_epochs=args.num_epochs,
                 checkpoint_epochs=args.checkpoint_epochs,
                 batch_size=args.batch_size,
-                max_label_length=args.max_label_length,
                 charset_file='charsets/chars.txt',
                 learning_rate=args.learning_rate,
                 optimizer=args.optimizer,

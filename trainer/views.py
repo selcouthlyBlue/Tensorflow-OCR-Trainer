@@ -1,9 +1,12 @@
-from flask import request, render_template, flash, redirect, Response, stream_with_context
+from flask import request, render_template, flash, redirect
 
 from trainer import app
 from trainer.backend import GraphKeys
+from trainer.controllers import create_path
+from trainer.controllers import get
 from trainer.controllers import get_directory_list
 from trainer.controllers import get_enum_values
+from trainer.controllers import getlist
 from trainer.controllers import generate_model_dict
 from trainer.controllers import save_model_as_json
 from trainer.controllers import split_dataset
@@ -105,16 +108,24 @@ def train():
 
 @app.route('/training_progress', methods=['POST'])
 def training_progress():
+    start_training(create_path(app.config['ARCHITECTURES_DIRECTORY'],
+                               get('architecture_name') + '.json'),
+                   create_path(app.config['DATASET_DIRECTORY'],
+                               get('dataset_name')),
+                   int(get('desired_image_size')),
+                   int(get('num_epochs')),
+                   int(get('checkpoint_epochs')),
+                   int(get('batch_size')),
+                   'charsets/chars.txt',
+                   float(get('learning_rate')),
+                   get('optimizer'),
+                   getlist('metrics'),
+                   get('loss'))
+    return render_template('training_progress.html', task='training')
 
-    def stream_template(template_name, **context):
-        app.update_template_context(context)
-        t = app.jinja_env.get_template(template_name)
-        rv = t.stream(context)
-        return rv
 
-    return Response(stream_with_context(stream_template('training_progress.html',
-                                                        logs=stream_with_context(start_training()),
-                                                        task='training')))
+def _render_progress(template_name, task):
+    return render_template(template_name, task=task)
 
 
 @app.errorhandler(404)

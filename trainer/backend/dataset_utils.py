@@ -22,7 +22,6 @@ def read_images(data_dir, image_paths, image_extension='png'):
     print('Reading images...')
     images = []
     for image_name in image_paths:
-        print(image_name)
         images.append(cv2.imread(os.path.join(data_dir, image_name) + '.' + image_extension))
     print('Done reading images. Number of images read:', len(image_paths))
     return images

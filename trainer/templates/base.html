@@ -19,11 +19,13 @@
                     <li><a href="{{ url_for('dataset') }}">Dataset</a></li>
                     <li><a href="{{ url_for('architectures') }}">Network Architectures</a></li>
                     <li><a href="{{ url_for('train') }}">Train</a></li>
+                    <li><a href="{{ url_for('tasks', task='view') }}">Tasks</a></li>
                 </ul>
                 <ul id="mobile-demo" class="side-nav">
-                    <li><a href="">Dataset</a></li>
-                    <li><a href="">Network Architectures</a></li>
-                    <li><a href="">Train</a></li>
+                    <li><a href="{{ url_for('dataset') }}">Dataset</a></li>
+                    <li><a href="{{ url_for('architectures') }}">Network Architectures</a></li>
+                    <li><a href="{{ url_for('train') }}">Train</a></li>
+                    <li><a href="{{ url_for('tasks', task='view') }}">Tasks</a></li>
                 </ul>
             </div>
         </div>

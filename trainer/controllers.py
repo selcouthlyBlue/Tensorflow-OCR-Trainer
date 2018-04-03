@@ -114,18 +114,18 @@ def getlist(param):
     return request.form.getlist(param)
 
 
-def start_training(architecture_config_file,
-                   dataset_dir,
-                   desired_image_size,
-                   num_epochs,
-                   checkpoint_epochs,
-                   batch_size,
-                   charset_file,
-                   learning_rate,
-                   optimizer,
-                   metrics,
-                   loss):
-    train_task = Process(target=train_model,
+def train_task(architecture_config_file,
+               dataset_dir,
+               desired_image_size,
+               num_epochs,
+               checkpoint_epochs,
+               batch_size,
+               charset_file,
+               learning_rate,
+               optimizer,
+               metrics,
+               loss):
+    task = Process(target=train_model,
                          args=(
                              architecture_config_file,
                              dataset_dir,
@@ -140,4 +140,5 @@ def start_training(architecture_config_file,
                              batch_size,
                              checkpoint_epochs
                          ))
-    train_task.start()
+    task.start()
+    return task

@@ -1,4 +1,5 @@
-from flask import request, render_template, flash, redirect
+import multiprocessing
+from flask import request, render_template, flash, redirect, url_for
 
 from trainer import app
 from trainer.backend import GraphKeys
@@ -10,7 +11,7 @@ from trainer.controllers import getlist
 from trainer.controllers import generate_model_dict
 from trainer.controllers import save_model_as_json
 from trainer.controllers import split_dataset
-from trainer.controllers import start_training
+from trainer.controllers import train_task
 from trainer.controllers import upload_dataset
 
 
@@ -106,22 +107,41 @@ def train():
                            metrics=get_enum_values(GraphKeys.Metrics))
 
 
-@app.route('/training_progress', methods=['POST'])
-def training_progress():
-    start_training(create_path(app.config['ARCHITECTURES_DIRECTORY'],
-                               get('architecture_name') + '.json'),
-                   create_path(app.config['DATASET_DIRECTORY'],
-                               get('dataset_name')),
-                   int(get('desired_image_size')),
-                   int(get('num_epochs')),
-                   int(get('checkpoint_epochs')),
-                   int(get('batch_size')),
-                   'charsets/chars.txt',
-                   float(get('learning_rate')),
-                   get('optimizer'),
-                   getlist('metrics'),
-                   get('loss'))
-    return render_template('training_progress.html', task='training')
+@app.route('/tasks/<task>', methods=['GET', 'POST'])
+def tasks(task):
+    running_tasks = multiprocessing.active_children()
+    if request.method == 'POST':
+        if task == 'training':
+            running_tasks = train_task(create_path(app.config['ARCHITECTURES_DIRECTORY'],
+                                                   get('architecture_name') + '.json'),
+                                       create_path(app.config['DATASET_DIRECTORY'],
+                                                   get('dataset_name')),
+                                       int(get('desired_image_size')),
+                                       int(get('num_epochs')),
+                                       int(get('checkpoint_epochs')),
+                                       int(get('batch_size')),
+                                       'charsets/chars.txt',
+                                       float(get('learning_rate')),
+                                       get('optimizer'),
+                                       getlist('metrics'),
+                                       get('loss'))
+        flash(task + " has started.")
+    return render_template('tasks.html', task=running_tasks)
+
+
+@app.route('/terminate/<task>', methods=['POST'])
+def terminate(task):
+    was_terminated_manually = False
+    for running_task in multiprocessing.active_children():
+        if running_task.name == task:
+            running_task.terminate()
+            running_task.join()
+            was_terminated_manually = True
+            flash(running_task.name + " is terminated")
+            break
+    if not was_terminated_manually:
+        flash(task + " was already terminated.")
+    return redirect(url_for('tasks', task='view'))
 
 
 def _render_progress(template_name, task):

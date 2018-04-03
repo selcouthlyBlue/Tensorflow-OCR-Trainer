@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block body %}
-    <form action="{{ url_for('training_progress') }}" method="post">
+    <form action="{{ url_for('tasks', task='training') }}" method="post">
     <div class="section">
         <h5>Dataset Preparation</h5>
         <div class="row">

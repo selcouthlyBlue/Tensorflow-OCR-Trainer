@@ -83,6 +83,10 @@ def _get_layer(layer_index):
     return layer
 
 
+def delete_architecture(architecture):
+    os.remove(architecture)
+
+
 def _create_network_key(layer_index, param):
     network_key = "network[" + str(layer_index) + "][" + param + "]"
     return network_key

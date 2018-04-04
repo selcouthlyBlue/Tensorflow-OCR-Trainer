@@ -4,6 +4,7 @@ from flask import request, render_template, flash, redirect, url_for
 from trainer import app
 from trainer.backend import GraphKeys
 from trainer.controllers import create_path
+from trainer.controllers import delete_architecture
 from trainer.controllers import get
 from trainer.controllers import get_directory_list
 from trainer.controllers import get_enum_values
@@ -57,6 +58,13 @@ def create_network_architecture():
                            cell_types=get_enum_values(GraphKeys.CellTypes),
                            activation_functions=get_enum_values(GraphKeys.ActivationFunctions),
                            output_layers=get_enum_values(GraphKeys.OutputLayers))
+
+
+@app.route('/delete/<architecture>', methods=['POST'])
+def delete(architecture):
+    delete_architecture(create_path(app.config['ARCHITECTURES_DIRECTORY'], architecture) + ".json")
+    flash(architecture + " architecture deleted.")
+    return redirect(url_for('architectures'))
 
 
 @app.route('/dataset_form')
@@ -140,10 +148,10 @@ def terminate(task):
             running_task.terminate()
             running_task.join()
             was_terminated_manually = True
-            flash(running_task.name + " is terminated")
+            flash(running_task.name.capitalize() + " is terminated.")
             break
     if not was_terminated_manually:
-        flash(task + " was already terminated.")
+        flash(task.capitalize() + " was already terminated.")
     return redirect(url_for('tasks', task='view'))
 
 

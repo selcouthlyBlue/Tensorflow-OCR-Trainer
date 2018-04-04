@@ -109,10 +109,11 @@ def train():
 
 @app.route('/tasks/<task>', methods=['GET', 'POST'])
 def tasks(task):
-    running_tasks = multiprocessing.active_children()
+    running_tasks = []
+    running_tasks.extend([running_task.name for running_task in multiprocessing.active_children()])
     if request.method == 'POST':
         if task == 'training':
-            running_tasks = train_task(create_path(app.config['ARCHITECTURES_DIRECTORY'],
+            training_task = train_task(create_path(app.config['ARCHITECTURES_DIRECTORY'],
                                                    get('architecture_name') + '.json'),
                                        create_path(app.config['DATASET_DIRECTORY'],
                                                    get('dataset_name')),
@@ -125,8 +126,10 @@ def tasks(task):
                                        get('optimizer'),
                                        getlist('metrics'),
                                        get('loss'))
+            training_task.name = task
+            running_tasks.append(training_task.name)
         flash(task + " has started.")
-    return render_template('tasks.html', task=running_tasks)
+    return render_template('tasks.html', running_tasks=running_tasks)
 
 
 @app.route('/terminate/<task>', methods=['POST'])

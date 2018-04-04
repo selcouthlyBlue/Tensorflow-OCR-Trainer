@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 
 from trainer.backend.tf import layers
@@ -56,3 +57,7 @@ def dense_to_sparse(tensor, token_to_ignore=0):
     values = tf.gather_nd(tensor, indices)
     shape = tf.shape(tensor, out_type=tf.int64)
     return tf.SparseTensor(indices, values, shape)
+
+
+def visualize(model):
+    os.system('tensorboard --host localhost --logdir=' + model)

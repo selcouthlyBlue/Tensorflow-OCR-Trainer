@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Dataset{% endblock %}
+{% block body %}
+    <h3>Dataset List</h3>
+    <ul class="collection black-text">
+    {% if not models %}
+        <li class="collection-item row">No trained models yet.
+            Click <a href="{{ url_for('train') }}">here</a> to train a model.
+        </li>
+    {% endif %}
+    {% for model in models %}
+        <li class="collection-item row">
+            <ul>
+               <li class="col s6">{{ model }}</li>
+                <li class="col s3 right">
+                    <a class="right waves-effect waves-light btn right" href="{{ url_for('visualize', model=model) }}" target="_blank">
+                        Visualize
+                    </a>
+                </li>
+               <li class="col s3 right">
+                    <form method="post" action="{{ url_for('delete_model', model_name=model) }}">
+                        <button type="submit" class="waves-effect waves-light btn red right">
+                            <i class="material-icons">remove</i>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    {% endfor %}
+    </ul>
+{% endblock %}
+{% block extra_script%}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/delete-file.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/toast.js') }}"></script>
+    <script>
+        toast({{ get_flashed_messages()|tojson }})
+    </script>
+{% endblock %}

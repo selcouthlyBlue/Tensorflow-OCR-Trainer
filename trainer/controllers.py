@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from trainer.backend import GraphKeys
 from trainer.backend.dataset_utils import read_dataset_list
 from trainer.backend.train_ocr import train_model
+from trainer.backend import visualize
 
 
 def get_directory_list(path):
@@ -88,8 +89,8 @@ def delete_architecture(architecture):
     os.remove(architecture)
 
 
-def delete_dataset_folder(dataset):
-    shutil.rmtree(dataset)
+def delete_folder(folder_name):
+    shutil.rmtree(folder_name)
 
 
 def _create_network_key(layer_index, param):
@@ -107,6 +108,11 @@ def generate_model_dict():
     resulting_dict['network'] = network
     resulting_dict['output_layer'] = get("output_layer")
     return resulting_dict
+
+
+def visualize_model(model):
+    visualization_task = Process(target=visualize, args=(model,))
+    visualization_task.start()
 
 
 def save_model_as_json(directory, contents):

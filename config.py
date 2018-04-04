@@ -6,6 +6,7 @@ class BaseConfig(object):
     CHARSET_DIRECTORY = "charset"
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg'}
     ALLOWED_LABELS_FILE_EXTENSIONS = {'txt', 'csv'}
+    MODELS_DIRECTORY = "checkpoint"
 
 
 class DevelopmentConfig(BaseConfig):

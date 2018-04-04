@@ -5,7 +5,7 @@ from trainer import app
 from trainer.backend import GraphKeys
 from trainer.controllers import create_path
 from trainer.controllers import delete_architecture
-from trainer.controllers import delete_dataset_folder
+from trainer.controllers import delete_folder
 from trainer.controllers import get
 from trainer.controllers import get_directory_list
 from trainer.controllers import get_enum_values
@@ -15,6 +15,7 @@ from trainer.controllers import save_model_as_json
 from trainer.controllers import split_dataset
 from trainer.controllers import train_task
 from trainer.controllers import upload_dataset
+from trainer.controllers import visualize_model
 
 
 def _allowed_labels_file(filename):
@@ -101,7 +102,7 @@ def dataset():
 
 @app.route('/delete_dataset/<dataset_name>', methods=['POST'])
 def delete_dataset(dataset_name):
-    delete_dataset_folder(create_path(app.config['DATASET_DIRECTORY'], dataset_name))
+    delete_folder(create_path(app.config['DATASET_DIRECTORY'], dataset_name))
     return redirect(url_for('dataset'))
 
 
@@ -160,6 +161,24 @@ def terminate(task):
     if not was_terminated_manually:
         flash(task.capitalize() + " was already terminated.")
     return redirect(url_for('tasks', task='view'))
+
+
+@app.route('/models')
+def models():
+    return render_template("models.html",
+                           models=get_directory_list(app.config['MODELS_DIRECTORY']))
+
+@app.route('/visualize/<model>')
+def visualize(model):
+    visualize_model(create_path(app.config['MODELS_DIRECTORY'], model))
+    return redirect("http://localhost:6006")
+
+
+@app.route('/delete_model/<model_name>', methods=['POST'])
+def delete_model(model_name):
+    delete_folder(create_path(app.config['MODELS_DIRECTORY'], model_name))
+    flash(model_name + " deleted.")
+    return redirect(url_for('models'))
 
 
 def _render_progress(template_name, task):

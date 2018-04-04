@@ -175,6 +175,7 @@ def _train_model_fn(features, labels, mode, params):
 
     loss = _get_loss(params["loss"], labels=labels,
                      inputs=features, num_classes=params["num_classes"])
+    _add_to_summary("loss", loss)
     metrics = _get_metrics(params["metrics"],
                            y_pred=features,
                            y_true=labels,

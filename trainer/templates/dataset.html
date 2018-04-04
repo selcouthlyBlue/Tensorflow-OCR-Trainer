@@ -4,11 +4,29 @@
     <h3>Dataset List</h3>
     <ul class="collection black-text">
     {% for dataset in dataset_list %}
-        <li class="collection-item">{{ dataset }}</li>
+        <li class="collection-item row">
+            <ul>
+               <li class="col s6">{{ dataset }}</li>
+               <li class="col s3 right">
+                    <form method="post" action="{{ url_for('delete_dataset', dataset_name=dataset) }}">
+                        <button type="submit" class="waves-effect waves-light btn red right">
+                            <i class="material-icons">remove</i>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
     {% endfor %}
     </ul>
     <a href="{{ url_for('dataset_form') }}" class="right waves-effect waves-light btn">
         <i class="material-icons left">add</i>
         Upload Dataset
     </a>
+{% endblock %}
+{% block extra_script%}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/delete-file.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/toast.js') }}"></script>
+    <script>
+        toast({{ get_flashed_messages()|tojson }})
+    </script>
 {% endblock %}

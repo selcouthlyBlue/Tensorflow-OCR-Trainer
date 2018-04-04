@@ -5,6 +5,7 @@ from trainer import app
 from trainer.backend import GraphKeys
 from trainer.controllers import create_path
 from trainer.controllers import delete_architecture
+from trainer.controllers import delete_dataset_folder
 from trainer.controllers import get
 from trainer.controllers import get_directory_list
 from trainer.controllers import get_enum_values
@@ -61,7 +62,7 @@ def create_network_architecture():
 
 
 @app.route('/delete/<architecture>', methods=['POST'])
-def delete(architecture):
+def delete_architecture(architecture):
     delete_architecture(create_path(app.config['ARCHITECTURES_DIRECTORY'], architecture) + ".json")
     flash(architecture + " architecture deleted.")
     return redirect(url_for('architectures'))
@@ -96,6 +97,12 @@ def dataset():
             split_dataset(labels_file, app.config['DATASET_DIRECTORY'])
     dataset_list = _get_dataset_list()
     return render_template("dataset.html", dataset_list=dataset_list)
+
+
+@app.route('/delete_dataset/<dataset_name>', methods=['POST'])
+def delete_dataset(dataset_name):
+    delete_dataset_folder(create_path(app.config['DATASET_DIRECTORY'], dataset_name))
+    return redirect(url_for('dataset'))
 
 
 def _get_dataset_list():

@@ -1,6 +1,7 @@
 import os
 import json
 import csv
+import shutil
 
 from multiprocessing import Process
 from werkzeug.utils import secure_filename
@@ -85,6 +86,10 @@ def _get_layer(layer_index):
 
 def delete_architecture(architecture):
     os.remove(architecture)
+
+
+def delete_dataset_folder(dataset):
+    shutil.rmtree(dataset)
 
 
 def _create_network_key(layer_index, param):

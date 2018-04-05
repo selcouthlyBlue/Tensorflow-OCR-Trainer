@@ -28,7 +28,7 @@ def upload_dataset(images, labels_file, dataset_directory):
     for image in images:
         image.save(create_path(dataset_path,
                                secure_filename(image.filename)))
-    flash(get('dataset_name'), " uploaded.")
+    flash(get('dataset_name') + " has been uploaded.")
 
 
 def _create_labels_file(filename, features, labels):
@@ -85,7 +85,11 @@ def _get_layer(layer_index):
     return layer
 
 
-def delete_architecture(architecture):
+def get_architecture(architecture):
+    return json.load(open(architecture), object_pairs_hook=OrderedDict)
+
+
+def delete_file(architecture):
     os.remove(architecture)
 
 
@@ -112,6 +116,7 @@ def generate_model_dict():
 
 def visualize_model(model):
     visualization_task = Process(target=visualize, args=(model,))
+    visualization_task.name = "visualize {}".format(model)
     visualization_task.start()
 
 

@@ -4,9 +4,10 @@ from flask import request, render_template, flash, redirect, url_for
 from trainer import app
 from trainer.backend import GraphKeys
 from trainer.controllers import create_path
-from trainer.controllers import delete_architecture
+from trainer.controllers import delete_file
 from trainer.controllers import delete_folder
 from trainer.controllers import get
+from trainer.controllers import get_architecture
 from trainer.controllers import get_directory_list
 from trainer.controllers import get_enum_values
 from trainer.controllers import getlist
@@ -40,9 +41,18 @@ def architectures():
     if request.method == 'POST':
         resulting_dict = generate_model_dict()
         save_model_as_json(app.config['ARCHITECTURES_DIRECTORY'], resulting_dict)
+        flash(get('architecture_name') + " has been created.")
     network_architectures = _get_network_architectures()
     return render_template("architectures.html",
                            network_architectures=network_architectures)
+
+
+@app.route('/view_architecture/<architecture_name>')
+def view_architecture(architecture_name):
+    architecture = get_architecture(create_path(app.config['ARCHITECTURES_DIRECTORY'], architecture_name) + ".json")
+    return render_template("view_architecture.html",
+                           architecture=architecture,
+                           architecture_name=architecture_name)
 
 
 def _get_network_architectures():
@@ -64,7 +74,7 @@ def create_network_architecture():
 
 @app.route('/delete/<architecture>', methods=['POST'])
 def delete_architecture(architecture):
-    delete_architecture(create_path(app.config['ARCHITECTURES_DIRECTORY'], architecture) + ".json")
+    delete_file(create_path(app.config['ARCHITECTURES_DIRECTORY'], architecture) + ".json")
     flash(architecture + " architecture deleted.")
     return redirect(url_for('architectures'))
 
@@ -103,6 +113,7 @@ def dataset():
 @app.route('/delete_dataset/<dataset_name>', methods=['POST'])
 def delete_dataset(dataset_name):
     delete_folder(create_path(app.config['DATASET_DIRECTORY'], dataset_name))
+    flash(dataset_name + " has been deleted.")
     return redirect(url_for('dataset'))
 
 
@@ -166,7 +177,8 @@ def terminate(task):
 @app.route('/models')
 def models():
     return render_template("models.html",
-                           models=get_directory_list(app.config['MODELS_DIRECTORY']))
+                           models=get_directory_list(app.config['MODELS_DIRECTORY']),
+                           dataset_list=_get_dataset_list())
 
 @app.route('/visualize/<model>')
 def visualize(model):

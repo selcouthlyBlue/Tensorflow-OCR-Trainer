@@ -1,11 +1,11 @@
 import os
-import time
 
 from trainer.backend import dataset_utils
 from trainer.backend.tf import train
+from trainer.backend.tf import evaluate
 
 
-def train_model(architecture_params, dataset_dir,
+def train_model(architecture_params, dataset_dir, checkpoint_dir,
                 learning_rate, metrics, loss, optimizer,
                 desired_image_size, charset_file, labels_delimiter=' ',
                 num_epochs=1, batch_size=1, checkpoint_epochs=1):
@@ -15,8 +15,6 @@ def train_model(architecture_params, dataset_dir,
                                                    desired_image_size,
                                                    labels_delimiter,
                                                    labels_file)
-
-    checkpoint_dir = "checkpoint/" + "model-" + time.strftime("%Y%m%d-%H%M%S")
 
     architecture_params["learning_rate"] = learning_rate
     architecture_params["optimizer"] = optimizer
@@ -31,6 +29,18 @@ def train_model(architecture_params, dataset_dir,
           batch_size=batch_size,
           num_epochs=num_epochs,
           save_checkpoint_every_n_epochs=checkpoint_epochs)
+
+
+def evaluate_model(architecture_params, dataset_dir, charset_file,
+                   desired_image_size, checkpoint_dir, batch_size,
+                   labels_delimiter=' '):
+    labels_file = os.path.join(dataset_dir, "test.csv")
+    images, labels, num_classes = _prepare_dataset(charset_file,
+                                                   dataset_dir,
+                                                   desired_image_size,
+                                                   labels_delimiter,
+                                                   labels_file)
+    evaluate(architecture_params, images, labels, num_classes, checkpoint_dir, batch_size)
 
 
 def _prepare_dataset(charset_file, dataset_dir, desired_image_size, labels_delimiter, labels_file):

@@ -14,6 +14,7 @@ from trainer import app
 from trainer.backend import GraphKeys
 from trainer.backend.dataset_utils import read_dataset_list
 from trainer.backend.train_ocr import train_model
+from trainer.backend.train_ocr import evaluate_model
 from trainer.backend import visualize
 
 
@@ -193,13 +194,30 @@ def get_running_tasks():
     return [running_task.name for running_task in multiprocessing.active_children()]
 
 
+def test_task(dataset_name, charset_file,
+              desired_image_size, model_name, batch_size=1,
+              labels_delimiter=' '):
+    dataset_dir = get_dataset(dataset_name)
+    checkpoint_dir = get_model_path(model_name)
+    architecture_params = json.load(open(create_path(checkpoint_dir, "architecture.json")), object_pairs_hook=OrderedDict)
+    testing_task = multiprocessing.Process(target=evaluate_model,
+                                           args=(architecture_params,
+                                                 dataset_dir,
+                                                 charset_file,
+                                                 desired_image_size,
+                                                 checkpoint_dir,
+                                                 batch_size,
+                                                 labels_delimiter))
+    testing_task.start()
+    return testing_task
+
+
 def run_learning_task(task):
     running_task = None
-    architecture_config_file = get_architecture_file_contents(get('architecture_name'))
-    dataset_dir = get_dataset(get('dataset_name'))
+    dataset_name = get('dataset_name')
     if task == 'training':
-        running_task = train_task(architecture_config_file,
-                                  dataset_dir,
+        running_task = train_task(get('architecture_name'),
+                                  dataset_name,
                                   int(get('desired_image_size')),
                                   int(get('num_epochs')),
                                   int(get('checkpoint_epochs')),
@@ -209,11 +227,23 @@ def run_learning_task(task):
                                   get('optimizer'),
                                   getlist('metrics'),
                                   get('loss'))
+    elif task == 'testing':
+        print(request.form)
+        print(get('desired_image_size'))
+        print(int(get('desired_image_size')))
+        print(get('model_name'))
+        running_task = test_task(dataset_name,
+                                 'charsets/chars.txt',
+                                 int(get('desired_image_size')),
+                                 get('model_name'),
+                                 1,
+                                 ' ')
+    time.sleep(30)
     running_task.name = task
 
 
-def train_task(architecture_config_file,
-               dataset_dir,
+def train_task(architecture_name,
+               dataset_name,
                desired_image_size,
                num_epochs,
                checkpoint_epochs,
@@ -223,10 +253,16 @@ def train_task(architecture_config_file,
                optimizer,
                metrics,
                loss):
+    dataset_dir = get_dataset(dataset_name)
+    checkpoint_dir = get_model_path("model-" + time.strftime("%Y%m%d-%H%M%S"))
+    os.mkdir(checkpoint_dir)
+    model_architecture_path = _copy_architecture_to_model(architecture_name, checkpoint_dir)
+    architecture_params = json.load(open(model_architecture_path), object_pairs_hook=OrderedDict)
     task = multiprocessing.Process(target=train_model,
                                    args=(
-                                       architecture_config_file,
+                                       architecture_params,
                                        dataset_dir,
+                                       checkpoint_dir,
                                        learning_rate,
                                        metrics,
                                        loss,
@@ -240,3 +276,11 @@ def train_task(architecture_config_file,
                                    ))
     task.start()
     return task
+
+
+def _copy_architecture_to_model(architecture_name, checkpoint_dir):
+    architecture_config_file = get_architecture_path(architecture_name)
+    shutil.copy(architecture_config_file, checkpoint_dir)
+    model_architecture_path = create_path(checkpoint_dir, "architecture.json")
+    os.rename(create_path(checkpoint_dir, architecture_name) + ".json", model_architecture_path)
+    return model_architecture_path

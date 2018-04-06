@@ -1,43 +1,55 @@
 {% extends "base.html" %}
 {% block title %}Models{% endblock %}
 {% block body %}
-    <h3>Trained Models</h3>
-    <ul class="collection black-text overflowing">
+    <ul class="collection black-text overflowing with-header">
+        <li class="collection-header"><h5>Trained Models</h5></li>
     {% if not models %}
         <li class="collection-item row">No trained models yet.
             Click <a href="{{ url_for('train') }}">here</a> to train a model.
         </li>
     {% endif %}
     {% for model in models %}
-        <li class="collection-item row">
+        <li class="collection-item row overflowing">
             <ul>
-               <li class="col s3">{{ model }}</li>
+               <li class="col s2">{{ model }}</li>
                <li>
-                   <form action="{{ url_for('tasks', task='testing') }}">
+                   <form id="testing" action="{{ url_for('tasks', task='testing') }}" method="post">
                          <ul>
-                             <li class="col s2">
+                             <li class="input-field col s2">
                                  <button type="submit" class="waves-effect waves-light btn right">
                                      Test
                                  </button>
                              </li>
-                             <li class="col s2">
-                                 <select id="{{ model }}">
+                             <li class="input-field col s2">
+                                 <select id="{{ model }}" name="dataset_name">
                                       <option value="" disabled selected>Select Dataset</option>
                                       {% for dataset_name in dataset_list %}
                                           <option value="{{ dataset_name }}">{{ dataset_name|capitalize }}</option>
                                       {% endfor %}
                                  </select>
+                                 <label for="{{ model }}">Dataset</label>
                              </li>
+                            <li class="input-field col s2">
+                                <input id="desired_image_size"
+                                       name="desired_image_size"
+                                       class="validate"
+                                       type="number"
+                                       min="16"
+                                       step="1"
+                                       required>
+                                <label for="desired_image_size">Image Size</label>
+                            </li>
                          </ul>
+                         <input type="hidden" name="model_name" value="{{ model }}">
                    </form>
                </li>
-               <li class="col s3">
-                   <a class="right waves-effect waves-light btn right" href="{{ url_for('visualize', model_name=model) }}" target="_blank">
+               <li class="col s2">
+                   <a class="right input-field waves-effect waves-light btn right" href="{{ url_for('visualize', model_name=model) }}" target="_blank">
                         Visualize
                    </a>
                </li>
-               <li class="col s2 right">
-                   <form method="post" action="{{ url_for('delete_model', model_name=model) }}">
+               <li class="input-field col s2 right">
+                   <form id="deletion" method="post" action="{{ url_for('delete_model', model_name=model) }}">
                        <button type="submit" class="waves-effect waves-light btn red right">
                            <i class="material-icons">remove</i>
                        </button>

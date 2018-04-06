@@ -32,15 +32,14 @@ def train_model(architecture_params, dataset_dir, checkpoint_dir,
 
 
 def evaluate_model(architecture_params, dataset_dir, charset_file,
-                   desired_image_size, checkpoint_dir, batch_size,
-                   labels_delimiter=' '):
+                   checkpoint_dir, labels_delimiter=' '):
     labels_file = os.path.join(dataset_dir, "test.csv")
     images, labels, num_classes = _prepare_dataset(charset_file,
                                                    dataset_dir,
-                                                   desired_image_size,
+                                                   architecture_params['desired_image_size'],
                                                    labels_delimiter,
                                                    labels_file)
-    evaluate(architecture_params, images, labels, num_classes, checkpoint_dir, batch_size)
+    evaluate(architecture_params, images, labels, num_classes, checkpoint_dir)
 
 
 def _prepare_dataset(charset_file, dataset_dir, desired_image_size, labels_delimiter, labels_file):

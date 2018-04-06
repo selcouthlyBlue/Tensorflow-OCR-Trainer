@@ -65,14 +65,14 @@ def train(params, features, labels, num_classes, checkpoint_dir,
     estimator.train(input_fn=_input_fn(features, labels, batch_size),
                     steps=num_epochs * num_steps_per_epoch)
 
-def evaluate(params, features, labels, num_classes, checkpoint_dir, batch_size):
+def evaluate(params, features, labels, num_classes, checkpoint_dir):
     params['num_classes'] = num_classes
     estimator = tf.estimator.Estimator(model_fn=_eval_model_fn,
                                        params=params,
                                        model_dir=checkpoint_dir)
     estimator.evaluate(input_fn=_input_fn(features,
                                           labels,
-                                          batch_size=batch_size,
+                                          batch_size=params['batch_size'],
                                           num_epochs=1,
                                           shuffle=False))
 

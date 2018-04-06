@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Models{% endblock %}
 {% block body %}
-    <ul class="collection black-text overflowing with-header">
-        <li class="collection-header"><h5>Trained Models</h5></li>
+    <h3>Trained Models</h3>
+    <ul class="collection black-text overflowing">
     {% if not models %}
         <li class="collection-item row">No trained models yet.
             Click <a href="{{ url_for('train') }}">here</a> to train a model.
@@ -11,7 +11,7 @@
     {% for model in models %}
         <li class="collection-item row overflowing">
             <ul>
-               <li class="col s2">{{ model }}</li>
+               <li class="input-field col s3">{{ model }}</li>
                <li>
                    <form id="testing" action="{{ url_for('tasks', task='testing') }}" method="post">
                          <ul>
@@ -21,7 +21,7 @@
                                  </button>
                              </li>
                              <li class="input-field col s2">
-                                 <select id="{{ model }}" name="dataset_name">
+                                 <select id="{{ model }}" name="dataset_name" required>
                                       <option value="" disabled selected>Select Dataset</option>
                                       {% for dataset_name in dataset_list %}
                                           <option value="{{ dataset_name }}">{{ dataset_name|capitalize }}</option>
@@ -29,21 +29,11 @@
                                  </select>
                                  <label for="{{ model }}">Dataset</label>
                              </li>
-                            <li class="input-field col s2">
-                                <input id="desired_image_size"
-                                       name="desired_image_size"
-                                       class="validate"
-                                       type="number"
-                                       min="16"
-                                       step="1"
-                                       required>
-                                <label for="desired_image_size">Image Size</label>
-                            </li>
                          </ul>
                          <input type="hidden" name="model_name" value="{{ model }}">
                    </form>
                </li>
-               <li class="col s2">
+               <li class="col s2 offset-s1">
                    <a class="right input-field waves-effect waves-light btn right" href="{{ url_for('visualize', model_name=model) }}" target="_blank">
                         Visualize
                    </a>

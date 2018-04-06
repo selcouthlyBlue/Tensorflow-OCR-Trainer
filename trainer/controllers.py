@@ -195,8 +195,7 @@ def get_running_tasks():
 
 
 def test_task(dataset_name, charset_file,
-              desired_image_size, model_name, batch_size=1,
-              labels_delimiter=' '):
+              model_name):
     dataset_dir = get_dataset(dataset_name)
     checkpoint_dir = get_model_path(model_name)
     architecture_params = json.load(open(create_path(checkpoint_dir, "architecture.json")), object_pairs_hook=OrderedDict)
@@ -204,10 +203,8 @@ def test_task(dataset_name, charset_file,
                                            args=(architecture_params,
                                                  dataset_dir,
                                                  charset_file,
-                                                 desired_image_size,
                                                  checkpoint_dir,
-                                                 batch_size,
-                                                 labels_delimiter))
+                                                 ' '))
     testing_task.start()
     return testing_task
 
@@ -228,16 +225,9 @@ def run_learning_task(task):
                                   getlist('metrics'),
                                   get('loss'))
     elif task == 'testing':
-        print(request.form)
-        print(get('desired_image_size'))
-        print(int(get('desired_image_size')))
-        print(get('model_name'))
         running_task = test_task(dataset_name,
                                  'charsets/chars.txt',
-                                 int(get('desired_image_size')),
-                                 get('model_name'),
-                                 1,
-                                 ' ')
+                                 get('model_name'))
     time.sleep(30)
     running_task.name = task
 
@@ -258,6 +248,12 @@ def train_task(architecture_name,
     os.mkdir(checkpoint_dir)
     model_architecture_path = _copy_architecture_to_model(architecture_name, checkpoint_dir)
     architecture_params = json.load(open(model_architecture_path), object_pairs_hook=OrderedDict)
+    architecture_params['loss'] = loss
+    architecture_params['metrics'] = metrics
+    architecture_params['desired_image_size'] = desired_image_size
+    architecture_params['batch_size'] = batch_size
+    with open(model_architecture_path, 'w') as f:
+        json.dump(architecture_params, f)
     task = multiprocessing.Process(target=train_model,
                                    args=(
                                        architecture_params,

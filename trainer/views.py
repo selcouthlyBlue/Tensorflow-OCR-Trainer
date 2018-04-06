@@ -1,34 +1,21 @@
-import multiprocessing
 from flask import request, render_template, flash, redirect, url_for
 
 from trainer import app
 from trainer.backend import GraphKeys
-from trainer.controllers import create_path
 from trainer.controllers import delete_file
 from trainer.controllers import delete_folder
-from trainer.controllers import get
-from trainer.controllers import get_architecture
-from trainer.controllers import get_directory_list
+from trainer.controllers import get_architecture_path
+from trainer.controllers import get_dataset
+from trainer.controllers import get_directory_list_from_config
 from trainer.controllers import get_enum_values
-from trainer.controllers import getlist
-from trainer.controllers import generate_model_dict
+from trainer.controllers import get_model_path
+from trainer.controllers import get_running_tasks
+from trainer.controllers import get_visualization_link
+from trainer.controllers import run_learning_task
 from trainer.controllers import save_model_as_json
-from trainer.controllers import split_dataset
-from trainer.controllers import train_task
+from trainer.controllers import stop_running
 from trainer.controllers import upload_dataset
 from trainer.controllers import visualize_model
-
-
-def _allowed_labels_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() \
-           in app.config['ALLOWED_LABELS_FILE_EXTENSIONS']
-
-
-def _allowed_image_files(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() \
-           in app.config['ALLOWED_IMAGE_EXTENSIONS']
 
 
 @app.route('/')
@@ -39,9 +26,8 @@ def index():
 @app.route('/architectures', methods=['GET', 'POST'])
 def architectures():
     if request.method == 'POST':
-        resulting_dict = generate_model_dict()
-        save_model_as_json(app.config['ARCHITECTURES_DIRECTORY'], resulting_dict)
-        flash(get('architecture_name') + " has been created.")
+        saving_message = save_model_as_json()
+        flash(saving_message)
     network_architectures = _get_network_architectures()
     return render_template("architectures.html",
                            network_architectures=network_architectures)
@@ -49,17 +35,21 @@ def architectures():
 
 @app.route('/view_architecture/<architecture_name>')
 def view_architecture(architecture_name):
-    architecture = get_architecture(create_path(app.config['ARCHITECTURES_DIRECTORY'], architecture_name) + ".json")
+    architecture = get_architecture_path(architecture_name)
     return render_template("view_architecture.html",
                            architecture=architecture,
                            architecture_name=architecture_name)
 
 
 def _get_network_architectures():
-    network_architectures = get_directory_list(app.config['ARCHITECTURES_DIRECTORY'])
-    network_architectures = [network_architecture.split('.')[0]
-                             for network_architecture in network_architectures]
+    network_architectures = get_directory_list_from_config('ARCHITECTURES_DIRECTORY')
+    network_architectures = _get_names(network_architectures)
     return network_architectures
+
+
+def _get_names(network_architectures):
+    return [network_architecture.split('.')[0]
+            for network_architecture in network_architectures]
 
 
 @app.route('/create_network_architecture')
@@ -72,10 +62,10 @@ def create_network_architecture():
                            output_layers=get_enum_values(GraphKeys.OutputLayers))
 
 
-@app.route('/delete/<architecture>', methods=['POST'])
-def delete_architecture(architecture):
-    delete_file(create_path(app.config['ARCHITECTURES_DIRECTORY'], architecture) + ".json")
-    flash(architecture + " architecture deleted.")
+@app.route('/delete/<architecture_name>', methods=['POST'])
+def delete_architecture(architecture_name):
+    delete_file(get_architecture_path(architecture_name))
+    flash(architecture_name + " has been deleted.")
     return redirect(url_for('architectures'))
 
 
@@ -101,34 +91,28 @@ def dataset():
         if not images:
             flash('No images selected')
             return redirect(request.url)
-        if (labels_file and _allowed_labels_file(labels_file.filename)) \
-                and (images and _allowed_image_files(image.filename)
-                     for image in images):
-            upload_dataset(images, labels_file, app.config['DATASET_DIRECTORY'])
-            split_dataset(labels_file, app.config['DATASET_DIRECTORY'])
-    dataset_list = _get_dataset_list()
-    return render_template("dataset.html", dataset_list=dataset_list)
+        upload_message = upload_dataset(images, labels_file)
+        flash(upload_message)
+    return render_template("dataset.html", dataset_list=_get_dataset_list())
 
 
 @app.route('/delete_dataset/<dataset_name>', methods=['POST'])
 def delete_dataset(dataset_name):
-    delete_folder(create_path(app.config['DATASET_DIRECTORY'], dataset_name))
+    delete_folder(get_dataset(dataset_name))
     flash(dataset_name + " has been deleted.")
     return redirect(url_for('dataset'))
 
 
 def _get_dataset_list():
-    dataset_list = get_directory_list(app.config['DATASET_DIRECTORY'])
+    dataset_list = get_directory_list_from_config('DATASET_DIRECTORY')
     return dataset_list
 
 
 @app.route('/train')
 def train():
-    dataset_list = _get_dataset_list()
-    network_architectures = _get_network_architectures()
     return render_template("train.html",
-                           dataset_list=dataset_list,
-                           network_architectures=network_architectures,
+                           dataset_list=_get_dataset_list(),
+                           network_architectures=_get_network_architectures(),
                            losses=get_enum_values(GraphKeys.Losses),
                            optimizers=get_enum_values(GraphKeys.Optimizers),
                            metrics=get_enum_values(GraphKeys.Metrics))
@@ -136,60 +120,37 @@ def train():
 
 @app.route('/tasks/<task>', methods=['GET', 'POST'])
 def tasks(task):
-    running_tasks = []
-    running_tasks.extend([running_task.name for running_task in multiprocessing.active_children()])
     if request.method == 'POST':
-        if task == 'training':
-            training_task = train_task(create_path(app.config['ARCHITECTURES_DIRECTORY'],
-                                                   get('architecture_name') + '.json'),
-                                       create_path(app.config['DATASET_DIRECTORY'],
-                                                   get('dataset_name')),
-                                       int(get('desired_image_size')),
-                                       int(get('num_epochs')),
-                                       int(get('checkpoint_epochs')),
-                                       int(get('batch_size')),
-                                       'charsets/chars.txt',
-                                       float(get('learning_rate')),
-                                       get('optimizer'),
-                                       getlist('metrics'),
-                                       get('loss'))
-            training_task.name = task
-            running_tasks.append(training_task.name)
+        run_learning_task(task)
         flash(task + " has started.")
+    running_tasks = get_running_tasks()
     return render_template('tasks.html', running_tasks=running_tasks)
 
 
 @app.route('/terminate/<task>', methods=['POST'])
 def terminate(task):
-    was_terminated_manually = False
-    for running_task in multiprocessing.active_children():
-        if running_task.name == task:
-            running_task.terminate()
-            running_task.join()
-            was_terminated_manually = True
-            flash(running_task.name.capitalize() + " is terminated.")
-            break
-    if not was_terminated_manually:
-        flash(task.capitalize() + " was already terminated.")
+    message = stop_running(task)
+    flash(message)
     return redirect(url_for('tasks', task='view'))
 
 
 @app.route('/models')
 def models():
     return render_template("models.html",
-                           models=get_directory_list(app.config['MODELS_DIRECTORY']),
+                           models=get_directory_list_from_config('MODELS_DIRECTORY'),
                            dataset_list=_get_dataset_list())
 
-@app.route('/visualize/<model>')
-def visualize(model):
-    visualize_model(create_path(app.config['MODELS_DIRECTORY'], model))
-    return redirect("http://localhost:6006")
+
+@app.route('/visualize/<model_name>')
+def visualize(model_name):
+    visualize_model(model_name, app.config['VISUALIZATION_HOST'])
+    return redirect(get_visualization_link())
 
 
 @app.route('/delete_model/<model_name>', methods=['POST'])
 def delete_model(model_name):
-    delete_folder(create_path(app.config['MODELS_DIRECTORY'], model_name))
-    flash(model_name + " deleted.")
+    delete_folder(get_model_path(model_name))
+    flash(model_name + " has been deleted.")
     return redirect(url_for('models'))
 
 
@@ -199,9 +160,11 @@ def _render_progress(template_name, task):
 
 @app.errorhandler(404)
 def url_error(e):
+    print(e)
     return render_template("404.html"), 404
 
 
 @app.errorhandler(500)
 def server_error(e):
+    print(e)
     return render_template("500.html"), 500

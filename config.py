@@ -7,6 +7,7 @@ class BaseConfig(object):
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg'}
     ALLOWED_LABELS_FILE_EXTENSIONS = {'txt', 'csv'}
     MODELS_DIRECTORY = "checkpoint"
+    VISUALIZATION_HOST = "localhost"
 
 
 class DevelopmentConfig(BaseConfig):

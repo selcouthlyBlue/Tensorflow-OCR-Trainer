@@ -1,4 +1,3 @@
-import json
 import os
 import time
 
@@ -6,28 +5,25 @@ from trainer.backend import dataset_utils
 from trainer.backend.tf import train
 
 
-def train_model(architecture_config_file, dataset_dir,
+def train_model(architecture_params, dataset_dir,
                 learning_rate, metrics, loss, optimizer,
                 desired_image_size, charset_file, labels_delimiter=' ',
                 num_epochs=1, batch_size=1, checkpoint_epochs=1):
-    params = json.load(open(architecture_config_file, 'r'))
     labels_file = os.path.join(dataset_dir, "train.csv")
     images, labels, num_classes = _prepare_dataset(charset_file,
                                                    dataset_dir,
                                                    desired_image_size,
                                                    labels_delimiter,
                                                    labels_file)
-    filename, _ = os.path.splitext(architecture_config_file)
-    model_name = filename.split('\\')[-1]
 
-    checkpoint_dir = "checkpoint/" + str(model_name) + "_" + time.strftime("%Y%m%d-%H%M%S")
+    checkpoint_dir = "checkpoint/" + "model-" + time.strftime("%Y%m%d-%H%M%S")
 
-    params["learning_rate"] = learning_rate
-    params["optimizer"] = optimizer
-    params["metrics"] = metrics
-    params["loss"] = loss
+    architecture_params["learning_rate"] = learning_rate
+    architecture_params["optimizer"] = optimizer
+    architecture_params["metrics"] = metrics
+    architecture_params["loss"] = loss
 
-    train(params=params,
+    train(params=architecture_params,
           features=images,
           labels=labels,
           num_classes=num_classes,

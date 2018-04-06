@@ -17,7 +17,7 @@ def main():
     parser.add_argument("--max_label_length", type=int, default=120,
                         help='the maximum length for each label. Labels will be padded to reach the max length.')
     args = parser.parse_args()
-    train_model(architecture_config_file=args.architecture,
+    train_model(architecture_params=args.architecture,
                 dataset_dir=args.dataset_dir,
                 desired_image_size=args.desired_image_size,
                 num_epochs=args.num_epochs,

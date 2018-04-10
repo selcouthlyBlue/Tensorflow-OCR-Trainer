@@ -4,13 +4,14 @@ from trainer import app
 from trainer.backend import GraphKeys
 from trainer.controllers import delete_file
 from trainer.controllers import delete_folder
+from trainer.controllers import freeze_and_download_model
 from trainer.controllers import get_architecture_path
+from trainer.controllers import get_architecture_file_contents
 from trainer.controllers import get_dataset
 from trainer.controllers import get_directory_list_from_config
 from trainer.controllers import get_enum_values
 from trainer.controllers import get_model_path
 from trainer.controllers import get_running_tasks
-from trainer.controllers import get_visualization_link
 from trainer.controllers import run_learning_task
 from trainer.controllers import save_model_as_json
 from trainer.controllers import stop_running
@@ -35,7 +36,7 @@ def architectures():
 
 @app.route('/view_architecture/<architecture_name>')
 def view_architecture(architecture_name):
-    architecture = get_architecture_path(architecture_name)
+    architecture = get_architecture_file_contents(architecture_name)
     return render_template("view_architecture.html",
                            architecture=architecture,
                            architecture_name=architecture_name)
@@ -144,13 +145,20 @@ def models():
 @app.route('/visualize/<model_name>')
 def visualize(model_name):
     visualize_model(model_name, app.config['VISUALIZATION_HOST'])
-    return redirect(get_visualization_link())
+    return redirect("http://localhost:6006")
 
 
 @app.route('/delete_model/<model_name>', methods=['POST'])
 def delete_model(model_name):
     delete_folder(get_model_path(model_name))
     flash(model_name + " has been deleted.")
+    return redirect(url_for('models'))
+
+
+@app.route('/export_model', methods=['POST'])
+def export_model():
+    freeze_and_download_model()
+    flash("Model has been frozen.")
     return redirect(url_for('models'))
 
 

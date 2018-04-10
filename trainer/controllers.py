@@ -15,6 +15,7 @@ from trainer.backend import GraphKeys
 from trainer.backend.dataset_utils import read_dataset_list
 from trainer.backend.train_ocr import train_model
 from trainer.backend.train_ocr import evaluate_model
+from trainer.backend import freeze
 from trainer.backend import visualize
 
 
@@ -155,11 +156,6 @@ def visualize_model(model_name, host):
     visualization_task.start()
 
 
-def get_visualization_link():
-    time.sleep(20)
-    return "http://localhost:6006"
-
-
 def save_model_as_json():
     architecture_dict = _generate_architecture_dict()
     architecture_name = get('architecture_name')
@@ -194,11 +190,16 @@ def get_running_tasks():
     return [running_task.name for running_task in multiprocessing.active_children()]
 
 
-def test_task(dataset_name, charset_file,
-              model_name):
-    dataset_dir = get_dataset(dataset_name)
+def freeze_and_download_model():
+    model_path = get_model_path(get('model_name'))
+    freeze(model_path)
+
+
+def test_task(model_name):
     checkpoint_dir = get_model_path(model_name)
     architecture_params = json.load(open(create_path(checkpoint_dir, "architecture.json")), object_pairs_hook=OrderedDict)
+    dataset_dir = get_dataset(architecture_params['dataset_name'])
+    charset_file = architecture_params['charset_file']
     testing_task = multiprocessing.Process(target=evaluate_model,
                                            args=(architecture_params,
                                                  dataset_dir,
@@ -211,8 +212,8 @@ def test_task(dataset_name, charset_file,
 
 def run_learning_task(task):
     running_task = None
-    dataset_name = get('dataset_name')
     if task == 'training':
+        dataset_name = get('dataset_name')
         running_task = train_task(get('architecture_name'),
                                   dataset_name,
                                   int(get('desired_image_size')),
@@ -225,10 +226,7 @@ def run_learning_task(task):
                                   getlist('metrics'),
                                   get('loss'))
     elif task == 'testing':
-        running_task = test_task(dataset_name,
-                                 'charsets/chars.txt',
-                                 get('model_name'))
-    time.sleep(30)
+        running_task = test_task(get('model_name'))
     running_task.name = task
 
 
@@ -252,6 +250,8 @@ def train_task(architecture_name,
     architecture_params['metrics'] = metrics
     architecture_params['desired_image_size'] = desired_image_size
     architecture_params['batch_size'] = batch_size
+    architecture_params['dataset_name'] = dataset_name
+    architecture_params['charset_file'] = charset_file
     with open(model_architecture_path, 'w') as f:
         json.dump(architecture_params, f)
     task = multiprocessing.Process(target=train_model,

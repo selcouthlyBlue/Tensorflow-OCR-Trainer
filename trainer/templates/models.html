@@ -20,20 +20,23 @@
                                      Test
                                  </button>
                              </li>
-                             <li class="input-field col s2">
-                                 <select id="{{ model }}" name="dataset_name" required>
-                                      <option value="" disabled selected>Select Dataset</option>
-                                      {% for dataset_name in dataset_list %}
-                                          <option value="{{ dataset_name }}">{{ dataset_name|capitalize }}</option>
-                                      {% endfor %}
-                                 </select>
-                                 <label for="{{ model }}">Dataset</label>
-                             </li>
                          </ul>
                          <input type="hidden" name="model_name" value="{{ model }}">
                    </form>
                </li>
-               <li class="col s2 offset-s1">
+               <li>
+                   <form method="post" id="exporting" action="{{ url_for('export_model', model_name=model) }}" target="_blank">
+                       <ul>
+                           <li class="input-field col s2">
+                               <button type="submit" class="waves-effect waves-light btn right">
+                                   Export
+                               </button>
+                           </li>
+                       </ul>
+                       <input type="hidden" name="model_name" value="{{ model }}">
+                   </form>
+               </li>
+               <li class="col s2">
                    <a class="right input-field waves-effect waves-light btn right" href="{{ url_for('visualize', model_name=model) }}" target="_blank">
                         Visualize
                    </a>

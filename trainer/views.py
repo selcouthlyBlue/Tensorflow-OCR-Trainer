@@ -2,9 +2,9 @@ from flask import request, render_template, flash, redirect, url_for, send_from_
 
 from trainer import app
 from trainer.backend import GraphKeys
+from trainer.controllers import compress_model_files
 from trainer.controllers import delete_file
 from trainer.controllers import delete_folder
-from trainer.controllers import freeze_model
 from trainer.controllers import get_architecture_path
 from trainer.controllers import get_architecture_file_contents
 from trainer.controllers import get_dataset
@@ -155,11 +155,10 @@ def delete_model(model_name):
     return redirect(url_for('models'))
 
 
-@app.route('/{}/<model_name>/{}'.format(app.config['MODELS_DIRECTORY'], app.config['OUTPUT_GRAPH_FILENAME']))
+@app.route('/{}/<model_name>/{}'.format(app.config['MODELS_DIRECTORY'], app.config['MODEL_ZIP_FILENAME']))
 def export_model(model_name):
-    model_path = freeze_model(model_name)
-    output_graph_filename = app.config['OUTPUT_GRAPH_FILENAME']
-    return send_from_directory(model_path, output_graph_filename)
+    model_abs_path = compress_model_files(model_name)
+    return send_from_directory(model_abs_path, app.config['MODEL_ZIP_FILENAME'])
 
 
 def _render_progress(template_name, task):

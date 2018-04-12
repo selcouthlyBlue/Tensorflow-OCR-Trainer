@@ -9,6 +9,7 @@ class BaseConfig(object):
     MODELS_DIRECTORY = "checkpoint"
     VISUALIZATION_HOST = "localhost"
     OUTPUT_GRAPH_FILENAME = "frozen_graph.pb"
+    MODEL_ZIP_FILENAME = "model_files.gz"
 
 
 class DevelopmentConfig(BaseConfig):

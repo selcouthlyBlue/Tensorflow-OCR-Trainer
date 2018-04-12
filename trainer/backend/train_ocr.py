@@ -5,7 +5,7 @@ from trainer.backend.tf import train
 from trainer.backend.tf import evaluate
 
 
-def train_model(architecture_params, dataset_dir, checkpoint_dir,
+def train_model(run_params, dataset_dir, checkpoint_dir,
                 learning_rate, metrics, loss, optimizer,
                 desired_image_size, charset_file, labels_delimiter=' ',
                 num_epochs=1, batch_size=1, checkpoint_epochs=1):
@@ -16,12 +16,12 @@ def train_model(architecture_params, dataset_dir, checkpoint_dir,
                                                    labels_delimiter,
                                                    labels_file)
 
-    architecture_params["learning_rate"] = learning_rate
-    architecture_params["optimizer"] = optimizer
-    architecture_params["metrics"] = metrics
-    architecture_params["loss"] = loss
+    run_params["learning_rate"] = learning_rate
+    run_params["optimizer"] = optimizer
+    run_params["metrics"] = metrics
+    run_params["loss"] = loss
 
-    train(params=architecture_params,
+    train(params=run_params,
           features=images,
           labels=labels,
           num_classes=num_classes,

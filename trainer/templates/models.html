@@ -24,17 +24,10 @@
                          <input type="hidden" name="model_name" value="{{ model }}">
                    </form>
                </li>
-               <li>
-                   <form method="post" id="exporting" action="{{ url_for('export_model', model_name=model) }}" target="_blank">
-                       <ul>
-                           <li class="input-field col s2">
-                               <button type="submit" class="waves-effect waves-light btn right">
-                                   Export
-                               </button>
-                           </li>
-                       </ul>
-                       <input type="hidden" name="model_name" value="{{ model }}">
-                   </form>
+               <li class="col s2">
+                   <a class="right input-field waves-effect waves-light btn right" href="{{ url_for('export_model', model_name=model) }}" target="_blank">
+                        Export
+                   </a>
                </li>
                <li class="col s2">
                    <a class="right input-field waves-effect waves-light btn right" href="{{ url_for('visualize', model_name=model) }}" target="_blank">

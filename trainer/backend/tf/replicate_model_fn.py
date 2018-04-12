@@ -386,6 +386,8 @@ class TowerOptimizer(optimizer_lib.Optimizer):
             self._name_scope = None
             # If needed, alert that TowerOptimizer needs to be used with model_fn.
             self._has_tower_optimizer_been_used = False
+            # TODO: figure out a way to include the name without causing errors in importing the meta_graph.
+            # self.name = "graph_reduction"
 
         def collect_gradients(self, grads_and_vars):
             self._collected_grads_and_vars[self._current_tower_index].append(

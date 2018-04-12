@@ -75,7 +75,6 @@ def freeze(checkpoint_dir, output_nodes=None,
         output_nodes = ["output"]
     checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)
     input_checkpoint = checkpoint.model_checkpoint_path
-    print(input_checkpoint)
 
     saver = tf.train.import_meta_graph(input_checkpoint + '.meta', clear_devices=True)
     graph = tf.get_default_graph()

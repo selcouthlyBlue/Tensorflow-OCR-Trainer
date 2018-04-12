@@ -8,6 +8,7 @@ class BaseConfig(object):
     ALLOWED_LABELS_FILE_EXTENSIONS = {'txt', 'csv'}
     MODELS_DIRECTORY = "checkpoint"
     VISUALIZATION_HOST = "localhost"
+    OUTPUT_GRAPH_FILENAME = "frozen_graph.pb"
 
 
 class DevelopmentConfig(BaseConfig):

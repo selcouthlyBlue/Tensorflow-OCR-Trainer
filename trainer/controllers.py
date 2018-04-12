@@ -190,9 +190,12 @@ def get_running_tasks():
     return [running_task.name for running_task in multiprocessing.active_children()]
 
 
-def freeze_and_download_model():
-    model_path = get_model_path(get('model_name'))
-    freeze(model_path)
+def freeze_model(model_name):
+    model_path = get_model_path(model_name)
+    output_graph_path = create_path(model_path, app.config['OUTPUT_GRAPH_FILENAME'])
+    freeze(model_path, output_graph_filename=output_graph_path)
+    model_path = create_path(os.getcwd(), model_path)
+    return model_path
 
 
 def test_task(model_name):

@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
+from six.moves import xrange
+
 from trainer.backend.GraphKeys import Optimizers
 from trainer.backend.GraphKeys import OutputLayers
 from trainer.backend.GraphKeys import Metrics
@@ -79,7 +81,7 @@ def evaluate(params, features, labels, num_classes, checkpoint_dir):
 
 def _input_fn(features, labels, batch_size=1, num_epochs=None, shuffle=True):
     return tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(features)},
+        x=np.array(features),
         y=np.array(labels, dtype=np.int32),
         batch_size=batch_size,
         num_epochs=num_epochs,
@@ -97,13 +99,15 @@ def _create_train_op(loss, learning_rate, optimizer):
     return slim.learning.create_train_op(loss, optimizer, global_step=tf.train.get_or_create_global_step())
 
 
-def _create_model_fn(mode, predictions, loss=None, train_op=None, eval_metric_ops=None, training_hooks=None):
+def _create_model_fn(mode, predictions, loss=None, train_op=None,
+                     eval_metric_ops=None, training_hooks=None, export_outputs=None):
     return tf.estimator.EstimatorSpec(mode=mode,
                                       predictions=predictions,
                                       loss=loss,
                                       train_op=train_op,
                                       eval_metric_ops=eval_metric_ops,
-                                      training_hooks=training_hooks)
+                                      training_hooks=training_hooks,
+                                      export_outputs=export_outputs)
 
 
 def _get_output(inputs, output_layer, num_classes):
@@ -136,7 +140,74 @@ def _get_metrics(metrics, y_pred, y_true, num_classes):
     return metrics_dict
 
 
+# see https://gist.github.com/moodoki/e37a85fb0258b045c005ca3db9cbc7f6
+def freeze(checkpoint_dir, run_params, output_nodes=None,
+           output_graph_filename='frozen-graph.pb'):
+    if output_nodes is None:
+        output_nodes = ["output"]
+    checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)
+    input_checkpoint = checkpoint.model_checkpoint_path
+
+    saver = tf.train.import_meta_graph(input_checkpoint + '.meta', clear_devices=True)
+    graph = tf.get_default_graph()
+
+    input_graph_def = graph.as_graph_def(add_shapes=True)
+    input_layer = graph.get_operation_by_name('input_layer').outputs[0]
+    input_shape = input_layer.get_shape().as_list()[1:]
+    run_params['input_shape'] = input_shape
+    feature_spec = {'x': tf.FixedLenFeature(input_shape, input_layer.dtype)}
+
+    estimator = tf.estimator.Estimator(model_fn=_predict_model_fn,
+                                       params=run_params,
+                                       model_dir=checkpoint_dir)
+
+    def _serving_input_receiver_fn():
+        return tf.estimator.export.build_parsing_serving_input_receiver_fn(feature_spec)()
+
+    exported_model_path = estimator.export_savedmodel(checkpoint_dir, _serving_input_receiver_fn)
+
+    _fix_batch_norm_nodes(input_graph_def)
+
+    with tf.Session(graph=graph) as sess:
+        saver.restore(sess, input_checkpoint)
+
+        output_graph_def = _freeze_variables(input_graph_def, output_nodes, sess)
+        output_graph_def = tf.graph_util.remove_training_nodes(output_graph_def, output_nodes)
+        _write_graph(output_graph_def, output_graph_filename)
+        print("%d ops in the final graph." % len(output_graph_def.node))
+
+
+def _write_graph(output_graph_def, output_graph_filename):
+    with tf.gfile.GFile(output_graph_filename, "wb") as f:
+        f.write(output_graph_def.SerializeToString())
+
+
+def _freeze_variables(input_graph_def, output_nodes, sess):
+    output_graph_def = tf.graph_util.convert_variables_to_constants(
+        sess, input_graph_def,
+        output_nodes
+    )
+    return output_graph_def
+
+
+def _fix_batch_norm_nodes(input_graph_def):
+    for node in input_graph_def.node:
+        node_op = node.op
+        if node_op == 'RefSwitch':
+            node.op = 'Switch'
+
+            input_node = node.input
+            for index in xrange(len(input_node)):
+                if 'moving' in input_node[index]:
+                    input_node[index] = input_node + '/read'
+        elif node_op == 'AssignSub':
+            node.op = 'Sub'
+            if 'use_locking' in node.attr:
+                del node.attr['use_locking']
+
+
 def _predict_model_fn(features, mode, params):
+    features = features['x']
     features = _network_fn(features, mode, params)
 
     outputs = _get_output(features, params["output_layer"], params["num_classes"])
@@ -144,7 +215,10 @@ def _predict_model_fn(features, mode, params):
         "outputs": outputs
     }
 
-    return _create_model_fn(mode, predictions=predictions)
+    return _create_model_fn(mode, predictions=predictions,
+                            export_outputs={
+                                "outputs": tf.estimator.export.PredictOutput(outputs)
+                            })
 
 def _eval_model_fn(features, labels, mode, params):
     features = _network_fn(features, mode, params)
@@ -201,7 +275,6 @@ def _train_model_fn(features, labels, mode, params):
 
 
 def _network_fn(features, mode, params):
-    features = features["x"]
     features = _set_dynamic_batch_size(features)
     for layer in params["network"]:
         features = feed(features, layer, is_training=mode == tf.estimator.ModeKeys.TRAIN)
@@ -211,5 +284,5 @@ def _network_fn(features, mode, params):
 def _set_dynamic_batch_size(inputs):
     new_shape = [-1]
     new_shape.extend(inputs.get_shape().as_list()[1:])
-    inputs = tf.reshape(inputs, new_shape, name="inputs")
+    inputs = tf.reshape(inputs, new_shape, name="input_layer")
     return inputs

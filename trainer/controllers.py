@@ -12,7 +12,7 @@ from collections import OrderedDict
 from sklearn.model_selection import train_test_split
 
 from trainer import app
-from trainer.backend import GraphKeys
+from trainer.backend import GraphKeys, dataset_utils
 from trainer.backend.dataset_utils import read_dataset_list
 from trainer.backend.train_ocr import train_model
 from trainer.backend.train_ocr import evaluate_model
@@ -198,7 +198,8 @@ def get_running_tasks():
 def _freeze_model(model_name):
     model_path = get_model_path(model_name)
     output_graph_path = _create_path(model_path, app.config['OUTPUT_GRAPH_FILENAME'])
-    freeze(model_path, output_graph_filename=output_graph_path)
+    run_params = json.load(open(_create_path(model_path, "run_config.json")), object_pairs_hook=OrderedDict)
+    freeze(model_path, run_params, output_graph_filename=output_graph_path)
 
 
 def compress_model_files(model_name):
@@ -262,12 +263,14 @@ def _train_task(architecture_name,
     os.mkdir(checkpoint_dir)
     _copy_architecture_to_model(architecture_name, checkpoint_dir)
     run_params = get_architecture_file_contents(architecture_name)
+    classes = dataset_utils.get_characters_from(charset_file)
     run_params['loss'] = loss
     run_params['metrics'] = metrics
     run_params['desired_image_size'] = desired_image_size
     run_params['batch_size'] = batch_size
     run_params['dataset_name'] = dataset_name
     run_params['charset_file'] = charset_file
+    run_params['num_classes'] = len(classes) + 1
     with open(_create_path(checkpoint_dir, 'run_config.json'), 'w') as f:
         json.dump(run_params, f)
     task = multiprocessing.Process(target=train_model,

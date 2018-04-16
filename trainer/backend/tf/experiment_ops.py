@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from six.moves import xrange
+from tensorflow.python.tools import freeze_graph
 
 from trainer.backend.GraphKeys import Optimizers
 from trainer.backend.GraphKeys import OutputLayers
@@ -140,41 +141,48 @@ def _get_metrics(metrics, y_pred, y_true, num_classes):
     return metrics_dict
 
 
-# see https://gist.github.com/moodoki/e37a85fb0258b045c005ca3db9cbc7f6
-def freeze(checkpoint_dir, run_params, output_nodes=None,
-           output_graph_filename='frozen-graph.pb'):
-    if output_nodes is None:
-        output_nodes = ["output"]
+def create_serving_model(checkpoint_dir, run_params):
+    serving_model_path, input_shape = _export_serving_model(checkpoint_dir, run_params)
+    return serving_model_path, input_shape
+
+
+def _export_serving_model(checkpoint_dir, model_params):
     checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)
     input_checkpoint = checkpoint.model_checkpoint_path
-
-    saver = tf.train.import_meta_graph(input_checkpoint + '.meta', clear_devices=True)
-    graph = tf.get_default_graph()
-
-    input_graph_def = graph.as_graph_def(add_shapes=True)
-    input_layer = graph.get_operation_by_name('input_layer').outputs[0]
-    input_shape = input_layer.get_shape().as_list()[1:]
-    run_params['input_shape'] = input_shape
-    feature_spec = {'x': tf.FixedLenFeature(input_shape, input_layer.dtype)}
-
-    estimator = tf.estimator.Estimator(model_fn=_predict_model_fn,
-                                       params=run_params,
-                                       model_dir=checkpoint_dir)
+    with tf.Session(graph=tf.Graph()) as sess:
+        saver = tf.train.import_meta_graph(input_checkpoint + '.meta', clear_devices=True)
+        saver.restore(sess, input_checkpoint)
+        input_layer = tf.get_default_graph().get_operation_by_name('input_layer').outputs[0]
+        input_shape = input_layer.get_shape().as_list()
+        feature_spec = {'x': tf.FixedLenFeature(input_shape[1:], input_layer.dtype)}
+        estimator = tf.estimator.Estimator(model_fn=_predict_model_fn,
+                                           params=model_params,
+                                           model_dir=checkpoint_dir)
 
     def _serving_input_receiver_fn():
         return tf.estimator.export.build_parsing_serving_input_receiver_fn(feature_spec)()
 
-    exported_model_path = estimator.export_savedmodel(checkpoint_dir, _serving_input_receiver_fn)
+    serving_model_path = estimator.export_savedmodel(checkpoint_dir, _serving_input_receiver_fn,
+                                                     as_text=True)
+    return serving_model_path, input_shape
 
-    _fix_batch_norm_nodes(input_graph_def)
 
-    with tf.Session(graph=graph) as sess:
-        saver.restore(sess, input_checkpoint)
-
-        output_graph_def = _freeze_variables(input_graph_def, output_nodes, sess)
-        output_graph_def = tf.graph_util.remove_training_nodes(output_graph_def, output_nodes)
-        _write_graph(output_graph_def, output_graph_filename)
-        print("%d ops in the final graph." % len(output_graph_def.node))
+def create_optimized_graph(model_filename, output_nodes=None, output_graph_filename="optimized_graph.pb"):
+    if output_nodes is None:
+        output_nodes = "output"
+    freeze_graph.freeze_graph(
+        input_graph=None,
+        input_saver=None,
+        input_binary=False,
+        input_checkpoint=None,
+        output_node_names=output_nodes,
+        restore_op_name=None,
+        filename_tensor_name=None,
+        output_graph=output_graph_filename,
+        clear_devices=True,
+        initializer_nodes=None,
+        input_saved_model_dir=model_filename
+    )
 
 
 def _write_graph(output_graph_def, output_graph_filename):
@@ -284,5 +292,6 @@ def _network_fn(features, mode, params):
 def _set_dynamic_batch_size(inputs):
     new_shape = [-1]
     new_shape.extend(inputs.get_shape().as_list()[1:])
+    print(new_shape)
     inputs = tf.reshape(inputs, new_shape, name="input_layer")
     return inputs

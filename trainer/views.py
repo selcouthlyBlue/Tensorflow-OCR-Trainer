@@ -2,7 +2,7 @@ from flask import request, render_template, flash, redirect, url_for, send_from_
 
 from trainer import app
 from trainer.backend import GraphKeys
-from trainer.controllers import compress_model_files
+from trainer.controllers import package_model_files
 from trainer.controllers import delete_file
 from trainer.controllers import delete_folder
 from trainer.controllers import get_architecture_path
@@ -157,7 +157,7 @@ def delete_model(model_name):
 
 @app.route('/{}/<model_name>/{}'.format(app.config['MODELS_DIRECTORY'], app.config['MODEL_ZIP_FILENAME']))
 def export_model(model_name):
-    model_abs_path = compress_model_files(model_name)
+    model_abs_path = package_model_files(model_name)
     return send_from_directory(model_abs_path, app.config['MODEL_ZIP_FILENAME'])
 
 

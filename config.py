@@ -8,8 +8,9 @@ class BaseConfig(object):
     ALLOWED_LABELS_FILE_EXTENSIONS = {'txt', 'csv'}
     MODELS_DIRECTORY = "checkpoint"
     VISUALIZATION_HOST = "localhost"
-    OUTPUT_GRAPH_FILENAME = "frozen_graph.pb"
+    OUTPUT_GRAPH_FILENAME = "optimized_graph.pb"
     MODEL_ZIP_FILENAME = "model_files.gz"
+    SERVING_MODEL_CONFIG_FILENAME = "serving_model_config.json"
 
 
 class DevelopmentConfig(BaseConfig):

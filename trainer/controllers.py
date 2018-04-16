@@ -16,8 +16,9 @@ from trainer.backend import GraphKeys, dataset_utils
 from trainer.backend.dataset_utils import read_dataset_list
 from trainer.backend.train_ocr import train_model
 from trainer.backend.train_ocr import evaluate_model
-from trainer.backend import freeze
+from trainer.backend import create_serving_model
 from trainer.backend import visualize
+from trainer.backend import create_optimized_graph
 
 
 def _allowed_labels_file(filename):
@@ -195,19 +196,24 @@ def get_running_tasks():
     return [running_task.name for running_task in multiprocessing.active_children()]
 
 
-def _freeze_model(model_name):
+def _export_serving_model(model_name):
     model_path = get_model_path(model_name)
-    output_graph_path = _create_path(model_path, app.config['OUTPUT_GRAPH_FILENAME'])
     run_params = json.load(open(_create_path(model_path, "run_config.json")), object_pairs_hook=OrderedDict)
-    freeze(model_path, run_params, output_graph_filename=output_graph_path)
+    serving_model_path, input_shape = create_serving_model(model_path, run_params)
+    optimized_model_path = _create_path(model_path, app.config["OUTPUT_GRAPH_FILENAME"])
+    create_optimized_graph(serving_model_path, output_graph_filename=optimized_model_path)
+    delete_folder(serving_model_path)
+    serving_model_config = OrderedDict()
+    serving_model_config['input_shape'] = input_shape
+    with open(_create_path(model_path, app.config['SERVING_MODEL_CONFIG_FILENAME']), 'w') as f:
+        json.dump(serving_model_config, f)
 
 
-def compress_model_files(model_name):
-    _freeze_model(model_name)
+def package_model_files(model_name):
+    _export_serving_model(model_name)
     model_path = get_model_path(model_name)
     with zipfile.ZipFile(_create_path(model_path, app.config['MODEL_ZIP_FILENAME']), mode='w') as f_out:
-        for model_file in ['run_config.json',
-                           app.config['OUTPUT_GRAPH_FILENAME']]:
+        for model_file in [app.config['SERVING_MODEL_CONFIG_FILENAME'], app.config["OUTPUT_GRAPH_FILENAME"]]:
             f_out.write(_create_path(model_path, model_file), arcname=model_file)
     return _get_abs_path(model_path)
 
@@ -261,7 +267,6 @@ def _train_task(architecture_name,
     dataset_dir = get_dataset(dataset_name)
     checkpoint_dir = get_model_path("model-" + time.strftime("%Y%m%d-%H%M%S"))
     os.mkdir(checkpoint_dir)
-    _copy_architecture_to_model(architecture_name, checkpoint_dir)
     run_params = get_architecture_file_contents(architecture_name)
     classes = dataset_utils.get_characters_from(charset_file)
     run_params['loss'] = loss
@@ -291,10 +296,3 @@ def _train_task(architecture_name,
                                    ))
     task.start()
     return task
-
-
-def _copy_architecture_to_model(architecture_name, checkpoint_dir, filename="architecture.json"):
-    architecture_config_file = get_architecture_path(architecture_name)
-    shutil.copy(architecture_config_file, checkpoint_dir)
-    model_architecture_path = _create_path(checkpoint_dir, filename)
-    os.rename(_create_path(checkpoint_dir, architecture_name) + ".json", model_architecture_path)

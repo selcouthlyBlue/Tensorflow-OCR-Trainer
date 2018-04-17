@@ -290,8 +290,7 @@ def _network_fn(features, mode, params):
 
 
 def _set_dynamic_batch_size(inputs):
-    new_shape = [-1]
-    new_shape.extend(inputs.get_shape().as_list()[1:])
-    print(new_shape)
+    new_shape = inputs.get_shape().as_list()
+    new_shape[0] = -1
     inputs = tf.reshape(inputs, new_shape, name="input_layer")
     return inputs

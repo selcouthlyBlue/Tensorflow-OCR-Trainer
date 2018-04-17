@@ -214,7 +214,9 @@ def package_model_files(model_name):
     model_path = get_model_path(model_name)
     with zipfile.ZipFile(_create_path(model_path, app.config['MODEL_ZIP_FILENAME']), mode='w') as f_out:
         for model_file in [app.config['SERVING_MODEL_CONFIG_FILENAME'], app.config["OUTPUT_GRAPH_FILENAME"]]:
-            f_out.write(_create_path(model_path, model_file), arcname=model_file)
+            model_file_path = _create_path(model_path, model_file)
+            f_out.write(model_file_path, arcname=model_file)
+            delete_file(model_file_path)
     return _get_abs_path(model_path)
 
 

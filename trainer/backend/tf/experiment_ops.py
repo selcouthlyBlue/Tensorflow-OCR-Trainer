@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from six.moves import xrange
+from tensorflow.python.estimator.export.export import ServingInputReceiver
 from tensorflow.python.tools import freeze_graph
 
 from trainer.backend.GraphKeys import Optimizers
@@ -16,6 +17,7 @@ from trainer.backend.tf.util_ops import feed, dense_to_sparse, get_sequence_leng
 from tensorflow.contrib import slim
 
 tf.logging.set_verbosity(tf.logging.INFO)
+
 
 def _get_loss(loss, labels, inputs, num_classes):
     if loss == Losses.CTC.value:
@@ -67,6 +69,7 @@ def train(params, features, labels, num_classes, checkpoint_dir,
                                        ))
     estimator.train(input_fn=_input_fn(features, labels, batch_size),
                     steps=num_epochs * num_steps_per_epoch)
+
 
 def evaluate(params, features, labels, num_classes, checkpoint_dir):
     params['num_classes'] = num_classes
@@ -161,7 +164,12 @@ def _export_serving_model(checkpoint_dir, model_params, input_name="features"):
                                            model_dir=checkpoint_dir)
 
     def _serving_input_receiver_fn():
-        return tf.estimator.export.build_parsing_serving_input_receiver_fn(feature_spec)()
+        serialized_tf_example = tf.placeholder(dtype=tf.string,
+                                               shape=[None],
+                                               name=input_name)
+        receiver_tensors = {'examples': serialized_tf_example}
+        features = tf.parse_example(serialized_tf_example, feature_spec)
+        return ServingInputReceiver(features, receiver_tensors)
 
     serving_model_path = estimator.export_savedmodel(checkpoint_dir, _serving_input_receiver_fn,
                                                      as_text=True)
@@ -251,6 +259,7 @@ def _eval_model_fn(features, labels, mode, params):
         metrics[metric_key] = metric_functions.create_eval_metric(metrics[metric_key])
     return _create_model_fn(mode, predictions=predictions, loss=loss,
                             eval_metric_ops=metrics)
+
 
 def _train_model_fn(features, labels, mode, params):
     features = _network_fn(features, mode, params)

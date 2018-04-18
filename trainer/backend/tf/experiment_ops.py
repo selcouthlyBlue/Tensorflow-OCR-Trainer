@@ -158,18 +158,16 @@ def _export_serving_model(checkpoint_dir, model_params, input_name="features"):
         saver.restore(sess, input_checkpoint)
         input_layer = tf.get_default_graph().get_operation_by_name('input_layer').outputs[0]
         input_shape = input_layer.get_shape().as_list()
-        feature_spec = {input_name: tf.FixedLenFeature(input_shape[1:], input_layer.dtype)}
         estimator = tf.estimator.Estimator(model_fn=_serving_model_fn,
                                            params=model_params,
                                            model_dir=checkpoint_dir)
 
     def _serving_input_receiver_fn():
-        serialized_tf_example = tf.placeholder(dtype=tf.string,
-                                               shape=[None],
+        serialized_tf_example = tf.placeholder(dtype=input_layer.dtype,
+                                               shape=input_shape,
                                                name=input_name)
-        receiver_tensors = {'examples': serialized_tf_example}
-        features = tf.parse_example(serialized_tf_example, feature_spec)
-        return ServingInputReceiver(features, receiver_tensors)
+        receiver_tensors = {input_name: serialized_tf_example}
+        return ServingInputReceiver(receiver_tensors, receiver_tensors)
 
     serving_model_path = estimator.export_savedmodel(checkpoint_dir, _serving_input_receiver_fn,
                                                      as_text=True)

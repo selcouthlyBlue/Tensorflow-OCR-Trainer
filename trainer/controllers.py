@@ -196,15 +196,21 @@ def get_running_tasks():
     return [running_task.name for running_task in multiprocessing.active_children()]
 
 
-def _export_serving_model(model_name):
+def _export_serving_model(model_name, input_name="features", output_names="output"):
     model_path = get_model_path(model_name)
     run_params = json.load(open(_create_path(model_path, "run_config.json")), object_pairs_hook=OrderedDict)
-    serving_model_path, input_shape = create_serving_model(model_path, run_params)
+    serving_model_path, input_shape = create_serving_model(model_path,
+                                                           run_params,
+                                                           input_name)
     optimized_model_path = _create_path(model_path, app.config["OUTPUT_GRAPH_FILENAME"])
-    create_optimized_graph(serving_model_path, output_graph_filename=optimized_model_path)
+    create_optimized_graph(serving_model_path, output_names, output_graph_filename=optimized_model_path)
     delete_folder(serving_model_path)
     serving_model_config = OrderedDict()
-    serving_model_config['input_shape'] = input_shape
+    input_node = OrderedDict()
+    input_node['input_name'] = input_name
+    input_node['input_shape'] = input_shape
+    serving_model_config['input_nodes'] = [input_node]
+    serving_model_config['output_names'] = output_names.split(',')
     with open(_create_path(model_path, app.config['SERVING_MODEL_CONFIG_FILENAME']), 'w') as f:
         json.dump(serving_model_config, f)
 

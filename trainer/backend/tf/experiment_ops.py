@@ -141,12 +141,13 @@ def _get_metrics(metrics, y_pred, y_true, num_classes):
     return metrics_dict
 
 
-def create_serving_model(checkpoint_dir, run_params):
-    serving_model_path, input_shape = _export_serving_model(checkpoint_dir, run_params)
+def create_serving_model(checkpoint_dir, run_params, input_name="features"):
+    serving_model_path, input_shape = _export_serving_model(checkpoint_dir, run_params, input_name)
     return serving_model_path, input_shape
 
 
-def _export_serving_model(checkpoint_dir, model_params):
+def _export_serving_model(checkpoint_dir, model_params, input_name="features"):
+    model_params["input_name"] = input_name
     checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)
     input_checkpoint = checkpoint.model_checkpoint_path
     with tf.Session(graph=tf.Graph()) as sess:
@@ -154,8 +155,8 @@ def _export_serving_model(checkpoint_dir, model_params):
         saver.restore(sess, input_checkpoint)
         input_layer = tf.get_default_graph().get_operation_by_name('input_layer').outputs[0]
         input_shape = input_layer.get_shape().as_list()
-        feature_spec = {'x': tf.FixedLenFeature(input_shape[1:], input_layer.dtype)}
-        estimator = tf.estimator.Estimator(model_fn=_predict_model_fn,
+        feature_spec = {input_name: tf.FixedLenFeature(input_shape[1:], input_layer.dtype)}
+        estimator = tf.estimator.Estimator(model_fn=_serving_model_fn,
                                            params=model_params,
                                            model_dir=checkpoint_dir)
 
@@ -167,9 +168,9 @@ def _export_serving_model(checkpoint_dir, model_params):
     return serving_model_path, input_shape
 
 
-def create_optimized_graph(model_filename, output_nodes=None, output_graph_filename="optimized_graph.pb"):
-    if output_nodes is None:
-        output_nodes = "output"
+def create_optimized_graph(model_filename,
+                           output_nodes="output",
+                           output_graph_filename="optimized_graph.pb"):
     freeze_graph.freeze_graph(
         input_graph=None,
         input_saver=None,
@@ -214,8 +215,12 @@ def _fix_batch_norm_nodes(input_graph_def):
                 del node.attr['use_locking']
 
 
+def _serving_model_fn(features, mode, params):
+    features = features[params["input_name"]]
+    return _predict_model_fn(features, mode, params)
+
+
 def _predict_model_fn(features, mode, params):
-    features = features['x']
     features = _network_fn(features, mode, params)
 
     outputs = _get_output(features, params["output_layer"], params["num_classes"])
@@ -227,6 +232,7 @@ def _predict_model_fn(features, mode, params):
                             export_outputs={
                                 "outputs": tf.estimator.export.PredictOutput(outputs)
                             })
+
 
 def _eval_model_fn(features, labels, mode, params):
     features = _network_fn(features, mode, params)

@@ -1,6 +1,10 @@
 import numpy as np
 import tensorflow as tf
 
+from six.moves import xrange
+from tensorflow.python.estimator.export.export import ServingInputReceiver
+from tensorflow.python.tools import freeze_graph
+
 from trainer.backend.GraphKeys import Optimizers
 from trainer.backend.GraphKeys import OutputLayers
 from trainer.backend.GraphKeys import Metrics
@@ -13,6 +17,7 @@ from trainer.backend.tf.util_ops import feed, dense_to_sparse, get_sequence_leng
 from tensorflow.contrib import slim
 
 tf.logging.set_verbosity(tf.logging.INFO)
+
 
 def _get_loss(loss, labels, inputs, num_classes):
     if loss == Losses.CTC.value:
@@ -65,21 +70,22 @@ def train(params, features, labels, num_classes, checkpoint_dir,
     estimator.train(input_fn=_input_fn(features, labels, batch_size),
                     steps=num_epochs * num_steps_per_epoch)
 
-def evaluate(params, features, labels, num_classes, checkpoint_dir, batch_size):
+
+def evaluate(params, features, labels, num_classes, checkpoint_dir):
     params['num_classes'] = num_classes
     estimator = tf.estimator.Estimator(model_fn=_eval_model_fn,
                                        params=params,
                                        model_dir=checkpoint_dir)
     estimator.evaluate(input_fn=_input_fn(features,
                                           labels,
-                                          batch_size=batch_size,
+                                          batch_size=params['batch_size'],
                                           num_epochs=1,
                                           shuffle=False))
 
 
 def _input_fn(features, labels, batch_size=1, num_epochs=None, shuffle=True):
     return tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(features)},
+        x=np.array(features),
         y=np.array(labels, dtype=np.int32),
         batch_size=batch_size,
         num_epochs=num_epochs,
@@ -97,13 +103,15 @@ def _create_train_op(loss, learning_rate, optimizer):
     return slim.learning.create_train_op(loss, optimizer, global_step=tf.train.get_or_create_global_step())
 
 
-def _create_model_fn(mode, predictions, loss=None, train_op=None, eval_metric_ops=None, training_hooks=None):
+def _create_model_fn(mode, predictions, loss=None, train_op=None,
+                     eval_metric_ops=None, training_hooks=None, export_outputs=None):
     return tf.estimator.EstimatorSpec(mode=mode,
                                       predictions=predictions,
                                       loss=loss,
                                       train_op=train_op,
                                       eval_metric_ops=eval_metric_ops,
-                                      training_hooks=training_hooks)
+                                      training_hooks=training_hooks,
+                                      export_outputs=export_outputs)
 
 
 def _get_output(inputs, output_layer, num_classes):
@@ -136,6 +144,88 @@ def _get_metrics(metrics, y_pred, y_true, num_classes):
     return metrics_dict
 
 
+def create_serving_model(checkpoint_dir, run_params, input_name="features"):
+    serving_model_path, input_shape = _export_serving_model(checkpoint_dir, run_params, input_name)
+    return serving_model_path, input_shape
+
+
+def _export_serving_model(checkpoint_dir, model_params, input_name="features"):
+    model_params["input_name"] = input_name
+    checkpoint = tf.train.get_checkpoint_state(checkpoint_dir)
+    input_checkpoint = checkpoint.model_checkpoint_path
+    with tf.Session(graph=tf.Graph()) as sess:
+        saver = tf.train.import_meta_graph(input_checkpoint + '.meta', clear_devices=True)
+        saver.restore(sess, input_checkpoint)
+        input_layer = tf.get_default_graph().get_operation_by_name('input_layer').outputs[0]
+        input_shape = input_layer.get_shape().as_list()
+        estimator = tf.estimator.Estimator(model_fn=_serving_model_fn,
+                                           params=model_params,
+                                           model_dir=checkpoint_dir)
+
+    def _serving_input_receiver_fn():
+        serialized_tf_example = tf.placeholder(dtype=input_layer.dtype,
+                                               shape=input_shape,
+                                               name=input_name)
+        receiver_tensors = {input_name: serialized_tf_example}
+        return ServingInputReceiver(receiver_tensors, receiver_tensors)
+
+    serving_model_path = estimator.export_savedmodel(checkpoint_dir, _serving_input_receiver_fn,
+                                                     as_text=True)
+    return serving_model_path, input_shape
+
+
+def create_optimized_graph(model_filename,
+                           output_nodes="output",
+                           output_graph_filename="optimized_graph.pb"):
+    freeze_graph.freeze_graph(
+        input_graph=None,
+        input_saver=None,
+        input_binary=False,
+        input_checkpoint=None,
+        output_node_names=output_nodes,
+        restore_op_name=None,
+        filename_tensor_name=None,
+        output_graph=output_graph_filename,
+        clear_devices=True,
+        initializer_nodes=None,
+        input_saved_model_dir=model_filename
+    )
+
+
+def _write_graph(output_graph_def, output_graph_filename):
+    with tf.gfile.GFile(output_graph_filename, "wb") as f:
+        f.write(output_graph_def.SerializeToString())
+
+
+def _freeze_variables(input_graph_def, output_nodes, sess):
+    output_graph_def = tf.graph_util.convert_variables_to_constants(
+        sess, input_graph_def,
+        output_nodes
+    )
+    return output_graph_def
+
+
+def _fix_batch_norm_nodes(input_graph_def):
+    for node in input_graph_def.node:
+        node_op = node.op
+        if node_op == 'RefSwitch':
+            node.op = 'Switch'
+
+            input_node = node.input
+            for index in xrange(len(input_node)):
+                if 'moving' in input_node[index]:
+                    input_node[index] = input_node + '/read'
+        elif node_op == 'AssignSub':
+            node.op = 'Sub'
+            if 'use_locking' in node.attr:
+                del node.attr['use_locking']
+
+
+def _serving_model_fn(features, mode, params):
+    features = features[params["input_name"]]
+    return _predict_model_fn(features, mode, params)
+
+
 def _predict_model_fn(features, mode, params):
     features = _network_fn(features, mode, params)
 
@@ -144,7 +234,11 @@ def _predict_model_fn(features, mode, params):
         "outputs": outputs
     }
 
-    return _create_model_fn(mode, predictions=predictions)
+    return _create_model_fn(mode, predictions=predictions,
+                            export_outputs={
+                                "outputs": tf.estimator.export.PredictOutput(outputs)
+                            })
+
 
 def _eval_model_fn(features, labels, mode, params):
     features = _network_fn(features, mode, params)
@@ -164,6 +258,7 @@ def _eval_model_fn(features, labels, mode, params):
     return _create_model_fn(mode, predictions=predictions, loss=loss,
                             eval_metric_ops=metrics)
 
+
 def _train_model_fn(features, labels, mode, params):
     features = _network_fn(features, mode, params)
 
@@ -175,6 +270,7 @@ def _train_model_fn(features, labels, mode, params):
 
     loss = _get_loss(params["loss"], labels=labels,
                      inputs=features, num_classes=params["num_classes"])
+    _add_to_summary("loss", loss)
     metrics = _get_metrics(params["metrics"],
                            y_pred=features,
                            y_true=labels,
@@ -200,7 +296,6 @@ def _train_model_fn(features, labels, mode, params):
 
 
 def _network_fn(features, mode, params):
-    features = features["x"]
     features = _set_dynamic_batch_size(features)
     for layer in params["network"]:
         features = feed(features, layer, is_training=mode == tf.estimator.ModeKeys.TRAIN)
@@ -208,7 +303,7 @@ def _network_fn(features, mode, params):
 
 
 def _set_dynamic_batch_size(inputs):
-    new_shape = [-1]
-    new_shape.extend(inputs.get_shape().as_list()[1:])
-    inputs = tf.reshape(inputs, new_shape, name="inputs")
+    new_shape = inputs.get_shape().as_list()
+    new_shape[0] = -1
+    inputs = tf.reshape(inputs, new_shape, name="input_layer")
     return inputs

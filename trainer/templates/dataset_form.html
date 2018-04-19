@@ -2,15 +2,21 @@
 {% block title %}Upload Dataset{% endblock %}
 {% block body %}
     <h3>Upload Dataset</h3>
-    <form method="post" enctype="multipart/form-data" action="dataset.html">
-        <div class="input-field col s12">
-            <input id="dataset_name" class="validate" type="text" name="dataset_name" required>
-            <label for="dataset_name">Dataset Name</label>
+    <form method="post" enctype="multipart/form-data" action="/dataset">
+        <div class="row">
+            <div class="input-field col s9">
+                <input id="dataset_name" class="validate" type="text" name="dataset_name" required>
+                <label for="dataset_name">Dataset Name</label>
+            </div>
+            <div class="input-field col s3">
+                <input id="test_size" name="test_size" type="number" step="0.01" min="0.01" max="0.5">
+                <label for="test_size">Test Size</label>
+            </div>
         </div>
         <div class="file-field input-field col s12">
             <div class="btn">
                 <span>File</span>
-                <input class="validate" type="file" name="images[]" multiple required>
+                <input class="validate" type="file" name="images" multiple required>
             </div>
             <div class="file-path-wrapper">
                 <input class="file-path validate" type="text" placeholder="Upload one or more images">

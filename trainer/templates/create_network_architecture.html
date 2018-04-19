@@ -30,49 +30,11 @@
                 </select>
                 <label for="output-layer-select">Output Layer</label>
             </div>
-            <div class="input-field col s4">
-                <select id="loss-select" name="loss" required>
-                    <option value="" disabled selected>Select Loss</option>
-                    {% for loss in losses %}
-                        <option value="{{ loss }}">{{ loss|upper }}</option>
-                    {% endfor %}
-                </select>
-                <label for="loss-select">Loss</label>
-            </div>
-        </div>
-        <div class="input-field col s12">
-            <select id="metrics-select" name="metrics" multiple>
-                <option value="" disabled selected>Select Metrics</option>
-                {% for metric in metrics %}
-                    <option value="{{ metric }}">{{ metric.replace("_", " ")|capitalize }}</option>
-                {% endfor %}
-            </select>
-            <label for="metrics-select">Metrics</label>
-        </div>
-        <div class="row">
-            <div class="input-field col s4">
-                <input id="learning_rate" class="validate"
-                   type="number" name="learning_rate"
-                   min="0"
-                   max="1"
-                   step="any"
-                   required>
-                <label for="learning_rate">Learning Rate</label>
-            </div>
-            <div class="input-field col s8">
-                <select id="optimizer-select" name="optimizer" required>
-                    <option value="" disabled selected>Select Optimizer</option>
-                    {% for optimizer in optimizers %}
-                        <option value="{{ optimizer }}">{{ optimizer|capitalize }}</option>
-                    {% endfor %}
-                </select>
-                <label for="optimizer-select">Optimizer</label>
-            </div>
         </div>
         <div class="row">
             <button class="btn waves-effect waves-light right" type="submit" name="action">Create Architecture
-            <i class="material-icons right">send</i>
-        </button>
+                <i class="material-icons right">send</i>
+            </button>
         </div>
     </form>
 {% endblock %}

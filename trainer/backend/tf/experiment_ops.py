@@ -33,8 +33,8 @@ def _get_loss(loss, labels, inputs, num_classes):
 
 def _sparse_to_dense(sparse_tensor, name="sparse_to_dense"):
     return tf.sparse_to_dense(tf.to_int32(sparse_tensor.indices),
-                              tf.to_int32(sparse_tensor.values),
                               tf.to_int32(sparse_tensor.dense_shape),
+                              tf.to_int32(sparse_tensor.values),
                               name=name)
 
 
@@ -79,14 +79,13 @@ def evaluate(params, features, labels, checkpoint_dir):
                                           batch_size=params['batch_size'],
                                           num_epochs=1,
                                           shuffle=False))
-    predict(params, features, checkpoint_dir)
 
 
 def predict(params, features, checkpoint_dir):
     estimator = tf.estimator.Estimator(model_fn=_predict_model_fn,
                                        params=params,
                                        model_dir=checkpoint_dir)
-    predictions = estimator.predict(input_fn=_input_fn(features))
+    predictions = estimator.predict(input_fn=_input_fn(features, num_epochs=1))
     for i, p in enumerate(predictions):
         print(i, p)
 
@@ -213,31 +212,17 @@ def _serving_model_fn(features, mode, params):
 
 
 def _predict_model_fn(features, mode, params):
-    features = _network_fn(features, mode, params)
-    outputs = _get_output(features, params["output_layer"], params["num_classes"])
-    predictions = {
-        "outputs": outputs
-    }
+    features, predictions = _get_fed_features_and_resulting_predictions(features, mode, params)
 
     return _create_model_fn(mode, predictions=predictions,
                             export_outputs={
-                                "outputs": tf.estimator.export.PredictOutput(outputs)
+                                "outputs": tf.estimator.export.PredictOutput(predictions['outputs'])
                             })
 
 
 def _eval_model_fn(features, labels, mode, params):
-    features = _network_fn(features, mode, params)
+    loss, metrics, predictions = _get_evaluation_parameters(features, labels, mode, params)
 
-    outputs = _get_output(features, params["output_layer"], params["num_classes"])
-    predictions = {
-        "outputs": outputs
-    }
-
-    loss = _get_loss(params["loss"], labels=labels, inputs=features, num_classes=params["num_classes"])
-    metrics = _get_metrics(params["metrics"],
-                           y_pred=features,
-                           y_true=labels,
-                           num_classes=params["num_classes"])
     for metric_key in metrics:
         metrics[metric_key] = metric_functions.create_eval_metric(metrics[metric_key])
     return _create_model_fn(mode, predictions=predictions, loss=loss,
@@ -245,21 +230,7 @@ def _eval_model_fn(features, labels, mode, params):
 
 
 def _train_model_fn(features, labels, mode, params):
-    features = _network_fn(features, mode, params)
-
-    outputs = _get_output(features, params["output_layer"],
-                          params["num_classes"])
-    predictions = {
-        "outputs": outputs
-    }
-
-    loss = _get_loss(params["loss"], labels=labels,
-                     inputs=features, num_classes=params["num_classes"])
-    _add_to_summary("loss", loss)
-    metrics = _get_metrics(params["metrics"],
-                           y_pred=features,
-                           y_true=labels,
-                           num_classes=params["num_classes"])
+    loss, metrics, predictions = _get_evaluation_parameters(features, labels, mode, params)
 
     train_op = _create_train_op(loss,
                                 learning_rate=params["learning_rate"],
@@ -278,6 +249,27 @@ def _train_model_fn(features, labels, mode, params):
                             loss=loss,
                             train_op=train_op,
                             training_hooks=training_hooks)
+
+
+def _get_evaluation_parameters(features, labels, mode, params):
+    features, predictions = _get_fed_features_and_resulting_predictions(features, mode, params)
+    loss = _get_loss(params["loss"], labels=labels,
+                     inputs=features, num_classes=params["num_classes"])
+    _add_to_summary("loss", loss)
+    metrics = _get_metrics(params["metrics"],
+                           y_pred=features,
+                           y_true=labels,
+                           num_classes=params["num_classes"])
+    return loss, metrics, predictions
+
+
+def _get_fed_features_and_resulting_predictions(features, mode, params):
+    features = _network_fn(features, mode, params)
+    outputs = _get_output(features, params["output_layer"], params["num_classes"])
+    predictions = {
+        "outputs": outputs
+    }
+    return features, predictions
 
 
 def _network_fn(features, mode, params):

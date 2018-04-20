@@ -1,0 +1,27 @@
+{
+"network": [
+{
+"layer_type": "conv2d",
+"num_filters": 16,
+"kernel_size": 3,
+"stride": 1,
+"padding": "valid"
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 2,
+"stride": 2,
+"padding": "valid"
+},
+{
+"layer_type": "collapse_to_rnn_dims"
+},
+{
+"layer_type": "birnn",
+"num_hidden": 32,
+"cell_type": "LSTM",
+"activation": "tanh"
+}
+],
+"output_layer": "ctc_decoder"
+}

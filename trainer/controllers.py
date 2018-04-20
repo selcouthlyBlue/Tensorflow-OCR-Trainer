@@ -93,25 +93,25 @@ def _get_layer(layer_index):
     layer["layer_type"] = get(_create_network_key(layer_index, "layer_type"))
     layer_type = layer["layer_type"]
     if layer_type == GraphKeys.LayerTypes.CONV2D.value:
-        layer["num_filters"] = get(_create_network_key(layer_index, "num_filters"))
-        layer["kernel_size"] = get(_create_network_key(layer_index, "kernel_size"))
-        layer["stride"] = get(_create_network_key(layer_index, "stride"))
+        layer["num_filters"] = int(get(_create_network_key(layer_index, "num_filters")))
+        layer["kernel_size"] = int(get(_create_network_key(layer_index, "kernel_size")))
+        layer["stride"] = int(get(_create_network_key(layer_index, "stride")))
         layer["padding"] = get(_create_network_key(layer_index, "padding"))
     elif layer_type == GraphKeys.LayerTypes.MAX_POOL2D.value:
-        layer["pool_size"] = get(_create_network_key(layer_index, "pool_size"))
-        layer["stride"] = get(_create_network_key(layer_index, "stride"))
+        layer["pool_size"] = int(get(_create_network_key(layer_index, "pool_size")))
+        layer["stride"] = int(get(_create_network_key(layer_index, "stride")))
         layer["padding"] = get(_create_network_key(layer_index, "padding"))
     elif layer_type == GraphKeys.LayerTypes.BIRNN.value:
-        layer["num_hidden"] = get(_create_network_key(layer_index, "num_hidden"))
+        layer["num_hidden"] = int(get(_create_network_key(layer_index, "num_hidden")))
         layer["cell_type"] = get(_create_network_key(layer_index, "cell_type"))
         layer["activation"] = get(_create_network_key(layer_index, "activation"))
     elif layer_type == GraphKeys.LayerTypes.MDRNN.value:
-        layer["num_hidden"] = get(_create_network_key(layer_index, "num_hidden"))
-        layer["kernel_size"] = get(_create_network_key(layer_index, "kernel_size"))
+        layer["num_hidden"] = int(get(_create_network_key(layer_index, "num_hidden")))
+        layer["kernel_size"] = int(get(_create_network_key(layer_index, "kernel_size")))
         layer["cell_type"] = get(_create_network_key(layer_index, "cell_type"))
         layer["activation"] = get(_create_network_key(layer_index, "activation"))
     elif layer_type == GraphKeys.LayerTypes.DROPOUT.value:
-        layer["keep_prob"] = get(_create_network_key(layer_index, "keep_prob"))
+        layer["keep_prob"] = float(get(_create_network_key(layer_index, "keep_prob")))
     elif layer_type == GraphKeys.LayerTypes.L2_NORMALIZE:
         layer["axis"] = get(_create_network_key(layer_index, "axis"))
     return layer
@@ -162,9 +162,13 @@ def save_model_as_json():
     architecture_dict = _generate_architecture_dict()
     architecture_name = get('architecture_name')
     architecture_path = get_architecture_path(architecture_name)
-    with open(architecture_path, 'w') as fp:
-        json.dump(architecture_dict, fp)
+    _write_json(architecture_path, architecture_dict)
     return architecture_name + " has been created."
+
+
+def _write_json(path, content):
+    with open(path, 'w') as fp:
+        json.dump(content, fp, indent=0)
 
 
 def get_architecture_path(architecture_name):
@@ -211,8 +215,8 @@ def _export_serving_model(model_name, input_name="features", output_names="outpu
     input_node['input_shape'] = input_shape
     serving_model_config['input_nodes'] = [input_node]
     serving_model_config['output_names'] = output_names.split(',')
-    with open(_create_path(model_path, app.config['SERVING_MODEL_CONFIG_FILENAME']), 'w') as f:
-        json.dump(serving_model_config, f)
+    serving_model_config_path = _create_path(model_path, app.config['SERVING_MODEL_CONFIG_FILENAME'])
+    _write_json(serving_model_config_path, serving_model_config)
 
 
 def package_model_files(model_name):
@@ -284,8 +288,8 @@ def _train_task(architecture_name,
     run_params['dataset_name'] = dataset_name
     run_params['charset_file'] = charset_file
     run_params['num_classes'] = len(classes) + 1
-    with open(_create_path(checkpoint_dir, 'run_config.json'), 'w') as f:
-        json.dump(run_params, f)
+    run_config_path = _create_path(checkpoint_dir, 'run_config.json')
+    _write_json(run_config_path, run_params)
     task = multiprocessing.Process(target=train_model,
                                    args=(
                                        run_params,

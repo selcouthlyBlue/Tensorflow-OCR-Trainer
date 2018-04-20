@@ -78,21 +78,14 @@ def dataset_form():
 @app.route('/dataset', methods=['GET', 'POST'])
 def dataset():
     if request.method == 'POST':
-        if 'labels_file' not in request.files:
+        if 'dataset_zip' not in request.files:
             flash('No labels file part.')
             return redirect(request.url)
-        if 'images' not in request.files:
-            flash('No images file part.')
+        dataset_zip = request.files['dataset_zip']
+        if not dataset_zip:
+            flash('No dataset zip file selected')
             return redirect(request.url)
-        labels_file = request.files['labels_file']
-        if labels_file.filename == '':
-            flash('No selected labels file')
-            return redirect(request.url)
-        images = request.files.getlist('images')
-        if not images:
-            flash('No images selected')
-            return redirect(request.url)
-        upload_message = upload_dataset(images, labels_file)
+        upload_message = upload_dataset(dataset_zip)
         flash(upload_message)
     return render_template("dataset.html", dataset_list=_get_dataset_list())
 

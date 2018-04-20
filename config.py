@@ -6,6 +6,7 @@ class BaseConfig(object):
     CHARSET_DIRECTORY = "charset"
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg'}
     ALLOWED_LABELS_FILE_EXTENSIONS = {'txt', 'csv'}
+    ALLOWED_ZIP_EXTENSIONS = {'gz', 'rar', 'zip'}
     MODELS_DIRECTORY = "checkpoint"
     VISUALIZATION_HOST = "localhost"
     OUTPUT_GRAPH_FILENAME = "graph.pb"

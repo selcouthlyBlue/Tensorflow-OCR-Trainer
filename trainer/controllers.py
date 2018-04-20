@@ -33,25 +33,30 @@ def _allowed_image_files(filename):
            in app.config['ALLOWED_IMAGE_EXTENSIONS']
 
 
-def upload_dataset(images, labels_file):
-    if (labels_file and _allowed_labels_file(labels_file.filename)) \
-            and (images and _allowed_image_files(image.filename)
-                 for image in images):
-        _upload_dataset_files(images, labels_file)
-        split_dataset(labels_file)
-        return get('dataset_name') + " has been uploaded."
+def _allowed_zip_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() \
+           in app.config['ALLOWED_ZIP_EXTENSIONS']
+
+
+def upload_dataset(dataset_zip):
+    dataset_name = get('dataset_name')
+    if _allowed_zip_file(dataset_zip.filename):
+        dataset_zip_path = _create_path(app.config['DATASET_DIRECTORY'], secure_filename(dataset_zip.filename))
+        dataset_zip.save(dataset_zip_path)
+        dataset_path = _create_path(app.config['DATASET_DIRECTORY'], dataset_name)
+        os.makedirs(dataset_path)
+        _extract_zip_files(dataset_zip_path, dataset_path)
+        delete_file(dataset_zip_path)
+        split_dataset("labels.txt")
+        return dataset_name + " has been uploaded."
     return "An error occurred in uploading the dataset."
 
 
-def _upload_dataset_files(images, labels_file):
-    dataset_name = get('dataset_name')
-    dataset_path = _create_path(app.config['DATASET_DIRECTORY'], dataset_name)
-    os.makedirs(dataset_path)
-    labels_file.save(_create_path(dataset_path,
-                                  secure_filename(labels_file.filename)))
-    for image in images:
-        image.save(_create_path(dataset_path,
-                                secure_filename(image.filename)))
+def _extract_zip_files(src, dest_dir):
+    zip_ref = zipfile.ZipFile(src, 'r')
+    zip_ref.extractall(dest_dir)
+    zip_ref.close()
 
 
 def get_dataset(dataset_name):
@@ -72,7 +77,7 @@ def _create_labels_file(filename, features, labels):
 def split_dataset(labels_file):
     dataset_path = _create_path(app.config['DATASET_DIRECTORY'], get('dataset_name'))
     features, labels = read_dataset_list(_create_path(dataset_path,
-                                                      secure_filename(labels_file.filename)))
+                                                      secure_filename(labels_file)))
     x_train, x_test, y_train, y_test = train_test_split(features,
                                                         labels,
                                                         test_size=float(get('test_size')))

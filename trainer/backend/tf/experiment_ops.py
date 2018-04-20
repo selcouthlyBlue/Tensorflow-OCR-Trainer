@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from six.moves import xrange
 from tensorflow.python.estimator.export.export import ServingInputReceiver
 from tensorflow.python.tools import freeze_graph
 
@@ -71,8 +70,7 @@ def train(params, features, labels, num_classes, checkpoint_dir,
                     steps=num_epochs * num_steps_per_epoch)
 
 
-def evaluate(params, features, labels, num_classes, checkpoint_dir):
-    params['num_classes'] = num_classes
+def evaluate(params, features, labels, checkpoint_dir):
     estimator = tf.estimator.Estimator(model_fn=_eval_model_fn,
                                        params=params,
                                        model_dir=checkpoint_dir)
@@ -81,12 +79,24 @@ def evaluate(params, features, labels, num_classes, checkpoint_dir):
                                           batch_size=params['batch_size'],
                                           num_epochs=1,
                                           shuffle=False))
+    predict(params, features, checkpoint_dir)
 
 
-def _input_fn(features, labels, batch_size=1, num_epochs=None, shuffle=True):
+def predict(params, features, checkpoint_dir):
+    estimator = tf.estimator.Estimator(model_fn=_predict_model_fn,
+                                       params=params,
+                                       model_dir=checkpoint_dir)
+    predictions = estimator.predict(input_fn=_input_fn(features))
+    for i, p in enumerate(predictions):
+        print(i, p)
+
+
+def _input_fn(features, labels=None, batch_size=1, num_epochs=None, shuffle=True):
+    if labels:
+        labels = np.array(labels, dtype=np.int32)
     return tf.estimator.inputs.numpy_input_fn(
         x=np.array(features),
-        y=np.array(labels, dtype=np.int32),
+        y=labels,
         batch_size=batch_size,
         num_epochs=num_epochs,
         shuffle=shuffle
@@ -197,30 +207,6 @@ def _write_graph(output_graph_def, output_graph_filename):
         f.write(output_graph_def.SerializeToString())
 
 
-def _freeze_variables(input_graph_def, output_nodes, sess):
-    output_graph_def = tf.graph_util.convert_variables_to_constants(
-        sess, input_graph_def,
-        output_nodes
-    )
-    return output_graph_def
-
-
-def _fix_batch_norm_nodes(input_graph_def):
-    for node in input_graph_def.node:
-        node_op = node.op
-        if node_op == 'RefSwitch':
-            node.op = 'Switch'
-
-            input_node = node.input
-            for index in xrange(len(input_node)):
-                if 'moving' in input_node[index]:
-                    input_node[index] = input_node + '/read'
-        elif node_op == 'AssignSub':
-            node.op = 'Sub'
-            if 'use_locking' in node.attr:
-                del node.attr['use_locking']
-
-
 def _serving_model_fn(features, mode, params):
     features = features[params["input_name"]]
     return _predict_model_fn(features, mode, params)
@@ -228,7 +214,6 @@ def _serving_model_fn(features, mode, params):
 
 def _predict_model_fn(features, mode, params):
     features = _network_fn(features, mode, params)
-
     outputs = _get_output(features, params["output_layer"], params["num_classes"])
     predictions = {
         "outputs": outputs

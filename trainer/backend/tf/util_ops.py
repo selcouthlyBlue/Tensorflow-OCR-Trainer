@@ -20,12 +20,12 @@ def _feed_to_layer(inputs, layer, is_training):
     layer_type = layer["layer_type"]
     if layer_type == LayerTypes.CONV2D.value:
         return layers.conv2d(inputs, num_filters=layer["num_filters"],
-                             kernel=layer["kernel_size"],
+                             kernel_size=layer["kernel_size"],
                              activation=layer.get("activation"),
                              padding=layer.get("padding"),
                              scope=layer.get("name"))
     if layer_type == LayerTypes.MAX_POOL2D.value:
-        return layers.max_pool2d(inputs, kernel=layer["pool_size"],
+        return layers.max_pool2d(inputs, pool_size=layer["pool_size"],
                                  padding=layer.get("padding"),
                                  stride=layer.get("stride"),
                                  scope=layer.get("name"))

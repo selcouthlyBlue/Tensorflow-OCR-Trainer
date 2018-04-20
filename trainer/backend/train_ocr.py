@@ -39,7 +39,7 @@ def evaluate_model(architecture_params, dataset_dir, charset_file,
                                                    architecture_params['desired_image_size'],
                                                    labels_delimiter,
                                                    labels_file)
-    evaluate(architecture_params, images, labels, num_classes, checkpoint_dir)
+    evaluate(architecture_params, images, labels, checkpoint_dir)
 
 
 def _prepare_dataset(charset_file, dataset_dir, desired_image_size, labels_delimiter, labels_file):

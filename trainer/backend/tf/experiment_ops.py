@@ -220,7 +220,7 @@ def _predict_model_fn(features, mode, params):
 
     return _create_model_fn(mode, predictions=predictions,
                             export_outputs={
-                                "outputs": tf.estimator.export.PredictOutput(predictions['outputs'])
+                                "outputs": tf.estimator.export.PredictOutput(predictions)
                             })
 
 

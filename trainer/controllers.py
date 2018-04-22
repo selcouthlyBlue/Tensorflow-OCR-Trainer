@@ -159,7 +159,7 @@ def get_model_path(model):
 def visualize_model(model_name, host):
     model_path = get_model_path(model_name)
     visualization_task = multiprocessing.Process(target=visualize, args=(model_path, host))
-    visualization_task.name = "visualize {}".format(model_path)
+    visualization_task.name = "visualize-{}".format(model_name)
     visualization_task.start()
 
 

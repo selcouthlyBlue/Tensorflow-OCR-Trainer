@@ -1,0 +1,73 @@
+{
+"network": [
+{
+"layer_type": "conv2d",
+"num_filters": 16,
+"kernel_size": 3,
+"stride": 1,
+"padding": "same"
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 2,
+"stride": 2,
+"padding": "valid"
+},
+{
+"layer_type": "conv2d",
+"num_filters": 32,
+"kernel_size": 3,
+"stride": 1,
+"padding": "same"
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 2,
+"stride": 2,
+"padding": "valid"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.5
+},
+{
+"layer_type": "conv2d",
+"num_filters": 64,
+"kernel_size": 3,
+"stride": 1,
+"padding": "same"
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 2,
+"stride": 2,
+"padding": "valid"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.5
+},
+{
+"layer_type": "collapse_to_rnn_dims"
+},
+{
+"layer_type": "birnn",
+"num_hidden": 128,
+"cell_type": "LSTM",
+"activation": "tanh"
+},
+{
+"layer_type": "birnn",
+"num_hidden": 128,
+"cell_type": "LSTM",
+"activation": "tanh"
+},
+{
+"layer_type": "birnn",
+"num_hidden": 128,
+"cell_type": "LSTM",
+"activation": "tanh"
+}
+],
+"output_layer": "ctc_decoder"
+}

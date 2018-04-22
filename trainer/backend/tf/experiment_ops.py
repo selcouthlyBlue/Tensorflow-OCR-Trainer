@@ -94,7 +94,7 @@ def _input_fn(features, labels=None, batch_size=1, num_epochs=None, shuffle=True
     if labels:
         labels = np.array(labels, dtype=np.int32)
     return tf.estimator.inputs.numpy_input_fn(
-        x=np.array(features),
+        x={'features': np.array(features)},
         y=labels,
         batch_size=batch_size,
         num_epochs=num_epochs,
@@ -264,6 +264,7 @@ def _get_evaluation_parameters(features, labels, mode, params):
 
 
 def _get_fed_features_and_resulting_predictions(features, mode, params):
+    features = features['features']
     features = _network_fn(features, mode, params)
     outputs = _get_output(features, params["output_layer"], params["num_classes"])
     predictions = {

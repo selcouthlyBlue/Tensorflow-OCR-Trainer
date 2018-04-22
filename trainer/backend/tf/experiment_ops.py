@@ -212,7 +212,11 @@ def _serving_model_fn(features, mode, params):
 
 
 def _predict_model_fn(features, mode, params):
-    features, predictions = _get_fed_features_and_resulting_predictions(features, mode, params)
+    features = _network_fn(features, mode, params)
+    outputs = _get_output(features, params["output_layer"], params["num_classes"])
+    predictions = {
+        "outputs": outputs
+    }
 
     return _create_model_fn(mode, predictions=predictions,
                             export_outputs={

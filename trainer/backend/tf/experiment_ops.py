@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import logging
 
 from tensorflow.python.estimator.export.export import ServingInputReceiver
 from tensorflow.python.tools import freeze_graph
@@ -54,6 +55,7 @@ def _get_optimizer(learning_rate, optimizer_name):
 
 def train(params, features, labels, num_classes, checkpoint_dir,
           batch_size=1, num_epochs=1, save_checkpoint_every_n_epochs=1):
+    _set_logger_to_file(checkpoint_dir, 'train')
     num_steps_per_epoch = len(features) // batch_size
     save_checkpoint_steps = save_checkpoint_every_n_epochs * num_steps_per_epoch
     params['num_classes'] = num_classes
@@ -71,6 +73,7 @@ def train(params, features, labels, num_classes, checkpoint_dir,
 
 
 def evaluate(params, features, labels, checkpoint_dir):
+    _set_logger_to_file(checkpoint_dir, 'evaluate')
     estimator = tf.estimator.Estimator(model_fn=_eval_model_fn,
                                        params=params,
                                        model_dir=checkpoint_dir)
@@ -79,6 +82,19 @@ def evaluate(params, features, labels, checkpoint_dir):
                                           batch_size=params['batch_size'],
                                           num_epochs=1,
                                           shuffle=False))
+
+
+# see https://stackoverflow.com/a/44296581
+def _set_logger_to_file(checkpoint_dir, task):
+    log = logging.getLogger('tensorflow')
+    log.setLevel(logging.DEBUG)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler(checkpoint_dir + '/' + task + '.log')
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    log.addHandler(fh)
 
 
 def predict(params, features, checkpoint_dir):
@@ -113,13 +129,15 @@ def _create_train_op(loss, learning_rate, optimizer):
 
 
 def _create_model_fn(mode, predictions, loss=None, train_op=None,
-                     eval_metric_ops=None, training_hooks=None, export_outputs=None):
+                     eval_metric_ops=None, training_hooks=None,
+                     evaluation_hooks=None, export_outputs=None):
     return tf.estimator.EstimatorSpec(mode=mode,
                                       predictions=predictions,
                                       loss=loss,
                                       train_op=train_op,
                                       eval_metric_ops=eval_metric_ops,
                                       training_hooks=training_hooks,
+                                      evaluation_hooks=evaluation_hooks,
                                       export_outputs=export_outputs)
 
 
@@ -227,10 +245,11 @@ def _predict_model_fn(features, mode, params):
 def _eval_model_fn(features, labels, mode, params):
     loss, metrics, predictions = _get_evaluation_parameters(features, labels, mode, params)
 
+    evaluation_hooks = [tf.train.LoggingTensorHook(predictions, every_n_iter=1)]
     for metric_key in metrics:
         metrics[metric_key] = metric_functions.create_eval_metric(metrics[metric_key])
     return _create_model_fn(mode, predictions=predictions, loss=loss,
-                            eval_metric_ops=metrics)
+                            eval_metric_ops=metrics, evaluation_hooks=evaluation_hooks)
 
 
 def _train_model_fn(features, labels, mode, params):

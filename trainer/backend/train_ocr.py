@@ -1,5 +1,7 @@
 import os
 
+from sklearn.model_selection import train_test_split
+
 from trainer.backend import dataset_utils
 from trainer.backend.tf import train
 from trainer.backend.tf import evaluate
@@ -7,14 +9,21 @@ from trainer.backend.tf import evaluate
 
 def train_model(run_params, dataset_dir, checkpoint_dir,
                 learning_rate, metrics, loss, optimizer,
-                desired_image_size, charset_file, labels_delimiter=' ',
-                num_epochs=1, batch_size=1, checkpoint_epochs=1):
+                desired_image_size, charset_file, validation_size=None,
+                labels_delimiter=' ', num_epochs=1, batch_size=1,
+                checkpoint_epochs=1):
     labels_file = os.path.join(dataset_dir, "train.csv")
     images, labels, num_classes = _prepare_dataset(charset_file,
                                                    dataset_dir,
                                                    desired_image_size,
                                                    labels_delimiter,
                                                    labels_file)
+    features = {}
+    labels_dict = {}
+    features['train'] = images
+    labels_dict['train'] = labels
+    if validation_size:
+        features, labels_dict = _train_validation_split(images, labels, validation_size)
 
     run_params["learning_rate"] = learning_rate
     run_params["optimizer"] = optimizer
@@ -22,13 +31,28 @@ def train_model(run_params, dataset_dir, checkpoint_dir,
     run_params["loss"] = loss
 
     train(params=run_params,
-          features=images,
-          labels=labels,
+          features=features,
+          labels=labels_dict,
           num_classes=num_classes,
           checkpoint_dir=checkpoint_dir,
           batch_size=batch_size,
           num_epochs=num_epochs,
           save_checkpoint_every_n_epochs=checkpoint_epochs)
+
+
+def _train_validation_split(images, labels, validation_size):
+    features = {}
+    labels_dict = {}
+    x_train, x_validation, y_train, y_validation = train_test_split(
+        images,
+        labels,
+        test_size=validation_size
+    )
+    features['train'] = x_train
+    features['validation'] = x_validation
+    labels_dict['train'] = y_train
+    labels_dict['validation'] = y_validation
+    return features, labels_dict
 
 
 def evaluate_model(architecture_params, dataset_dir, charset_file,

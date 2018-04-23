@@ -264,7 +264,8 @@ def run_learning_task(task):
                                    float(get('learning_rate')),
                                    get('optimizer'),
                                    getlist('metrics'),
-                                   get('loss'))
+                                   get('loss'),
+                                   get('validation_size'))
     elif task == 'testing':
         running_task = _test_task(get('model_name'))
     running_task.name = task
@@ -280,7 +281,10 @@ def _train_task(architecture_name,
                 learning_rate,
                 optimizer,
                 metrics,
-                loss):
+                loss,
+                validation_size):
+    if validation_size:
+        validation_size = float(validation_size)
     dataset_dir = get_dataset(dataset_name)
     checkpoint_dir = get_model_path("model-" + time.strftime("%Y%m%d-%H%M%S"))
     os.mkdir(checkpoint_dir)
@@ -306,6 +310,7 @@ def _train_task(architecture_name,
                                        optimizer,
                                        desired_image_size,
                                        charset_file,
+                                       validation_size,
                                        ' ',
                                        num_epochs,
                                        batch_size,

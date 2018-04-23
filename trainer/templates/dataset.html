@@ -13,7 +13,7 @@
             <ul>
                <li class="col s6">{{ dataset }}</li>
                <li class="col s3 right">
-                    <form id="deletion" method="post" action="{{ url_for('delete_dataset', dataset_name=dataset) }}">
+                    <form name="deletion" method="post" action="{{ url_for('delete_dataset', dataset_name=dataset) }}">
                         <button type="submit" class="waves-effect waves-light btn red right">
                             <i class="material-icons">remove</i>
                         </button>

@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 import logging
 
-from tensorflow.contrib.learn import monitors
 from tensorflow.python.estimator.export.export import ServingInputReceiver
 from tensorflow.python.tools import freeze_graph
 
@@ -14,6 +13,7 @@ from trainer.backend.GraphKeys import Losses
 from trainer.backend.tf import ctc_ops, losses, metric_functions
 from trainer.backend.tf.replicate_model_fn import TowerOptimizer
 from trainer.backend.tf.util_ops import feed, dense_to_sparse, get_sequence_lengths
+from trainer.backend.tf.CustomHook import CustomHook
 
 from tensorflow.contrib import slim
 
@@ -58,11 +58,11 @@ def train(params, features, labels, num_classes, checkpoint_dir,
           batch_size=1, num_epochs=1,
           save_checkpoint_every_n_epochs=1):
     _set_logger_to_file(checkpoint_dir, 'train')
-    num_steps_per_epoch = len(features) // batch_size
+    num_steps_per_epoch = len(features['train']) // batch_size
     save_checkpoint_steps = save_checkpoint_every_n_epochs * num_steps_per_epoch
     params['num_classes'] = num_classes
     params['log_step_count_steps'] = num_steps_per_epoch
-    training_hooks = None
+    training_hooks = []
     estimator = tf.estimator.Estimator(model_fn=_train_model_fn,
                                        params=params,
                                        model_dir=checkpoint_dir,
@@ -72,32 +72,20 @@ def train(params, features, labels, num_classes, checkpoint_dir,
                                            save_summary_steps=num_steps_per_epoch
                                        ))
     if features.get('validation'):
-        training_hooks = _create_validation_hook(batch_size,
-                                                 estimator,
-                                                 features,
-                                                 labels,
-                                                 num_steps_per_epoch)
+        training_hooks.append(CustomHook(
+            model_fn=_eval_model_fn,
+            params=params,
+            input_fn=_input_fn(features['validation'],
+                               labels['validation'],
+                               batch_size,
+                               num_epochs=1,
+                               shuffle=False),
+            checkpoint_dir=checkpoint_dir,
+            every_n_steps=save_checkpoint_steps
+        ))
     estimator.train(input_fn=_input_fn(features['train'], labels['train'], batch_size),
                     steps=num_epochs * num_steps_per_epoch,
                     hooks=training_hooks)
-
-
-def _create_validation_hook(batch_size, estimator, features, labels, num_steps_per_epoch):
-    validation_monitor = monitors.ValidationMonitor(
-        input_fn=_input_fn(features['validation'],
-                           labels['validation'],
-                           batch_size,
-                           num_epochs=1),
-        every_n_steps=num_steps_per_epoch
-    )
-    validation_monitor.set_estimator(estimator)
-    validation_hook = monitors.RunHookAdapterForMonitors([
-        validation_monitor
-    ])
-    training_hooks = [
-        validation_hook
-    ]
-    return training_hooks
 
 
 def evaluate(params, features, labels, checkpoint_dir):

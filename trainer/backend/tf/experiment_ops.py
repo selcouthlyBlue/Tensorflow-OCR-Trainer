@@ -13,7 +13,7 @@ from trainer.backend.GraphKeys import Losses
 from trainer.backend.tf import ctc_ops, losses, metric_functions
 from trainer.backend.tf.replicate_model_fn import TowerOptimizer
 from trainer.backend.tf.util_ops import feed, dense_to_sparse, get_sequence_lengths
-from trainer.backend.tf.CustomHook import CustomHook
+from trainer.backend.tf.ValidationHook import ValidationHook
 
 from tensorflow.contrib import slim
 
@@ -72,7 +72,7 @@ def train(params, features, labels, num_classes, checkpoint_dir,
                                            save_summary_steps=num_steps_per_epoch
                                        ))
     if features.get('validation'):
-        training_hooks.append(CustomHook(
+        training_hooks.append(ValidationHook(
             model_fn=_eval_model_fn,
             params=params,
             input_fn=_input_fn(features['validation'],

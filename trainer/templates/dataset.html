@@ -1,32 +1,34 @@
 {% extends "base.html" %}
 {% block title %}Dataset{% endblock %}
 {% block body %}
-    <h3>Dataset List</h3>
-    <ul class="collection black-text">
-    {% if not dataset_list %}
-        <li class="collection-item row">No dataset has been uploaded yet.
-            Click <a href="{{ url_for('dataset_form') }}">here</a> to upload a dataset.
-        </li>
-    {% endif %}
-    {% for dataset in dataset_list %}
-        <li class="collection-item row">
-            <ul>
-               <li class="col s6">{{ dataset }}</li>
-               <li class="col s3 right">
-                    <form name="deletion" method="post" action="{{ url_for('delete_dataset', dataset_name=dataset) }}">
-                        <button type="submit" class="waves-effect waves-light btn red right">
-                            <i class="material-icons">remove</i>
-                        </button>
-                    </form>
-                </li>
-            </ul>
-        </li>
-    {% endfor %}
-    </ul>
-    <a href="{{ url_for('dataset_form') }}" class="right waves-effect waves-light btn">
-        <i class="material-icons left">add</i>
-        Upload Dataset
-    </a>
+    <div class="container white-text">
+        <h3>Dataset List</h3>
+        <ul class="collection black-text">
+        {% if not dataset_list %}
+            <li class="collection-item row">No dataset has been uploaded yet.
+                Click <a href="{{ url_for('dataset_form') }}">here</a> to upload a dataset.
+            </li>
+        {% endif %}
+        {% for dataset in dataset_list %}
+            <li class="collection-item row">
+                <ul>
+                   <li class="col s6">{{ dataset }}</li>
+                   <li class="col s3 right">
+                        <form name="deletion" method="post" action="{{ url_for('delete_dataset', dataset_name=dataset) }}">
+                            <button type="submit" class="waves-effect waves-light btn red right">
+                                <i class="material-icons">remove</i>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        {% endfor %}
+        </ul>
+        <a href="{{ url_for('dataset_form') }}" class="right waves-effect waves-light btn">
+            <i class="material-icons left">add</i>
+            Upload Dataset
+        </a>
+    </div>
 {% endblock %}
 {% block extra_script%}
     <script type="text/javascript" src="{{ url_for('static', filename='js/delete-file.js') }}"></script>

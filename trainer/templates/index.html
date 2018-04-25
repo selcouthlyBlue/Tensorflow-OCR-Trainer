@@ -1,4 +1,132 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block body %}
+    <div id="index-banner" class="parallax-container">
+      <div class="section no-pad-bot">
+        <div class="container">
+          <br><br>
+          <h1 class="header center teal-text text-lighten-2">Tensorflow ICR Trainer</h1>
+          <div class="row center">
+            <h5 class="header col white-text s12 light">A user-friendly ICR trainer using Tensorflow as its core</h5>
+          </div>
+          <div class="row center">
+            <a href="{{ url_for('dataset') }}" id="download-button" class="btn-large waves-effect waves-light teal lighten-1">Get Started</a>
+          </div>
+          <br><br>
+        </div>
+      </div>
+      <div class="parallax"><img src="{{ url_for('static', filename="img/neural-network.jpeg") }}" alt="Unsplashed background img 1"></div>
+    </div>
+
+    <div class="container white-text">
+      <div class="section">
+        <div class="row">
+          <div class="col s12 m4">
+            <div class="icon-block">
+              <h2 class="center blue-grey-text"><i class="medium material-icons">file_upload</i></h2>
+              <h5 class="center">Manage your dataset</h5>
+
+              <p class="light">
+                  You can upload your own dataset containing the images and the labels file.
+                  You can also remove the dataset you don't use anymore.
+              </p>
+              <p class="center">
+                  <a href="{{ url_for('dataset_form') }}" id="download-button" class="btn-large waves-effect waves-light teal lighten-1">Upload dataset</a>
+              </p>
+            </div>
+          </div>
+
+          <div class="col s12 m4">
+            <div class="icon-block">
+              <h2 class="center grey-text"><i class="medium material-icons">build</i></h2>
+              <h5 class="center">Build your own architecture</h5>
+
+              <p class="light">
+                  You can build your own architectures by just specifying the layers
+                  you want it to have and the parameters for each layer.
+              </p>
+
+              <p class="center">
+                  <a href="{{ url_for('create_network_architecture') }}" id="download-button" class="btn-large waves-effect waves-light teal lighten-1">Build architecture</a>
+              </p>
+            </div>
+          </div>
+
+          <div class="col s12 m4">
+            <div class="icon-block">
+              <h2 class="center orange-text"><i class="medium material-icons">directions_run</i></h2>
+              <h5 class="center">Train and validate</h5>
+
+              <p class="light">
+                  By just choosing a dataset, an architecture, and providing some parameters,
+                  you can train your own model and validate it as it is trained.
+              </p>
+
+              <p class="center">
+                  <a href="{{ url_for('train') }}" id="download-button" class="btn-large waves-effect waves-light teal lighten-1">Start Training</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="parallax-container valign-wrapper">
+      <div class="section no-pad-bot">
+        <div class="container white-text">
+          <div class="row center">
+            <h5 class="header col s12 light">Train models without dealing with much code!</h5>
+          </div>
+        </div>
+      </div>
+      <div class="parallax"><img src="{{ url_for('static', filename="img/upload-bg.jpeg") }}" alt="Unsplashed background img 2"></div>
+    </div>
+
+    <div class="container white-text">
+      <div class="section">
+          <div class="row">
+          <div class="col s12 m4">
+            <div class="icon-block">
+              <h2 class="center blue-text"><i class="medium material-icons">show_chart</i></h2>
+              <h5 class="center">Visualize</h5>
+              <p class="light">
+                  With the use of Tensorboard, you can visualize the performance of your models.
+                  You can also visualize the architectures you use in these models.
+              </p>
+            </div>
+          </div>
+
+          <div class="col s12 m4">
+            <div class="icon-block">
+              <h2 class="center yellow-text"><i class="medium material-icons">star</i></h2>
+              <h5 class="center">Test</h5>
+
+              <p class="light">
+                  You can test how well your models perform on data they haven't seen yet.
+              </p>
+            </div>
+          </div>
+
+          <div class="col s12 m4">
+            <div class="icon-block">
+              <h2 class="center green-text"><i class="medium material-icons">file_download</i></h2>
+              <h5 class="center">Export</h5>
+
+              <p class="light">
+                  You can also export the models so that you can
+                  deploy them (i.e. mobile applications).
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script>
+    $(document).ready(function () {
+        $('.parallax').parallax();
+    })
+    </script>
 {% endblock %}

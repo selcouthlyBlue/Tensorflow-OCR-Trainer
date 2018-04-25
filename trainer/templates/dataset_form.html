@@ -1,29 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Upload Dataset{% endblock %}
 {% block body %}
-    <h3>Upload Dataset</h3>
-    <form method="post" enctype="multipart/form-data" action="/dataset">
-        <div class="row">
-            <div class="input-field col s9">
-                <input id="dataset_name" class="validate" type="text" name="dataset_name" required>
-                <label for="dataset_name">Dataset Name</label>
+    <div class="container white-text">
+        <h3>Upload Dataset</h3>
+        <form method="post" enctype="multipart/form-data" action="/dataset">
+            <div class="row">
+                <div class="input-field col s9">
+                    <input id="dataset_name" class="validate" type="text" name="dataset_name" required>
+                    <label for="dataset_name">Dataset Name</label>
+                </div>
+                <div class="input-field col s3">
+                    <input id="test_size" name="test_size" type="number" step="0.01" min="0.01" max="0.5" required>
+                    <label for="test_size">Test Size</label>
+                </div>
             </div>
-            <div class="input-field col s3">
-                <input id="test_size" name="test_size" type="number" step="0.01" min="0.01" max="0.5" required>
-                <label for="test_size">Test Size</label>
+            <div class="file-field input-field col s12">
+                <div class="btn">
+                    <span>File</span>
+                    <input class="validate" type="file" name="dataset_zip" required>
+                </div>
+                <div class="file-path-wrapper">
+                    <input class="file-path validate" type="text" placeholder="Upload dataset zip containing the images and the labels file named 'labels.txt'">
+                </div>
             </div>
-        </div>
-        <div class="file-field input-field col s12">
-            <div class="btn">
-                <span>File</span>
-                <input class="validate" type="file" name="dataset_zip" required>
-            </div>
-            <div class="file-path-wrapper">
-                <input class="file-path validate" type="text" placeholder="Upload dataset zip containing the images and the labels fie named 'labels.txt'">
-            </div>
-        </div>
-        <button class="btn waves-effect waves-light right" type="submit" name="action">Upload
-            <i class="material-icons right">send</i>
-        </button>
-    </form>
+            <button class="btn waves-effect waves-light right" type="submit" name="action">Upload
+                <i class="material-icons right">send</i>
+            </button>
+        </form>
+    </div>
 {% endblock %}

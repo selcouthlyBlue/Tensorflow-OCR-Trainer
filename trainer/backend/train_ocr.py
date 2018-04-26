@@ -9,13 +9,14 @@ from trainer.backend.tf import evaluate
 
 def train_model(run_params, dataset_dir, checkpoint_dir,
                 learning_rate, metrics, loss, optimizer,
-                desired_image_size, charset_file, validation_size=None,
+                charset_file, validation_size=None,
                 labels_delimiter=' ', num_epochs=1, batch_size=1,
                 checkpoint_epochs=1):
     labels_file = os.path.join(dataset_dir, "train.csv")
     images, labels, num_classes = _prepare_dataset(charset_file,
                                                    dataset_dir,
-                                                   desired_image_size,
+                                                   run_params['desired_image_width'],
+                                                   run_params['desired_image_height'],
                                                    labels_delimiter,
                                                    labels_file)
     features = {'train': images}
@@ -58,23 +59,24 @@ def evaluate_model(architecture_params, dataset_dir, charset_file,
     labels_file = os.path.join(dataset_dir, "test.csv")
     images, labels, num_classes = _prepare_dataset(charset_file,
                                                    dataset_dir,
-                                                   architecture_params['desired_image_size'],
+                                                   architecture_params['desired_image_width'],
+                                                   architecture_params['desired_image_height'],
                                                    labels_delimiter,
                                                    labels_file)
     evaluate(architecture_params, images, labels, checkpoint_dir)
 
 
-def _prepare_dataset(charset_file, dataset_dir, desired_image_size, labels_delimiter, labels_file):
+def _prepare_dataset(charset_file, dataset_dir, desired_image_width, desired_image_height, labels_delimiter, labels_file):
     image_paths, labels = dataset_utils.read_dataset_list(
         labels_file, delimiter=labels_delimiter)
     max_label_length = len(max(labels, key=len))
     images = dataset_utils.read_images(data_dir=dataset_dir,
                                        image_paths=image_paths,
                                        image_extension='png')
-    images = dataset_utils.resize(images,
-                                  desired_height=desired_image_size,
-                                  desired_width=desired_image_size)
     images = dataset_utils.binarize(images)
+    images = dataset_utils.resize(images,
+                                  desired_height=desired_image_height,
+                                  desired_width=desired_image_width)
     images = dataset_utils.invert(images)
     classes = dataset_utils.get_characters_from(charset_file)
     images = dataset_utils.images_as_float32(images)

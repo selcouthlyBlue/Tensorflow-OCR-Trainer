@@ -254,7 +254,8 @@ def run_learning_task(task):
         dataset_name = get('dataset_name')
         running_task = _train_task(get('architecture_name'),
                                    dataset_name,
-                                   int(get('desired_image_size')),
+                                   int(get('desired_image_width')),
+                                   int(get('desired_image_height')),
                                    int(get('num_epochs')),
                                    int(get('checkpoint_epochs')),
                                    int(get('batch_size')),
@@ -271,7 +272,8 @@ def run_learning_task(task):
 
 def _train_task(architecture_name,
                 dataset_name,
-                desired_image_size,
+                desired_image_width,
+                desired_image_height,
                 num_epochs,
                 checkpoint_epochs,
                 batch_size,
@@ -290,7 +292,8 @@ def _train_task(architecture_name,
     classes = dataset_utils.get_characters_from(charset_file)
     run_params['loss'] = loss
     run_params['metrics'] = metrics
-    run_params['desired_image_size'] = desired_image_size
+    run_params['desired_image_width'] = desired_image_width
+    run_params['desired_image_height'] = desired_image_height
     run_params['batch_size'] = batch_size
     run_params['dataset_name'] = dataset_name
     run_params['charset_file'] = charset_file
@@ -306,7 +309,6 @@ def _train_task(architecture_name,
                                        metrics,
                                        loss,
                                        optimizer,
-                                       desired_image_size,
                                        charset_file,
                                        validation_size,
                                        ' ',

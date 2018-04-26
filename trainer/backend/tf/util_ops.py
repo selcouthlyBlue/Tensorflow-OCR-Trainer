@@ -47,7 +47,7 @@ def _feed_to_layer(inputs, layer, is_training):
     if layer_type == LayerTypes.COLLAPSE_TO_RNN_DIMS.value:
         return layers.collapse_to_rnn_dims(inputs)
     if layer_type == LayerTypes.L2_NORMALIZE.value:
-        return layers.l2_normalize(inputs, layer["axis"])
+        return layers.l2_normalize(inputs, [1, 2])
     if layer_type == LayerTypes.BATCH_NORM.value:
         return layers.batch_norm(inputs, is_training=is_training)
     raise NotImplementedError(layer_type + " layer not implemented.")

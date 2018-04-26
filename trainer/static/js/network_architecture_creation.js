@@ -57,10 +57,6 @@ function create_dynamic_layer_builder(layer_types, padding_types, cell_types, ac
                 "Activation": create_selector(create_network_layer_param("activation", layer_index), "Select activation", activation_functions)}
     };
 
-    var l2_normalize_params = function(layer_index) {
-        return {"Axis": create_int_input_field(create_network_layer_param("axis", layer_index)).prop('multiple', true)}
-    };
-
     var dropout_params = function(layer_index) {
         return {"Keep Prob": $('<input>').attr({'type': 'number',
             'step': "any", "max": "1", "min": "0.000001",  "name": create_network_layer_param("keep_prob", layer_index)}).prop('required', true)
@@ -72,7 +68,7 @@ function create_dynamic_layer_builder(layer_types, padding_types, cell_types, ac
         "max_pool2d": maxpool2d_params,
         "mdrnn": mdrnn_params,
         "birnn": birnn_params,
-        "l2_normalize": l2_normalize_params,
+        "l2_normalize": function(layer_index){},
         "dropout": dropout_params,
         "collapse_to_rnn_dims": function(layer_index){},
         "batch_norm": function(layer_index){}

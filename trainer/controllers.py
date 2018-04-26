@@ -117,8 +117,6 @@ def _get_layer(layer_index):
         layer["activation"] = get(_create_network_key(layer_index, "activation"))
     elif layer_type == GraphKeys.LayerTypes.DROPOUT.value:
         layer["keep_prob"] = float(get(_create_network_key(layer_index, "keep_prob")))
-    elif layer_type == GraphKeys.LayerTypes.L2_NORMALIZE:
-        layer["axis"] = get(_create_network_key(layer_index, "axis"))
     return layer
 
 

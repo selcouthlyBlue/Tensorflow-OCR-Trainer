@@ -1,42 +1,44 @@
 {% extends "base.html" %}
 {% block title %}Create Network Architecture{% endblock %}
 {% block body %}
-    <h3>Create Network Architecture</h3>
-    <form id="my_form" method="post" action="{{ url_for('architectures') }}">
-        <div class="row valign-wrapper">
-            <div class="input-field col s8">
-                <input id="architecture_name" class="validate"
-                       type="text" name="architecture_name"
-                       required>
-                <label for="architecture_name">Architecture Name</label>
+    <div class="container white-text">
+        <h3>Create Network Architecture</h3>
+        <form id="my_form" method="post" action="{{ url_for('architectures') }}">
+            <div class="row valign-wrapper">
+                <div class="input-field col s8">
+                    <input id="architecture_name" class="validate"
+                           type="text" name="architecture_name"
+                           required>
+                    <label for="architecture_name">Architecture Name</label>
+                </div>
+                <div class="col s4">
+                    <a id="add-layer" class="right waves-effect waves-light btn">
+                        <i class="material-icons left">add</i>
+                        Add Layer
+                    </a>
+                </div>
             </div>
-            <div class="col s4">
-                <a id="add-layer" class="right waves-effect waves-light btn">
-                    <i class="material-icons left">add</i>
-                    Add Layer
-                </a>
+            <ul id="layers" class="collection with-header black-text overflowing">
+                <li class="collection-header"><h5>Layers</h5></li>
+            </ul>
+            <div class="row">
+                <div class="input-field col s8">
+                    <select id="output-layer-select" name="output_layer" required>
+                        <option value="" disabled selected>Select Output Layer</option>
+                        {% for output_layer in output_layers %}
+                            <option value="{{ output_layer }}">{{ output_layer.replace('_', ' ')|upper }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="output-layer-select">Output Layer</label>
+                </div>
             </div>
-        </div>
-        <ul id="layers" class="collection with-header black-text overflowing">
-            <li class="collection-header"><h5>Layers</h5></li>
-        </ul>
-        <div class="row">
-            <div class="input-field col s8">
-                <select id="output-layer-select" name="output_layer" required>
-                    <option value="" disabled selected>Select Output Layer</option>
-                    {% for output_layer in output_layers %}
-                        <option value="{{ output_layer }}">{{ output_layer.replace('_', ' ')|upper }}</option>
-                    {% endfor %}
-                </select>
-                <label for="output-layer-select">Output Layer</label>
+            <div class="row">
+                <button class="btn waves-effect waves-light right" type="submit" name="action">Create Architecture
+                    <i class="material-icons right">send</i>
+                </button>
             </div>
-        </div>
-        <div class="row">
-            <button class="btn waves-effect waves-light right" type="submit" name="action">Create Architecture
-                <i class="material-icons right">send</i>
-            </button>
-        </div>
-    </form>
+        </form>
+    </div>
 {% endblock %}
 {% block extra_script %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/network_architecture_creation.js') }}"></script>

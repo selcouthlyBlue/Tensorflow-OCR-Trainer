@@ -1,22 +1,24 @@
 {% extends "base.html" %}
 {% block title %}{{ architecture_name }}{% endblock %}
 {% block body %}
-    <h3>{{ architecture_name }}</h3>
-    <ul class="collection black-text">
-    {% for layer in architecture['network'] %}
-        <li class="collection-item row">
-            <ul>
-            {% for layer_parameter in layer %}
-                <li class="col s2">
-                    <i>{{ layer_parameter }}</i>
-                    <ul>
-                        <li>{{ layer[layer_parameter] }}</li>
-                    </ul>
-                </li>
-            {% endfor %}
-            </ul>
-        </li>
-    {% endfor %}
-        <li class="collection-item row">Output Layer: {{ architecture['output_layer'] }}</li>
-    </ul>
+    <div class="container white-text">
+        <h3>{{ architecture_name }}</h3>
+        <ul class="collection black-text">
+        {% for layer in architecture['network'] %}
+            <li class="collection-item row">
+                <ul>
+                {% for layer_parameter in layer %}
+                    <li class="col s2">
+                        <i>{{ layer_parameter }}</i>
+                        <ul>
+                            <li>{{ layer[layer_parameter] }}</li>
+                        </ul>
+                    </li>
+                {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+            <li class="collection-item row">Output Layer: {{ architecture['output_layer'] }}</li>
+        </ul>
+    </div>
 {% endblock %}

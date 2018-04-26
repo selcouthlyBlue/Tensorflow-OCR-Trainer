@@ -18,10 +18,8 @@ def train_model(run_params, dataset_dir, checkpoint_dir,
                                                    desired_image_size,
                                                    labels_delimiter,
                                                    labels_file)
-    features = {}
-    labels_dict = {}
-    features['train'] = images
-    labels_dict['train'] = labels
+    features = {'train': images}
+    labels_dict = {'train': labels}
     if validation_size:
         features, labels_dict = _train_validation_split(images, labels, validation_size)
 

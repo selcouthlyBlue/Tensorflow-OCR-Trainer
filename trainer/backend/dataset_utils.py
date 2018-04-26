@@ -76,7 +76,6 @@ def _resize(image, desired_height=None, desired_width=None):
     scaled_width_image = cv2.resize(image, (scaled_width, desired_height))
     scaled_width_image_array = np.array(scaled_width_image).astype(np.uint8)
     scaled_image = scaled_width_image_array.reshape(desired_height, scaled_width)
-    print(raw_width, raw_height, scaled_width)
     padding = np.full((desired_height, desired_width - scaled_width + 1), 255)
     padded_image = np.concatenate((scaled_image, padding), axis=1)
     padded_image = padded_image[:, 0:desired_width]

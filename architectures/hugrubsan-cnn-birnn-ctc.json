@@ -5,7 +5,7 @@
 },
 {
 "layer_type": "conv2d",
-"num_filters": 20,
+"num_filters": 16,
 "kernel_size": 5,
 "stride": 1,
 "padding": "same"
@@ -25,7 +25,7 @@
 },
 {
 "layer_type": "conv2d",
-"num_filters": 50,
+"num_filters": 32,
 "kernel_size": 5,
 "stride": 1,
 "padding": "same"
@@ -45,7 +45,7 @@
 },
 {
 "layer_type": "conv2d",
-"num_filters": 100,
+"num_filters": 64,
 "kernel_size": 5,
 "stride": 1,
 "padding": "same"
@@ -65,7 +65,7 @@
 },
 {
 "layer_type": "conv2d",
-"num_filters": 200,
+"num_filters": 128,
 "kernel_size": 5,
 "stride": 1,
 "padding": "same"
@@ -85,7 +85,7 @@
 },
 {
 "layer_type": "conv2d",
-"num_filters": 400,
+"num_filters": 256,
 "kernel_size": 5,
 "stride": 1,
 "padding": "same"
@@ -108,7 +108,7 @@
 },
 {
 "layer_type": "birnn",
-"num_hidden": 200,
+"num_hidden": 128,
 "cell_type": "LSTM",
 "activation": "tanh"
 }

@@ -17,14 +17,15 @@ class ValidationHook(tf.train.SessionRunHook):
     def begin(self):
         self._timer.reset()
         self._iter_count = 0
+        self._timer.update_last_triggered_step(self._iter_count)
 
     def before_run(self, run_context):
         self._should_trigger = self._timer.should_trigger_for_step(self._iter_count)
 
     def after_run(self, run_context, run_values):
-        self._timer.update_last_triggered_step(self._iter_count)
         if self._should_trigger:
             self._estimator.evaluate(
                 self._input_fn
             )
+            self._timer.update_last_triggered_step(self._iter_count)
         self._iter_count += 1

@@ -13,5 +13,7 @@ def convert_to_ctc_dims(inputs, num_classes, num_steps, num_outputs):
     outputs = tf.reshape(inputs, [-1, num_outputs])
     logits = slim.fully_connected(outputs, num_classes,
                                   weights_initializer=slim.xavier_initializer())
+    logits = slim.fully_connected(logits, num_classes,
+                                  weights_initializer=slim.xavier_initializer())
     logits = tf.reshape(logits, [num_steps, -1, num_classes])
     return logits

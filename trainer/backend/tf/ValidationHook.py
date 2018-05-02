@@ -17,7 +17,6 @@ class ValidationHook(tf.train.SessionRunHook):
     def begin(self):
         self._timer.reset()
         self._iter_count = 0
-        self._timer.update_last_triggered_step(self._iter_count)
 
     def before_run(self, run_context):
         self._should_trigger = self._timer.should_trigger_for_step(self._iter_count)

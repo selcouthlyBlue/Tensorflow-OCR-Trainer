@@ -293,7 +293,6 @@ def _get_evaluation_parameters(features, labels, mode, params):
     features, predictions = _get_fed_features_and_resulting_predictions(features, mode, params)
     loss = _get_loss(params["loss"], labels=labels,
                      inputs=features, num_classes=params["num_classes"])
-    _add_to_summary("loss", loss)
     metrics = _get_metrics(params["metrics"],
                            y_pred=features,
                            y_true=labels,

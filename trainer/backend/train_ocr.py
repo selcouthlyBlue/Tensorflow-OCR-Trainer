@@ -43,7 +43,8 @@ def continue_training_model(run_params, checkpoint_dir, dataset_dir):
     labels_file = os.path.join(dataset_dir, "train.csv")
     images, labels, num_classes = _prepare_dataset(run_params['charset_file'],
                                                    dataset_dir,
-                                                   run_params['desired_image_size'],
+                                                   run_params['desired_image_width'],
+                                                   run_params['desired_image_height'],
                                                    ' ',
                                                    labels_file)
     features = {'train': images}

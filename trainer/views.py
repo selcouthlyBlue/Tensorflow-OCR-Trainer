@@ -154,10 +154,6 @@ def export_model(model_name):
     return send_from_directory(model_abs_path, app.config['MODEL_ZIP_FILENAME'])
 
 
-def _render_progress(template_name, task):
-    return render_template(template_name, task=task)
-
-
 @app.errorhandler(404)
 def url_error(e):
     print(e)

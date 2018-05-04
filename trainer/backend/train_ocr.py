@@ -38,6 +38,28 @@ def train_model(run_params, dataset_dir, checkpoint_dir,
           save_checkpoint_every_n_epochs=checkpoint_epochs)
 
 
+def continue_training_model(run_params, checkpoint_dir, dataset_dir):
+    labels_file = os.path.join(dataset_dir, "train.csv")
+    images, labels, num_classes = _prepare_dataset(run_params['charset_file'],
+                                                   dataset_dir,
+                                                   run_params['desired_image_size'],
+                                                   ' ',
+                                                   labels_file)
+    features = {'train': images}
+    labels_dict = {'train': labels}
+    validation_size = run_params['validation_size']
+    if validation_size:
+        features, labels_dict = _train_validation_split(images, labels, validation_size)
+    train(params=run_params,
+          features=features,
+          labels=labels_dict,
+          num_classes=num_classes,
+          checkpoint_dir=checkpoint_dir,
+          batch_size=run_params['batch_size'],
+          num_epochs=run_params['num_epochs'],
+          save_checkpoint_every_n_epochs=run_params['checkpoint_epochs'])
+
+
 def _train_validation_split(images, labels, validation_size):
     features = {}
     labels_dict = {}

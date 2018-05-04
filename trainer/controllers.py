@@ -16,6 +16,7 @@ from trainer.backend import GraphKeys, dataset_utils
 from trainer.backend.dataset_utils import read_dataset_list
 from trainer.backend.train_ocr import train_model
 from trainer.backend.train_ocr import evaluate_model
+from trainer.backend.train_ocr import continue_training_model
 from trainer.backend import create_serving_model
 from trainer.backend import visualize
 from trainer.backend import create_optimized_graph
@@ -248,6 +249,18 @@ def _test_task(model_name):
     return testing_task
 
 
+def _continue_training_task(model_name):
+    checkpoint_dir = get_model_path(model_name)
+    run_params = json.load(open(_create_path(checkpoint_dir, "run_config.json")), object_pairs_hook=OrderedDict)
+    dataset_dir = get_dataset(run_params['dataset_name'])
+    continue_training_task = multiprocessing.Process(target=continue_training_model,
+                                                     args=(run_params,
+                                                           checkpoint_dir,
+                                                           dataset_dir))
+    continue_training_task.start()
+    return continue_training_task
+
+
 def run_learning_task(task):
     running_task = None
     if task == 'training':
@@ -267,6 +280,8 @@ def run_learning_task(task):
                                    get('validation_size'))
     elif task == 'testing':
         running_task = _test_task(get('model_name'))
+    elif task == 'continue_training':
+        running_task = _continue_training_task(get('model_name'))
     running_task.name = task
 
 
@@ -298,6 +313,11 @@ def _train_task(architecture_name,
     run_params['dataset_name'] = dataset_name
     run_params['charset_file'] = charset_file
     run_params['num_classes'] = len(classes) + 1
+    run_params['checkpoint_epochs'] = checkpoint_epochs
+    run_params['validation_size'] = validation_size
+    run_params['num_epochs'] = num_epochs
+    run_params['learning_rate'] = learning_rate
+    run_params['optimizer'] = optimizer
     run_config_path = _create_path(checkpoint_dir, 'run_config.json')
     _write_json(run_config_path, run_params)
     task = multiprocessing.Process(target=train_model,

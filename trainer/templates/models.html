@@ -13,7 +13,19 @@
             <li class="collection-item row">
                 <ul>
                    <li class="input-field col s3">{{ model }}</li>
-                   <li class="input-field offset-s2 col s1">
+                   <li class="input-field col s1">
+                       <form id="testing" action="{{ url_for('tasks', task='continue_training') }}" method="post">
+                             <ul>
+                                 <li>
+                                     <button type="submit" class="waves-effect waves-light btn right">
+                                         Train
+                                     </button>
+                                 </li>
+                             </ul>
+                             <input type="hidden" name="model_name" value="{{ model }}">
+                       </form>
+                   </li>
+                   <li class="input-field offset-s1 col s1">
                        <form id="testing" action="{{ url_for('tasks', task='testing') }}" method="post">
                              <ul>
                                  <li>

@@ -161,12 +161,11 @@ def collapse_to_rnn_dims(inputs):
     batch_size, height, width, num_channels = inputs.get_shape().as_list()
     if batch_size is None:
         batch_size = -1
-    time_major_inputs = tf.transpose(inputs, (2, 0, 1, 3))
-    reshaped_time_major_inputs = tf.reshape(time_major_inputs,
-                                            [width, batch_size, height * num_channels]
-                                            )
-    batch_major_inputs = tf.transpose(reshaped_time_major_inputs, (1, 0, 2))
-    return batch_major_inputs
+    nwhc_cnn_outputs = tf.transpose(inputs, (0, 2, 1, 3))
+    batch_major_rnn_inputs = tf.reshape(nwhc_cnn_outputs,
+                                        [batch_size, width, height * num_channels]
+                                        )
+    return batch_major_rnn_inputs
 
 
 def batch_norm(inputs, is_training):

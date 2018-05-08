@@ -1,4 +1,7 @@
-[![Build Status](https://travis-ci.com/selcouthlyBlue/Tensorflow-OCR-Trainer.svg?branch=master)](https://travis-ci.com/selcouthlyBlue/Tensorflow-OCR-Trainer)
+
+| **`Linux CPU`** |
+|---------------------|
+|[![Build Status](https://travis-ci.com/selcouthlyBlue/Tensorflow-OCR-Trainer.svg?branch=master)](https://travis-ci.com/selcouthlyBlue/Tensorflow-OCR-Trainer)|
 
 **OCR Trainer**
 

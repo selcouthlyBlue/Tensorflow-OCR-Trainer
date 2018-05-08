@@ -7,3 +7,6 @@ script:
   - pytest
 notifications:
   email: false
+os:
+  - linux
+  - windows

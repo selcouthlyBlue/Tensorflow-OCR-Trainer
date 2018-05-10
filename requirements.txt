@@ -6,3 +6,4 @@ scipy
 opencv-python
 scikit-learn
 tensorflow
+requests

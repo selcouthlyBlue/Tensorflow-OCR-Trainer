@@ -5,6 +5,7 @@ import shutil
 import multiprocessing
 import time
 import zipfile
+import requests
 
 from werkzeug.utils import secure_filename
 from flask import request
@@ -85,7 +86,6 @@ def get_dataset_list_with_amount_of_training_and_testing_data():
         dataset_dict['num_testing_examples'] = number_testing_samples
         dataset_list.append(dataset_dict)
     return dataset_list
-
 
 
 def get_directory_list_from_config(directory_key):
@@ -185,6 +185,15 @@ def visualize_model(model_name, host):
     visualization_task.name = "visualize-{}".format(model_name)
     visualization_task.start()
 
+
+def request_connection(url):
+    status_code = 404
+    while status_code == 404:
+        try:
+            status_code = requests.get(url).status_code
+        except requests.exceptions.ConnectionError:
+            time.sleep(5)
+            continue
 
 def save_model_as_json():
     architecture_dict = _generate_architecture_dict()

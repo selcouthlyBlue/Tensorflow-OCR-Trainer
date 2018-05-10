@@ -2,6 +2,7 @@ flask
 werkzeug
 six
 numpy
-cv2
+scipy
+opencv-python
 scikit-learn
 tensorflow

@@ -12,9 +12,21 @@
         {% for dataset in dataset_list %}
             <li class="collection-item row">
                 <ul>
-                   <li class="col s6">{{ dataset }}</li>
+                   <li class="col s3">{{ dataset['name'] }}</li>
+                   <li class="col s3">
+                       <i>Number of Training Samples</i>
+                       <ul>
+                           <li>{{ dataset['num_training_examples'] }}</li>
+                       </ul>
+                   </li>
+                   <li class="col s3">
+                       <i>Number of Testing Samples</i>
+                       <ul>
+                           <li>{{ dataset['num_testing_examples'] }}</li>
+                       </ul>
+                   </li>
                    <li class="col s3 right">
-                        <form name="deletion" method="post" action="{{ url_for('delete_dataset', dataset_name=dataset) }}">
+                        <form name="deletion" method="post" action="{{ url_for('delete_dataset', dataset_name=dataset['name']) }}">
                             <button type="submit" class="waves-effect waves-light btn red right">
                                 <i class="material-icons">remove</i>
                             </button>

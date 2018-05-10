@@ -8,6 +8,7 @@ from trainer.controllers import delete_folder
 from trainer.controllers import get_architecture_path
 from trainer.controllers import get_architecture_file_contents
 from trainer.controllers import get_dataset
+from trainer.controllers import get_dataset_list_with_amount_of_training_and_testing_data
 from trainer.controllers import get_directory_list_from_config
 from trainer.controllers import get_enum_values
 from trainer.controllers import get_model_path
@@ -87,8 +88,11 @@ def dataset():
             return redirect(request.url)
         upload_message = upload_dataset(dataset_zip)
         flash(upload_message)
-    return render_template("dataset.html", dataset_list=_get_dataset_list())
+    return render_template("dataset.html", dataset_list=_get_dataset_list_and_details())
 
+
+def _get_dataset_list_and_details():
+    return get_dataset_list_with_amount_of_training_and_testing_data()
 
 @app.route('/delete_dataset/<dataset_name>', methods=['POST'])
 def delete_dataset(dataset_name):

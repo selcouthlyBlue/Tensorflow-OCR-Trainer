@@ -64,6 +64,30 @@ def get_dataset(dataset_name):
     return _create_path(app.config['DATASET_DIRECTORY'], dataset_name)
 
 
+def _get_number_of_lines(filename):
+    counter = 0
+    with open(filename) as f:
+        for i, l in enumerate(f):
+            counter = i
+    return counter + 1
+
+
+def get_dataset_list_with_amount_of_training_and_testing_data():
+    dataset_list = []
+    dataset_names = get_directory_list_from_config('DATASET_DIRECTORY')
+    for dataset_name in dataset_names:
+        dataset_dict = OrderedDict()
+        dataset_path = get_dataset(dataset_name)
+        number_training_samples = _get_number_of_lines(_create_path(dataset_path, 'train.csv'))
+        number_testing_samples = _get_number_of_lines(_create_path(dataset_path, 'test.csv'))
+        dataset_dict['name'] = dataset_name
+        dataset_dict['num_training_examples'] = number_training_samples
+        dataset_dict['num_testing_examples'] = number_testing_samples
+        dataset_list.append(dataset_dict)
+    return dataset_list
+
+
+
 def get_directory_list_from_config(directory_key):
     directory_names = os.listdir(app.config[directory_key])
     return directory_names

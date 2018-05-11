@@ -201,6 +201,7 @@ def _export_serving_model(checkpoint_dir, model_params, input_name="features"):
         saver.restore(sess, input_checkpoint)
         input_layer = tf.get_default_graph().get_operation_by_name('input_layer').outputs[0]
         input_shape = input_layer.get_shape().as_list()
+        input_shape[0] = 1
         estimator = tf.estimator.Estimator(model_fn=_serving_model_fn,
                                            params=model_params,
                                            model_dir=checkpoint_dir)

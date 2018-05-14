@@ -12,6 +12,7 @@ class BaseConfig(object):
     OUTPUT_GRAPH_FILENAME = "graph.pb"
     MODEL_ZIP_FILENAME = "model_files.gz"
     SERVING_MODEL_CONFIG_FILENAME = "serving_model_config.json"
+    IMAGE_CONFIG_FILENAME = "image_config.json"
 
 
 class DevelopmentConfig(BaseConfig):

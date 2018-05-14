@@ -261,19 +261,26 @@ def _export_serving_model(model_name, input_name="features", output_names="outpu
     delete_folder(serving_model_path)
     serving_model_config = OrderedDict()
     input_node = OrderedDict()
+    image_config = OrderedDict()
+    image_config['image_width'] = run_params['desired_image_size']
+    image_config['image_height'] = run_params['desired_image_size']
     input_node['input_name'] = input_name
     input_node['input_shape'] = input_shape
     serving_model_config['input_nodes'] = [input_node]
     serving_model_config['output_names'] = output_names.split(',')
     serving_model_config_path = _create_path(model_path, app.config['SERVING_MODEL_CONFIG_FILENAME'])
+    image_config_path = _create_path(model_path, app.config['IMAGE_CONFIG_FILENAME'])
     _write_json(serving_model_config_path, serving_model_config)
+    _write_json(image_config_path, image_config)
 
 
 def package_model_files(model_name):
     _export_serving_model(model_name)
     model_path = get_model_path(model_name)
     with zipfile.ZipFile(_create_path(model_path, app.config['MODEL_ZIP_FILENAME']), mode='w') as f_out:
-        for model_file in [app.config['SERVING_MODEL_CONFIG_FILENAME'], app.config["OUTPUT_GRAPH_FILENAME"]]:
+        for model_file in [app.config['SERVING_MODEL_CONFIG_FILENAME'],
+                           app.config["OUTPUT_GRAPH_FILENAME"],
+                           app.config['IMAGE_CONFIG_FILENAME']]:
             model_file_path = _create_path(model_path, model_file)
             f_out.write(model_file_path, arcname=model_file)
             delete_file(model_file_path)

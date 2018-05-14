@@ -3,16 +3,30 @@
 {% block body %}
     <div class="container white-text">
         <h3>Logs</h3>
-        <ul class="collapsible">
-            <li>
-              <div class="collapsible-header black-text"><i class="material-icons">arrow_drop_down</i>Training</div>
-              <div class="collapsible-body">
-                  {% for line in train_log %}
-                      <p>{{ line }}</p>
-                  {% endfor %}
-              </div>
-            </li>
-        </ul>
+        {% if train_log %}
+            <ul class="collapsible">
+                <li>
+                  <div class="collapsible-header black-text"><i class="material-icons">arrow_drop_down</i>Training</div>
+                  <div class="collapsible-body">
+                      {% for line in train_log %}
+                          <p>{{ line }}</p>
+                      {% endfor %}
+                  </div>
+                </li>
+            </ul>
+        {% endif %}
+        {% if test_log %}
+            <ul class="collapsible">
+                <li>
+                  <div class="collapsible-header black-text"><i class="material-icons">arrow_drop_down</i>Testing</div>
+                  <div class="collapsible-body">
+                      {% for line in test_log %}
+                          <p>{{ line }}</p>
+                      {% endfor %}
+                  </div>
+                </li>
+            </ul>
+        {% endif %}
     </div>
 {% endblock %}
 {% block extra_script %}

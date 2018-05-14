@@ -29,6 +29,7 @@ class Optimizers(Enum):
     MOMENTUM = "momentum"
     ADADELTA = "adadelta"
     RMSPROP = "rmsprop"
+    NADAM = "nadam"
 
 class Metrics(Enum):
     LABEL_ERROR_RATE = "label_error_rate"

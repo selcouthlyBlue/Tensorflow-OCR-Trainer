@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Training Log{% endblock %}
+{% block body %}
+    <div class="container white-text">
+        <h3>Logs</h3>
+        <ul class="collapsible">
+            <li>
+              <div class="collapsible-header black-text"><i class="material-icons">arrow_drop_down</i>Training</div>
+              <div class="collapsible-body">
+                  {% for line in train_log %}
+                      <p>{{ line }}</p>
+                  {% endfor %}
+              </div>
+            </li>
+        </ul>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script>
+        $(document).ready(function(){
+            $('.collapsible').collapsible();
+        });
+    </script>
+{% endblock %}

@@ -188,6 +188,15 @@ def visualize_model(model_name, host):
     visualization_task.start()
 
 
+def get_training_log(model_name):
+    model_path = get_model_path(model_name)
+    train_log_path = _create_path(model_path, "train.log")
+    with open(train_log_path) as f:
+        content = f.readlines()
+    content = [x.strip() for x in content]
+    return content
+
+
 def request_connection(url):
     status_code = 404
     while status_code == 404:

@@ -124,9 +124,12 @@ def _get_layer(layer_index):
     layer_type = layer["layer_type"]
     if layer_type == GraphKeys.LayerTypes.CONV2D.value:
         layer["num_filters"] = int(get(_create_network_key(layer_index, "num_filters")))
-        layer["kernel_size"] = int(get(_create_network_key(layer_index, "kernel_size")))
+        layer["kernel_size"] = int(get(_create_network_key(layer_index, "kernel_size1")))
+        if get(_create_network_key(layer_index, "kernel_size2")):
+            layer["kernel_size"] = [layer["kernel_size"], int(get(_create_network_key(layer_index, "kernel_size2")))]
         layer["stride"] = int(get(_create_network_key(layer_index, "stride")))
         layer["padding"] = get(_create_network_key(layer_index, "padding"))
+        layer["activation"] = get(_create_network_key(layer_index, "activation"))
     elif layer_type == GraphKeys.LayerTypes.MAX_POOL2D.value:
         layer["pool_size"] = int(get(_create_network_key(layer_index, "pool_size")))
         layer["stride"] = int(get(_create_network_key(layer_index, "stride")))
@@ -137,7 +140,6 @@ def _get_layer(layer_index):
         layer["activation"] = get(_create_network_key(layer_index, "activation"))
     elif layer_type == GraphKeys.LayerTypes.MDRNN.value:
         layer["num_hidden"] = int(get(_create_network_key(layer_index, "num_hidden")))
-        layer["kernel_size"] = int(get(_create_network_key(layer_index, "kernel_size")))
         layer["cell_type"] = get(_create_network_key(layer_index, "cell_type"))
         layer["activation"] = get(_create_network_key(layer_index, "activation"))
     elif layer_type == GraphKeys.LayerTypes.DROPOUT.value:

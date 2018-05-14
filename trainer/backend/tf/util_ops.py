@@ -12,11 +12,7 @@ def get_sequence_lengths(inputs):
     return sequence_length
 
 
-def feed(features, layer, is_training):
-    return _feed_to_layer(features, layer, is_training)
-
-
-def _feed_to_layer(inputs, layer, is_training):
+def feed(inputs, layer, is_training):
     layer_type = layer["layer_type"]
     if layer_type == LayerTypes.CONV2D.value:
         return layers.conv2d(inputs, num_filters=layer["num_filters"],
@@ -38,7 +34,6 @@ def _feed_to_layer(inputs, layer, is_training):
         return layers.mdrnn(inputs, num_hidden=layer["num_hidden"],
                             cell_type=layer.get("cell_type"),
                             activation=layer.get("activation"),
-                            kernel_size=layer.get("kernel_size"),
                             scope=layer.get("name"))
     if layer_type == LayerTypes.DROPOUT.value:
         return layers.dropout(inputs, keep_prob=layer["keep_prob"],

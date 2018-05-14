@@ -51,9 +51,7 @@ def _get_cell(num_filters_out, cell_type='LSTM', activation='tanh'):
     raise NotImplementedError(cell_type, "is not supported.")
 
 
-def mdrnn(inputs, num_hidden, cell_type='LSTM', activation='tanh', kernel_size=None, scope=None):
-    if kernel_size is not None:
-        inputs = _get_blocks(inputs, kernel_size)
+def mdrnn(inputs, num_hidden, cell_type='LSTM', activation='tanh', scope=None):
     with tf.variable_scope(scope, "multidimensional_rnn", [inputs]):
         hidden_sequence_horizontal = _bidirectional_rnn_scan(inputs,
                                                              num_hidden // 2,
@@ -64,42 +62,6 @@ def mdrnn(inputs, num_hidden, cell_type='LSTM', activation='tanh', kernel_size=N
             output_transposed = _bidirectional_rnn_scan(transposed, num_hidden // 2, cell_type=cell_type)
         output = tf.transpose(output_transposed, [0, 2, 1, 3])
         return output
-
-
-def _get_blocks(inputs, kernel_size):
-    if isinstance(kernel_size, int):
-        kernel_size = [kernel_size, kernel_size]
-    with tf.variable_scope("image_blocks"):
-        batch_size, height, width, channels = _get_shape_as_list(inputs)
-        if batch_size is None:
-            batch_size = -1
-
-        if height % kernel_size[0] != 0:
-            offset = tf.fill([tf.shape(inputs)[0],
-                              kernel_size[0] - (height % kernel_size[0]),
-                              width,
-                              channels], 0.0)
-            inputs = tf.concat([inputs, offset], 1)
-            _, height, width, channels = _get_shape_as_list(inputs)
-        if width % kernel_size[1] != 0:
-            offset = tf.fill([tf.shape(inputs)[0],
-                              height,
-                              kernel_size[1] - (width % kernel_size[1]),
-                              channels], 0.0)
-            inputs = tf.concat([inputs, offset], 2)
-            _, height, width, channels = _get_shape_as_list(inputs)
-
-        h, w = int(height / kernel_size[0]), int(width / kernel_size[1])
-        features = kernel_size[1] * kernel_size[0] * channels
-
-        lines = tf.split(inputs, h, axis=1)
-        line_blocks = []
-        for line in lines:
-            line = tf.transpose(line, [0, 2, 3, 1])
-            line = reshape(line, [batch_size, w, features])
-            line_blocks.append(line)
-
-        return tf.stack(line_blocks, axis=1)
 
 
 def images_to_sequence(inputs):
@@ -133,10 +95,10 @@ def _bidirectional_rnn_scan(inputs, num_hidden, cell_type='LSTM', activation='ta
         return output
 
 
-def conv2d(inputs, num_filters, kernel_size, activation="relu", stride=1, padding='VALID', scope=None):
+def conv2d(inputs, num_filters, kernel_size, activation="relu", stride=1, padding='SAME', scope=None):
     if isinstance(kernel_size, int):
         kernel_size = [kernel_size, kernel_size]
-    padding = padding or 'VALID'
+    padding = padding or 'SAME'
     activation = activation or "relu"
     return slim.conv2d(inputs, num_filters, kernel_size,
                        activation_fn=_get_activation(activation),

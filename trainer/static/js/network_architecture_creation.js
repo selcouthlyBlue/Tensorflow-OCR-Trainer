@@ -33,9 +33,11 @@ function create_dynamic_layer_builder(layer_types, padding_types, cell_types, ac
 
     var conv2d_params = function(layer_index) {
         return {"Num Filters": create_int_input_field(create_network_layer_param("num_filters", layer_index)),
-                "Kernel Size": create_int_input_field(create_network_layer_param("kernel_size", layer_index)),
+                "Kernel Size 1": create_int_input_field(create_network_layer_param("kernel_size1", layer_index)),
+                "Kernel Size 2": create_int_input_field(create_network_layer_param("kernel_size2", layer_index)).prop('required', false),
                 "Stride": create_int_input_field(create_network_layer_param("stride", layer_index)),
-                "Padding": create_selector(create_network_layer_param("padding", layer_index), "Select padding", padding_types)}
+                "Padding": create_selector(create_network_layer_param("padding", layer_index), "Select padding", padding_types),
+                "Activation": create_selector(create_network_layer_param("activation", layer_index), "Select activation", activation_functions)}
     };
 
     var maxpool2d_params = function(layer_index) {
@@ -46,7 +48,6 @@ function create_dynamic_layer_builder(layer_types, padding_types, cell_types, ac
 
     var mdrnn_params = function(layer_index) {
         return {"Num Hidden": create_int_input_field(create_network_layer_param("num_hidden", layer_index)),
-                "Kernel Size": create_int_input_field(create_network_layer_param("kernel_size", layer_index)).prop("required", false),
                 "Cell Type": create_selector(create_network_layer_param("cell_type", layer_index), "Select cell type", cell_types),
                 "Activation": create_selector(create_network_layer_param("activation", layer_index), "Select activation", activation_functions)}
     };

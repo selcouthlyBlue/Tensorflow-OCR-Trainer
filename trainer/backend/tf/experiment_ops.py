@@ -88,9 +88,10 @@ def train(params, features, labels, num_classes, checkpoint_dir,
                     hooks=training_hooks)
 
 
-def evaluate(params, features, labels, checkpoint_dir):
-    _set_logger_to_file(checkpoint_dir, 'evaluate')
-    estimator = tf.estimator.Estimator(model_fn=_eval_model_fn,
+def test(params, features, labels, checkpoint_dir):
+    _set_logger_to_file(checkpoint_dir, 'test')
+    params['summary_dir'] = checkpoint_dir + '/test'
+    estimator = tf.estimator.Estimator(model_fn=_test_model_fn,
                                        params=params,
                                        model_dir=checkpoint_dir)
     estimator.evaluate(input_fn=_input_fn(features,
@@ -257,6 +258,20 @@ def _predict_model_fn(features, mode, params):
                             export_outputs={
                                 "outputs": tf.estimator.export.PredictOutput(predictions)
                             })
+
+
+def _test_model_fn(features, labels, mode, params):
+    loss, metrics, predictions = _get_evaluation_parameters(features, labels, mode, params)
+    _add_to_summary("test_loss", loss)
+    for metric_key in metrics:
+        _add_to_summary("test_"+metric_key, metrics[metric_key])
+    evaluation_hooks = [tf.train.LoggingTensorHook(predictions, every_n_iter=1),
+                        tf.train.SummarySaverHook(save_steps=1,
+                                                  output_dir=params['summary_dir'],
+                                                  summary_op=tf.summary.merge_all())
+                        ]
+    return _create_model_fn(mode, predictions=predictions, loss=loss,
+                            evaluation_hooks=evaluation_hooks)
 
 
 def _eval_model_fn(features, labels, mode, params):

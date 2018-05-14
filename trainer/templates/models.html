@@ -12,7 +12,7 @@
         {% for model in models %}
             <li class="collection-item row">
                 <ul>
-                   <li class="input-field col s3">{{ model }}</li>
+                   <li class="input-field col s2">{{ model }}</li>
                    <li class="input-field col s1">
                        <form id="testing" action="{{ url_for('tasks', task='continue_training') }}" method="post">
                              <ul>
@@ -47,9 +47,14 @@
                             Visualize
                        </a>
                    </li>
+                   <li class="input-field col s2">
+                       <a class="right waves-effect waves-light btn" href="{{ url_for('view_logs', model_name=model) }}" target="_blank">
+                            Logs
+                       </a>
+                   </li>
                    <li class="input-field col s1">
                        <form name="deletion" method="post" action="{{ url_for('delete_model', model_name=model) }}">
-                           <button type="submit" class="waves-effect waves-light btn red">
+                           <button type="submit" class="waves-effect waves-light btn red" title="delete">
                                <i class="material-icons">remove</i>
                            </button>
                        </form>

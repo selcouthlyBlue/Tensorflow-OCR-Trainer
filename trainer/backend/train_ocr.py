@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 
 from trainer.backend import dataset_utils
 from trainer.backend.tf import train
-from trainer.backend.tf import evaluate
+from trainer.backend.tf import test
 
 
 def train_model(run_params, dataset_dir, checkpoint_dir,
@@ -86,7 +86,7 @@ def evaluate_model(architecture_params, dataset_dir, charset_file,
                                                    architecture_params['desired_image_height'],
                                                    labels_delimiter,
                                                    labels_file)
-    evaluate(architecture_params, images, labels, checkpoint_dir)
+    test(architecture_params, images, labels, checkpoint_dir)
 
 
 def _prepare_dataset(charset_file, dataset_dir, desired_image_width, desired_image_height, labels_delimiter, labels_file):

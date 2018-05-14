@@ -49,18 +49,6 @@ class MDRNNTest(tf.test.TestCase):
         expected_shape = (None, 7, 11, 8)
         self._testAssertShapesAreEqual(outputs, expected_shape)
 
-    def testMDRNNUsingBlocks(self):
-        inputs = _create_input([2, 7, 11, 5])
-        outputs = mdrnn(inputs, num_hidden=8, kernel_size=2)
-        expected_shape = (2, 4, 6, 8)
-        self._testAssertShapesAreEqual(outputs, expected_shape)
-
-    def testMRNNUsingBlocksDynamicBatchSize(self):
-        inputs = _create_input([None, 7, 11, 5])
-        outputs = mdrnn(inputs, num_hidden=8, kernel_size=2)
-        expected_shape = (None, 4, 6, 8)
-        self._testAssertShapesAreEqual(outputs, expected_shape)
-
 
 if __name__ == "__main__":
     tf.test.main()

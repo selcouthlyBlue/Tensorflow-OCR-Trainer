@@ -1,0 +1,144 @@
+{
+"network": [
+{
+"layer_type": "conv2d",
+"num_filters": 15,
+"kernel_size": 3,
+"stride": 1,
+"padding": "same",
+"activation": "tanh"
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 2,
+"stride": 2,
+"padding": "valid"
+},
+{
+"layer_type": "mdrnn",
+"num_hidden": 30,
+"cell_type": "LSTM",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "conv2d",
+"num_filters": 45,
+"kernel_size": 3,
+"stride": 1,
+"padding": "same",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 2,
+"stride": 2,
+"padding": "valid"
+},
+{
+"layer_type": "mdrnn",
+"num_hidden": 60,
+"cell_type": "LSTM",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "conv2d",
+"num_filters": 75,
+"kernel_size": 3,
+"stride": 1,
+"padding": "same",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 2,
+"stride": 2,
+"padding": "valid"
+},
+{
+"layer_type": "mdrnn",
+"num_hidden": 90,
+"cell_type": "LSTM",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "conv2d",
+"num_filters": 105,
+"kernel_size": 3,
+"stride": 1,
+"padding": "same",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 1,
+"stride": 1,
+"padding": "valid"
+},
+{
+"layer_type": "mdrnn",
+"num_hidden": 120,
+"cell_type": "LSTM",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "conv2d",
+"num_filters": 105,
+"kernel_size": 3,
+"stride": 1,
+"padding": "same",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "max_pool2d",
+"pool_size": 1,
+"stride": 1,
+"padding": "valid"
+},
+{
+"layer_type": "mdrnn",
+"num_hidden": 120,
+"cell_type": "LSTM",
+"activation": "tanh"
+},
+{
+"layer_type": "dropout",
+"keep_prob": 0.25
+},
+{
+"layer_type": "collapse_to_rnn_dims"
+}
+],
+"output_layer": "ctc_decoder"
+}

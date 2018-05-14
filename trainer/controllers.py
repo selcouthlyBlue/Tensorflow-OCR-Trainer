@@ -262,8 +262,8 @@ def _export_serving_model(model_name, input_name="features", output_names="outpu
     serving_model_config = OrderedDict()
     input_node = OrderedDict()
     image_config = OrderedDict()
-    image_config['image_width'] = run_params['desired_image_size']
-    image_config['image_height'] = run_params['desired_image_size']
+    image_config['image_width'] = run_params['desired_image_width']
+    image_config['image_height'] = run_params['desired_image_height']
     input_node['input_name'] = input_name
     input_node['input_shape'] = input_shape
     serving_model_config['input_nodes'] = [input_node]

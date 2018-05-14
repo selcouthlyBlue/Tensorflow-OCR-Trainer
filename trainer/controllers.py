@@ -188,12 +188,14 @@ def visualize_model(model_name, host):
     visualization_task.start()
 
 
-def get_training_log(model_name):
+def get_log(model_name, log_name):
     model_path = get_model_path(model_name)
-    train_log_path = _create_path(model_path, "train.log")
-    with open(train_log_path) as f:
-        content = f.readlines()
-    content = [x.strip() for x in content]
+    log_path = _create_path(model_path, log_name+".log")
+    content = []
+    if os.path.exists(log_path):
+        with open(log_path) as f:
+            content = f.readlines()
+        content = [x.strip() for x in content]
     return content
 
 

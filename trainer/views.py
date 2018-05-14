@@ -13,7 +13,7 @@ from trainer.controllers import get_directory_list_from_config
 from trainer.controllers import get_enum_values
 from trainer.controllers import get_model_path
 from trainer.controllers import get_running_tasks
-from trainer.controllers import get_training_log
+from trainer.controllers import get_log
 from trainer.controllers import request_connection
 from trainer.controllers import run_learning_task
 from trainer.controllers import save_model_as_json
@@ -149,9 +149,11 @@ def visualize(model_name):
 
 @app.route('/view_logs/<model_name>')
 def view_logs(model_name):
-    train_log = get_training_log(model_name)
+    train_log = get_log(model_name, "train")
+    test_log = get_log(model_name, "test")
     return render_template("view_logs.html",
-                           train_log=train_log)
+                           train_log=train_log,
+                           test_log=test_log)
 
 
 @app.route('/delete_model/<model_name>', methods=['POST'])

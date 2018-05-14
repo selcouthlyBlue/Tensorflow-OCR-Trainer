@@ -5,14 +5,14 @@
         <h3>Create Network Architecture</h3>
         <form id="my_form" method="post" action="{{ url_for('architectures') }}">
             <div class="row valign-wrapper">
-                <div class="input-field col s8">
+                <div class="input-field col s12">
                     <input id="architecture_name" class="validate"
                            type="text" name="architecture_name"
                            required>
                     <label for="architecture_name">Architecture Name</label>
                 </div>
-                <div class="col s4">
-                    <a id="add-layer" class="right waves-effect waves-light btn">
+                <div class="fixed-action-btn">
+                    <a id="add-layer" class="btn-floating btn-large waves-effect waves-light" title="add layer">
                         <i class="material-icons left">add</i>
                         Add Layer
                     </a>

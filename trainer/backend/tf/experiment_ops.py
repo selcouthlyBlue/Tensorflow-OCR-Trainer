@@ -16,6 +16,7 @@ from trainer.backend.tf.util_ops import feed, dense_to_sparse, get_sequence_leng
 from trainer.backend.tf.ValidationHook import ValidationHook
 
 from tensorflow.contrib import slim
+from tensorflow.contrib.opt import NadamOptimizer
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -49,8 +50,10 @@ def _get_optimizer(learning_rate, optimizer_name):
         return tf.train.AdamOptimizer(learning_rate)
     if optimizer_name == Optimizers.ADADELTA.value:
         return tf.train.AdadeltaOptimizer(learning_rate)
-    elif optimizer_name == Optimizers.RMSPROP.value:
+    if optimizer_name == Optimizers.RMSPROP.value:
         return tf.train.RMSPropOptimizer(learning_rate)
+    if optimizer_name == Optimizers.NADAM.value:
+        return NadamOptimizer(learning_rate)
     raise NotImplementedError(optimizer_name + " optimizer not supported")
 
 

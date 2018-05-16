@@ -118,6 +118,12 @@ def train():
                            metrics=get_enum_values(GraphKeys.Metrics))
 
 
+@app.route('/retrain/<model_name>')
+def retrain(model_name):
+    return render_template("retrain.html", model_name=model_name,
+                           optimizers=get_enum_values(GraphKeys.Optimizers))
+
+
 @app.route('/tasks/<task>', methods=['GET', 'POST'])
 def tasks(task):
     if request.method == 'POST':

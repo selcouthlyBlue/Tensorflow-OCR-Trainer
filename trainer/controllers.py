@@ -332,7 +332,7 @@ def run_learning_task(task):
         running_task = _test_task(get('model_name'))
     elif task == 'retrain':
         running_task = _retrain_task(get('model_name'))
-    running_task.name = task
+    running_task.name = "{}-{}".format(task, get('model_name'))
 
 
 def _train_task(architecture_name,

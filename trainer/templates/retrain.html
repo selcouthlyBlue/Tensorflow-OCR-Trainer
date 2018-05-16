@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Retrain{% endblock %}
+{% block body %}
+    <div class="container white-text">
+        <h3>Retrain</h3>
+        <form action="{{ url_for('tasks', task='retrain') }}" method="post">
+        <input name="model_name" type="hidden" value="{{ model_name }}">
+        <div class="section">
+            <h5>Training Parameters</h5>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="learning_rate" class="validate"
+                       type="number" name="learning_rate"
+                       min="0.0000001"
+                       max="1"
+                       step="any"
+                       required>
+                    <label for="learning_rate">Learning Rate</label>
+                </div>
+                <div class="input-field col s4">
+                    <input id="num_epochs"
+                           name="num_epochs"
+                           class="validate"
+                           type="number"
+                           min="1"
+                           step="1">
+                    <label for="num_epochs">Number of Epochs</label>
+                </div>
+                <div class="input-field col s4">
+                    <input id="checkpoint_epochs"
+                           name="checkpoint_epochs"
+                           class="validate"
+                           type="number"
+                           min="1"
+                           step="1">
+                    <label for="checkpoint_epochs">Checkpoint Epochs</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <button class="btn waves-effect waves-light right" type="submit" name="action">Retrain
+                <i class="material-icons right">send</i>
+            </button>
+        </div>
+        </form>
+    </div>
+{% endblock %}
+{% block extra_script %}
+    <script>
+        $(document).ready(function () {
+           $('select').material_select();
+        });
+    </script>
+{% endblock %}

@@ -12,40 +12,46 @@
         {% for model in models %}
             <li class="collection-item row">
                 <ul>
-                   <li class="input-field col s2">{{ model }}</li>
-                   <li class="input-field col s1">
-                       <a class="right waves-effect waves-light btn" href="{{ url_for('retrain', model_name=model) }}">
-                            Retrain
-                       </a>
+                   <li class="col m3">
+                       {{ model }}
                    </li>
-                   <li class="input-field offset-s1 col s1">
-                       <form id="testing" action="{{ url_for('tasks', task='testing') }}" method="post">
-                             <ul>
-                                 <li>
-                                     <button type="submit" class="waves-effect waves-light btn right">
-                                         Test
-                                     </button>
-                                 </li>
-                             </ul>
-                             <input type="hidden" name="model_name" value="{{ model }}">
-                       </form>
+                   <li class="col m8">
+                       <div class="row">
+                           <div class="col m2">
+                               <a class="right waves-effect waves-light btn" href="{{ url_for('retrain', model_name=model) }}">
+                                    Retrain
+                               </a>
+                           </div>
+                           <div class="col m2">
+                               <form id="testing" action="{{ url_for('tasks', task='testing') }}" method="post">
+                                       <ul>
+                                           <li>
+                                               <button type="submit" class="waves-effect waves-light btn right">
+                                                   Test
+                                               </button>
+                                           </li>
+                                       </ul>
+                                   <input type="hidden" name="model_name" value="{{ model }}">
+                               </form>
+                           </div>
+                           <div class="col m3">
+                               <a class="right waves-effect waves-light btn" href="{{ url_for('export_model', model_name=model) }}" target="_blank">
+                                   Export
+                               </a>
+                           </div>
+                           <div class="col m3">
+                               <a class="right waves-effect waves-light btn" href="{{ url_for('visualize', model_name=model) }}" target="_blank">
+                                   Visualize
+                               </a>
+                           </div>
+                           <div class="col m2">
+                               <a class="right waves-effect waves-light btn" href="{{ url_for('view_logs', model_name=model) }}" target="_blank">
+                                   Logs
+                               </a>
+                           </div>
+                       </div>
                    </li>
-                   <li class="input-field col s2">
-                       <a class="right waves-effect waves-light btn" href="{{ url_for('export_model', model_name=model) }}" target="_blank">
-                            Export
-                       </a>
-                   </li>
-                   <li class="input-field col s2">
-                       <a class="right waves-effect waves-light btn" href="{{ url_for('visualize', model_name=model) }}" target="_blank">
-                            Visualize
-                       </a>
-                   </li>
-                   <li class="input-field col s2">
-                       <a class="right waves-effect waves-light btn" href="{{ url_for('view_logs', model_name=model) }}" target="_blank">
-                            Logs
-                       </a>
-                   </li>
-                   <li class="input-field col s1">
+                   <li class="col m1">
                        <form name="deletion" method="post" action="{{ url_for('delete_model', model_name=model) }}">
                            <button type="submit" class="waves-effect waves-light btn red" title="delete">
                                <i class="material-icons">remove</i>

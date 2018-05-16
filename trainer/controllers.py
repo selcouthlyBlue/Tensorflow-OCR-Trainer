@@ -320,11 +320,12 @@ def _retrain_task(model_name):
 
 
 def run_learning_task(task):
-    running_task = None
     if task == 'training':
         dataset_name = get('dataset_name')
+        checkpoint_dir = get_model_path("model-" + time.strftime("%Y%m%d-%H%M%S"))
         running_task = _train_task(get('architecture_name'),
                                    dataset_name,
+                                   checkpoint_dir,
                                    int(get('desired_image_width')),
                                    int(get('desired_image_height')),
                                    int(get('num_epochs')),
@@ -336,15 +337,22 @@ def run_learning_task(task):
                                    getlist('metrics'),
                                    get('loss'),
                                    get('validation_size'))
+        _set_running_task_name(running_task, task, checkpoint_dir)
     elif task == 'testing':
         running_task = _test_task(get('model_name'))
+        _set_running_task_name(running_task, task, get('model_name'))
     elif task == 'retrain':
         running_task = _retrain_task(get('model_name'))
-    running_task.name = "{}-{}".format(task, get('model_name'))
+        _set_running_task_name(running_task, task, get('model_name'))
+
+
+def _set_running_task_name(running_task, task, checkpoint_dir):
+    running_task.name = "{}-{}".format(task, checkpoint_dir)
 
 
 def _train_task(architecture_name,
                 dataset_name,
+                checkpoint_dir,
                 desired_image_width,
                 desired_image_height,
                 num_epochs,
@@ -359,7 +367,6 @@ def _train_task(architecture_name,
     if validation_size:
         validation_size = float(validation_size)
     dataset_dir = get_dataset(dataset_name)
-    checkpoint_dir = get_model_path("model-" + time.strftime("%Y%m%d-%H%M%S"))
     os.mkdir(checkpoint_dir)
     run_params = get_architecture_file_contents(architecture_name)
     classes = dataset_utils.get_characters_from(charset_file)

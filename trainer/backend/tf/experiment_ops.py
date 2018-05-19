@@ -23,13 +23,13 @@ tf.logging.set_verbosity(tf.logging.INFO)
 
 def _get_loss(loss, labels, inputs, num_classes):
     if loss == Losses.CTC.value:
-        inputs = ctc_ops.convert_to_ctc_dims(inputs,
-                                             num_classes=num_classes,
-                                             num_steps=inputs.shape[1],
-                                             num_outputs=inputs.shape[-1])
+        ctc_inputs = ctc_ops.convert_to_ctc_dims(inputs,
+                                                 num_classes=num_classes,
+                                                 num_steps=inputs.shape[1],
+                                                 num_outputs=inputs.shape[-1])
         labels = dense_to_sparse(labels, token_to_ignore=-1)
         return losses.ctc_loss(labels=labels,
-                               inputs=inputs,
+                               inputs=ctc_inputs,
                                sequence_length=get_sequence_lengths(inputs))
     raise NotImplementedError(loss + " loss not implemented")
 
@@ -161,13 +161,13 @@ def _create_model_fn(mode, predictions, loss=None, train_op=None,
                                       export_outputs=export_outputs)
 
 
-def _get_output(inputs, output_layer, num_classes):
+def _get_output(rnn_outputs, output_layer, num_classes):
     if output_layer == OutputLayers.CTC_DECODER.value:
-        inputs = ctc_ops.convert_to_ctc_dims(inputs,
-                                             num_classes=num_classes,
-                                             num_steps=inputs.shape[1],
-                                             num_outputs=inputs.shape[-1])
-        decoded, _ = ctc_ops.ctc_beam_search_decoder(inputs)
+        ctc_inputs = ctc_ops.convert_to_ctc_dims(rnn_outputs,
+                                                 num_classes=num_classes,
+                                                 num_steps=rnn_outputs.shape[1],
+                                                 num_outputs=rnn_outputs.shape[-1])
+        decoded, _ = ctc_ops.ctc_beam_search_decoder(ctc_inputs, get_sequence_lengths(rnn_outputs))
         return _sparse_to_dense(decoded, name="output")
     raise NotImplementedError(output_layer + " not implemented")
 
@@ -176,11 +176,11 @@ def _get_metrics(metrics, y_pred, y_true, num_classes):
     metrics_dict = {}
     for metric in metrics:
         if metric == Metrics.LABEL_ERROR_RATE.value:
-            y_pred = ctc_ops.convert_to_ctc_dims(y_pred,
-                                                 num_classes=num_classes,
-                                                 num_steps=y_pred.shape[1],
-                                                 num_outputs=y_pred.shape[-1])
-            y_pred, _ = ctc_ops.ctc_beam_search_decoder(y_pred)
+            ctc_inputs = ctc_ops.convert_to_ctc_dims(y_pred,
+                                                     num_classes=num_classes,
+                                                     num_steps=y_pred.shape[1],
+                                                     num_outputs=y_pred.shape[-1])
+            y_pred, _ = ctc_ops.ctc_beam_search_decoder(ctc_inputs, get_sequence_lengths(y_pred))
             y_true = dense_to_sparse(y_true, token_to_ignore=-1)
             value = metric_functions.label_error_rate(y_pred,
                                                       y_true,
@@ -267,7 +267,7 @@ def _test_model_fn(features, labels, mode, params):
     loss, metrics, predictions = _get_evaluation_parameters(features, labels, mode, params)
     _add_to_summary("test_loss", loss)
     for metric_key in metrics:
-        _add_to_summary("test_"+metric_key, metrics[metric_key])
+        _add_to_summary("test_" + metric_key, metrics[metric_key])
     evaluation_hooks = [tf.train.LoggingTensorHook(predictions, every_n_iter=1),
                         tf.train.SummarySaverHook(save_steps=1,
                                                   output_dir=params['summary_dir'],

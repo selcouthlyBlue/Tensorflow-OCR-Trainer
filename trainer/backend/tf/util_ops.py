@@ -7,9 +7,10 @@ from trainer.backend.GraphKeys import LayerTypes
 
 
 def get_sequence_lengths(inputs):
-    dims = tf.shape(inputs)[1]
-    sequence_length = tf.fill([dims], inputs.shape[0])
-    return sequence_length
+    used = tf.sign(tf.reduce_max(tf.abs(inputs), 2))
+    length = tf.reduce_sum(used, 1)
+    length = tf.cast(length, tf.int32)
+    return length
 
 
 def feed(inputs, layer, is_training):

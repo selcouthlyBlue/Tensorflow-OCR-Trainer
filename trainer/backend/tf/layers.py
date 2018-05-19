@@ -3,6 +3,13 @@ import tensorflow as tf
 from tensorflow.contrib import rnn, slim
 
 
+def get_sequence_lengths(inputs):
+    used = tf.sign(tf.reduce_max(tf.abs(inputs), 2))
+    length = tf.reduce_sum(used, 1)
+    length = tf.cast(length, tf.int32)
+    return length
+
+
 def reshape(tensor: tf.Tensor, new_shape: list, name="reshape"):
     return tf.reshape(tensor, new_shape, name=name)
 
@@ -16,6 +23,7 @@ def bidirectional_rnn(inputs, num_hidden, cell_type='LSTM',
         outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw,
                                                      cell_bw,
                                                      inputs,
+                                                     sequence_length=get_sequence_lengths(inputs),
                                                      dtype=tf.float32)
         if concat_output:
             return tf.concat(outputs, 2)

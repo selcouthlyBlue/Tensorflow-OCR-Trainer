@@ -315,7 +315,8 @@ def _retrain_task(model_name):
 def run_learning_task(task):
     if task == 'training':
         dataset_name = get('dataset_name')
-        checkpoint_dir = get_model_path("model-" + time.strftime("%Y%m%d-%H%M%S"))
+        model_name = "model-" + time.strftime("%Y%m%d-%H%M%S")
+        checkpoint_dir = get_model_path(model_name)
         running_task = _train_task(get('architecture_name'),
                                    dataset_name,
                                    checkpoint_dir,
@@ -329,7 +330,7 @@ def run_learning_task(task):
                                    getlist('metrics'),
                                    get('loss'),
                                    get('validation_size'))
-        _set_running_task_name(running_task, task, checkpoint_dir)
+        _set_running_task_name(running_task, task, model_name)
     elif task == 'testing':
         running_task = _test_task(get('model_name'))
         _set_running_task_name(running_task, task, get('model_name'))
